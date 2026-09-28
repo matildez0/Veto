@@ -27,7 +27,7 @@ Everything below is a **hypothesis**. None of it has been confirmed with real us
 - What would make them open Veto a second time?
 - Would they pay anything, and for what?
 
-### Privacy-conscious adults (25 to 45)
+### Privacy-conscious adults (21 to 45)
 
 **Hypotheses**
 - They know their GDPR rights, use privacy tools, and read privacy policies.
@@ -42,7 +42,7 @@ Everything below is a **hypothesis**. None of it has been confirmed with real us
 - Is phone or computer where they would do this? At what time of day?
 - What would a paid version have to offer to be worth it?
 
-### Adults with forgotten accounts (35 to 60)
+### Adults with forgotten accounts (25 to 60)
 
 **Hypotheses**
 - They no longer remember most of the accounts they created over the years.

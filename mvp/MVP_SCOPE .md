@@ -227,10 +227,3 @@ Decisions about the future (desktop, monetisation, business customers) are in [P
 **Testing.** Zero for Android testing (direct APK install). An iPhone test build needs an Apple Developer account (99 USD per year) or the free, limited development provisioning on a team member's device; the team decides in Phase 0. Store publication is not planned this semester.
 
 **Other.** Developer time, at least one iPhone and one Android phone for testing (one of them compatible with on-device AI if D0 requires it), and time for legal review of the templates.
-
-## 12. Team sign-off
-
-- [ ] Matilde
-- [ ] Renato
-- [ ] Rita
-- [ ] Sofia

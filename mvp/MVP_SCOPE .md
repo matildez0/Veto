@@ -21,7 +21,7 @@ The MVP targets Gmail users in Portugal who have accumulated accounts across man
 
 ## 3. How Veto works, in one paragraph
 
-Veto is a cross-platform mobile app (Flutter or React Native). The user authorises read-only access to Gmail from inside the app. The app downloads the metadata of candidate messages from Google, analyses it on the phone, and stores the results in a local encrypted database. To send a request, Veto opens the user's own email app with a prepared draft. The only infrastructure Veto hosts is a public, signed file with the catalogue of companies and their privacy contacts. The full data flow, permissions, and protections are described in [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md).
+Veto is a cross-platform mobile app. The user authorises read-only access to Gmail from inside the app. The app downloads the metadata of candidate messages from Google, analyses it on the phone, and stores the results in a local encrypted database. To send a request, Veto opens the user's own email app with a prepared draft. The only infrastructure Veto hosts is a public, signed file with the catalogue of companies and their privacy contacts. The full data flow, permissions, and protections are described in [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md).
 
 ## 4. In scope
 

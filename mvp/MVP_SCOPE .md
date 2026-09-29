@@ -15,13 +15,23 @@ Veto is a mobile app that brings those steps into one guided process. It scans t
 
 Veto is designed to keep that process private. **Emails downloaded by the app are analysed on the device. Veto does not receive or store emails or exposure maps on its servers.** There is no account with Veto. The user decides which companies to act on, which requests to send, and what to keep on their phone.
 
+### What makes Veto different
+
+- **It finds the companies for you.** Request generators assume you already know who has your data; Veto starts from your own inbox.
+- **No Veto server ever holds your mailbox or your results.** The analysis runs on the phone, and there is no account.
+- **Requests come from your own email.** Companies reply directly to you; Veto never acts as an intermediary.
+- **Honest results.** Every company comes with its evidence, and every status says who established it.
+- **Built for Portugal first**, with local companies, Portuguese templates, and references to the CNPD.
+
+The full comparison with Mine, data broker removal services, and request generators is in [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md#3-competition-and-what-makes-veto-different).
+
 ## 2. Initial audience for the semester
 
 The MVP targets Gmail users in Portugal who have accumulated accounts across many services. We work with three user groups (university students, privacy-conscious adults, and adults with forgotten accounts). What we believe about each group is still a **hypothesis** to test in the Phase 1 interviews, not confirmed behaviour. The full descriptions, and the questions each interview must answer, are in [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md#2-personas-hypotheses-to-validate).
 
 ## 3. How Veto works, in one paragraph
 
-Veto is a cross-platform mobile app (Flutter or React Native). The user authorises read-only access to Gmail from inside the app. The app downloads the metadata of candidate messages from Google, analyses it on the phone, and stores the results in a local encrypted database. To send a request, Veto opens the user's own email app with a prepared draft. The only infrastructure Veto hosts is a public, signed file with the catalogue of companies and their privacy contacts. The full data flow, permissions, and protections are described in [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md).
+Veto is a cross-platform mobile app built with React Native (Expo). The user authorises read-only access to Gmail from inside the app. The app downloads the metadata of candidate messages from Google, analyses it on the phone, and stores the results in a local encrypted database. To send a request, Veto opens the user's own email app with a prepared draft. The only infrastructure Veto hosts is a public, signed file with the catalogue of companies and their privacy contacts. The technologies and code structure are in [ARCHITECTURE.md](ARCHITECTURE.md); the full data flow, permissions, and protections are in [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md).
 
 ## 4. In scope
 
@@ -44,7 +54,7 @@ Veto is a cross-platform mobile app (Flutter or React Native). The user authoris
 - For each result, Veto shows the evidence it used (sender, subject, date), so the user can judge it.
 - The user confirms, dismisses, or re-categorises a result, or adds a company by hand.
 
-**Local AI experiment** (scope depends on decision D0). A small, self-contained experiment: an on-device model classifies the senders that the rules leave as `unknown` into the four categories. It runs on one compatible test device, and its results are compared with rules alone on the labelled test set. The main flow never depends on it: if the model is unavailable, results stay `unknown` and the user reviews them.
+**Local AI step** (optional, stretch goal; see D0 and D1). Rules and the catalogue do the main detection. As an extra step, an on-device model can try to classify the senders that the rules leave as `unknown`, which is where small Portuguese shops tend to end up. It runs only on compatible phones, and its results are compared with rules alone on the labelled test set. The main flow never depends on it: if the model is unavailable, results stay `unknown` and the user reviews them.
 
 **Company catalogue.**
 - At least twenty companies relevant to Portuguese users.
@@ -87,7 +97,7 @@ Veto is a cross-platform mobile app (Flutter or React Native). The user authoris
 - Filling in companies' web privacy forms.
 - Backup, sync, or transfer of the history to another phone (see Section 9).
 - Multi-language interface. Templates in Portuguese and English are enough.
-- Payments and plans (see [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md#6-monetisation)).
+- Payments and plans (see [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md#7-monetisation)).
 - Desktop app, browser extension, password manager import.
 - Any business-to-business feature.
 - Zero-knowledge attribute proofs. Future vision only.
@@ -200,25 +210,32 @@ Explicit non-goals: guaranteeing a reply from any company, automatic reply readi
 |---|---|---|
 | **History is lost when the phone is lost or replaced.** No account and no server means no copy elsewhere. | Accepted for the MVP, and said clearly in onboarding and on the "Delete everything" screen. Post-MVP: an encrypted export file that the user creates, keeps, and imports on a new phone, with a password only they know. | Accepted (MVP), Post-MVP (export) |
 | **Gmail only.** | Post-MVP: email file import (`.mbox`, `.eml`), which covers any provider that allows exporting, then Outlook through Microsoft Graph. | Post-MVP |
-| **Mobile only.** | Post-MVP desktop app (see [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md#4-platform-strategy)). | Post-MVP |
+| **Mobile only.** | Post-MVP desktop app (see [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md#5-platform-strategy)). | Post-MVP |
 | **Real Gmail limited to testers.** | Milestone A does not depend on Gmail; Milestone B is tested separately (Section 8). | MVP |
 
-## 10. Open decisions
+## 10. Decisions
+
+### Decided
+
+| # | Decision | Chosen | Why |
+|---|---|---|---|
+| D0 | Is an AI component required by the course evaluation? | **No.** | AI is not mandatory for the MVP. It stays as an optional stretch goal (D1). |
+| D1 | Detection technology | **Rules and catalogue in the main flow. Local model as an optional extra step** for senders left as `unknown`. No external AI service. | Rules are predictable, fast, testable, and work on every phone. A local model adds download size, only runs on some phones, and is harder to test, so it only helps where rules fail and never blocks the flow. |
+| D2 | How requests are sent | **From the user's own mailbox**: `mailto:` draft in their email app, plus "Copy request". | Veto never sends email. The request comes from the person the data belongs to, and the company replies to them directly. |
+| D3 | Contacts for companies outside the catalogue | **Catalogue plus a contact the user confirms** from the company's privacy policy. | Automatic guessing can send a request to the wrong or a non-existent address, and the user would believe it was delivered. A contact the user checked is slower but reliable. "Report a missing company" helps the catalogue grow. |
+| D6 | Cross-platform framework | **React Native (Expo) with TypeScript.** | The team already knows React and TypeScript. See [ARCHITECTURE.md](ARCHITECTURE.md). |
+| D7 | Google OAuth during the semester | **Testing mode**, with the team and invited testers. | No Google review is needed while testing. Testers see an "unverified app" warning and re-authorise about once a week, which fits the per-scan connection. Milestones A and B stay independent. Google verification is required before any public release (see [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md#8-requirements-before-a-public-launch)). |
+
+### Still open
 
 | # | Decision | Options | Proposal |
 |---|---|---|---|
-| **D0** | **Is an AI component required by the course evaluation?** The approved proposal described the language model as the technical core of detection; this scope makes it an experiment. | Rules and catalogue are enough. A small, mandatory local AI experiment. | **Ask the supervisor this week.** If AI is required, the local AI experiment in Section 4 becomes mandatory and gets its own acceptance criterion (results compared with rules alone on the labelled set), without the main flow depending on it. |
-| D1 | Detection technology in the main flow | Rules and catalogue. Local model. External model. | Rules and catalogue. No external model in any version that claims local analysis. |
-| D2 | How requests are sent | `mailto:` from the user's email app. Veto's own email service. `gmail.send` scope. | `mailto:` plus "Copy request". Veto never sends email. |
-| D3 | Contacts for companies outside the catalogue | Automatic discovery. Catalogue only. Catalogue plus user-confirmed contact. | Catalogue plus user-confirmed contact from the privacy policy. No automatic guessing. |
 | D4 | Phase 1 interviews | Students only. All three groups. | Three interviews per group (nine in total), plus one or two data protection officers. |
 | D5 | Email time window scanned | One year. Five years. All. | Five years by default; the user can widen it. |
-| D6 | Cross-platform framework | Flutter. React Native (Expo). Native. | Chosen by the needs of the mobile MVP and the team's experience, not by assumed desktop portability. Decide in Phase 0. |
-| D7 | Google OAuth during the semester | Testing mode. Submit for verification. | Testing mode with the team and invited testers. In Testing, **refresh tokens** for this kind of project normally expire after seven days, so testers re-authorise roughly weekly; this fits the per-scan connection. Milestones A and B are kept independent. Verification is required before any public distribution. |
 | D8 | Legal review of templates | UMinho contact. External lawyer. CNPD guidance. | Contact UMinho in Phase 2; cross-check with CNPD guidance. |
 | D9 | History when the phone is lost or replaced | Accept the loss. Encrypted export file. Cloud sync. | Accept the loss in the MVP and warn the user. Encrypted export file controlled by the user after the MVP. No cloud sync. |
 
-Decisions about the future (desktop, monetisation, business customers) are in [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md#8-post-mvp-decisions).
+Decisions about the future (desktop, monetisation, business customers) are in [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md#9-post-mvp-decisions).
 
 ## 11. Semester cost
 
@@ -226,11 +243,5 @@ Decisions about the future (desktop, monetisation, business customers) are in [P
 
 **Testing.** Zero for Android testing (direct APK install). An iPhone test build needs an Apple Developer account (99 USD per year) or the free, limited development provisioning on a team member's device; the team decides in Phase 0. Store publication is not planned this semester.
 
-**Other.** Developer time, at least one iPhone and one Android phone for testing (one of them compatible with on-device AI if D0 requires it), and time for legal review of the templates.
+**Other.** Developer time, at least one iPhone and one Android phone for testing (one of them compatible with on-device AI, for the optional local AI step), and time for legal review of the templates.
 
-## 12. Team sign-off
-
-- [ ] Matilde
-- [ ] Renato
-- [ ] Rita
-- [ ] Sofia

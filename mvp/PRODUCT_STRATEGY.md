@@ -25,13 +25,21 @@ Veto is designed to keep that process private. **Emails downloaded by the app ar
 
 The full comparison with Mine, data broker removal services, and request generators is in [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md#3-competition-and-what-makes-veto-different).
 
+<<<<<<< HEAD
 ## 2. Initial audience for the semester
+=======
+### Privacy-conscious adults (21 to 45)
+>>>>>>> 4eeb7d2ae34c0482a3926755b5f289f32bcbf06c
 
 The MVP targets Gmail users in Portugal who have accumulated accounts across many services. We work with three user groups (university students, privacy-conscious adults, and adults with forgotten accounts). What we believe about each group is still a **hypothesis** to test in the Phase 1 interviews, not confirmed behaviour. The full descriptions, and the questions each interview must answer, are in [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md#2-personas-hypotheses-to-validate).
 
 ## 3. How Veto works, in one paragraph
 
+<<<<<<< HEAD
 Veto is a cross-platform mobile app built with React Native (Expo). The user authorises read-only access to Gmail from inside the app. The app downloads the metadata of candidate messages from Google, analyses it on the phone, and stores the results in a local encrypted database. To send a request, Veto opens the user's own email app with a prepared draft. The only infrastructure Veto hosts is a public, signed file with the catalogue of companies and their privacy contacts. The technologies and code structure are in [ARCHITECTURE.md](ARCHITECTURE.md); the full data flow, permissions, and protections are in [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md).
+=======
+### Adults with forgotten accounts (25 to 60)
+>>>>>>> 4eeb7d2ae34c0482a3926755b5f289f32bcbf06c
 
 ## 4. In scope
 

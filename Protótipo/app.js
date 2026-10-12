@@ -6,8 +6,13 @@ const empresasDemo = [
   { id: 'vinted', name: 'Vinted', domain: 'vinted.pt', dpo_email: 'privacysupport@vinted.pt', contact_type: 'canal RGPD', category: 'Marketplace', risk: 'médio', icon: 'V' }
 ];
 
-const knownCompanies = new Map(empresasDemo.map((company) => [company.domain, company]));
+const empresasConhecidas = [
+  ...empresasDemo,
+  { id: 'anthropic', name: 'Anthropic', domain: 'anthropic.com', category: 'Inteligência artificial', risk: 'por avaliar', icon: 'A', dpo_email: '' }
+];
+const knownCompanies = new Map(empresasConhecidas.map((company) => [company.domain, company]));
 const GMAIL_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
+const multiPartPublicSuffixes = new Set(['co.uk', 'com.au', 'co.nz', 'co.za', 'com.br', 'com.mx']);
 const ignoredDomains = new Set([
   'gmail.com', 'googlemail.com', 'google.com', 'accounts.google.com',
   'mail.google.com', 'googleusercontent.com', 'googleapis.com',
@@ -86,21 +91,42 @@ function extrairDominios(value) {
   const domains = [];
   const emails = value.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || [];
   emails.forEach((email) => {
-    const domain = email.split('@')[1].toLowerCase().replace(/^www\./, '');
+    const domain = normalizarDominio(email.split('@')[1]);
+    if (domain && !isProviderDomain(domain)) domains.push(domain);
+  });
+  const urls = value.match(/https?:\/\/(?:www\.)?([A-Z0-9.-]+\.[A-Z]{2,})/gi) || [];
+  urls.forEach((url) => {
+    const domain = normalizarDominio(url.replace(/^https?:\/\/(?:www\.)?/i, '').split('/')[0]);
     if (domain && !isProviderDomain(domain)) domains.push(domain);
   });
   return domains;
 }
 
+function normalizarDominio(domain) {
+  return domain.toLowerCase().replace(/^www\./, '').replace(/\.$/, '');
+}
+
 function isProviderDomain(domain) {
-  return ignoredDomains.has(domain);
+  return ignoredDomains.has(domain) || [...ignoredDomains].some((provider) => domain.endsWith(`.${provider}`));
+}
+
+function obterDominioEmpresa(domain) {
+  const conhecido = [...knownCompanies.keys()].find((companyDomain) => (
+    domain === companyDomain || domain.endsWith(`.${companyDomain}`)
+  ));
+  if (conhecido) return conhecido;
+
+  const partes = domain.split('.');
+  const suffixSize = multiPartPublicSuffixes.has(partes.slice(-2).join('.')) ? 2 : 1;
+  return partes.slice(-(suffixSize + 1)).join('.');
 }
 
 function criarEmpresaLocal(domain) {
-  if (knownCompanies.has(domain)) return { ...knownCompanies.get(domain) };
-  const label = domain.split('.')[0].replace(/[-_]/g, ' ');
+  const dominioEmpresa = obterDominioEmpresa(normalizarDominio(domain));
+  if (knownCompanies.has(dominioEmpresa)) return { ...knownCompanies.get(dominioEmpresa) };
+  const label = dominioEmpresa.split('.')[0].replace(/[-_]/g, ' ');
   const name = label.replace(/\b\w/g, (letter) => letter.toUpperCase());
-  return { id: domain, name, domain, category: 'Serviço detetado', risk: 'por avaliar', icon: name[0] || '?', dpo_email: '' };
+  return { id: dominioEmpresa, name, domain: dominioEmpresa, category: 'Serviço detetado', risk: 'por avaliar', icon: name[0] || '?', dpo_email: '' };
 }
 
 function mostrarEmpresas(novasEmpresas, mensagem) {

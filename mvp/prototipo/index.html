@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#07111f">
+  <title>Veto: a tua pegada, sob controlo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['DM Sans', 'sans-serif'], display: ['Space Grotesk', 'sans-serif'] },
+          colors: { ink: '#07111f', lime: '#c8f169', mist: '#9eabbc' }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Os pontos do mapa aparecem um a um ao entrar na página e ao mudar a cor */
+    @keyframes dot-in { from { opacity: 0; transform: scale(0.2); } to { opacity: 1; transform: scale(1); } }
+    .dot-in { transform-box: fill-box; transform-origin: center; animation: dot-in 0.45s cubic-bezier(0.2, 0.8, 0.3, 1.25) both; }
+    @media (prefers-reduced-motion: reduce) { .dot-in { animation: none; } }
+  </style>
+</head>
+<body class="bg-ink text-slate-100 antialiased">
+  <main class="mx-auto min-h-screen w-full max-w-md overflow-hidden bg-ink pb-28">
+    <header class="px-5 pt-8">
+      <div class="flex items-center justify-between">
+        <a href="#inicio" class="font-display text-2xl font-bold tracking-tight">veto<span class="text-lime">.</span></a>
+        <button id="privacy-button" class="flex items-center gap-1.5 rounded-full border border-slate-700/80 px-3 py-1.5 text-xs font-semibold text-slate-300" type="button">
+          <span class="h-1.5 w-1.5 rounded-full bg-lime"></span> local-first
+        </button>
+      </div>
+    </header>
+
+    <!-- ===================== INÍCIO ===================== -->
+    <div id="view-inicio" data-view="inicio">
+      <div class="px-5 pb-5 pt-8">
+        <p class="text-sm text-lime">Olá, Utilizador</p>
+        <h1 class="mt-1 font-display text-3xl font-semibold leading-tight">A tua pegada,<br><span class="text-slate-400">sob controlo.</span></h1>
+      </div>
+
+      <section class="mx-5 rounded-3xl bg-lime p-5 text-ink shadow-[0_18px_50px_rgba(200,241,105,0.12)]">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-ink/60">Shadow data</p>
+            <p class="mt-2 font-display text-5xl font-semibold"><span id="service-count">0</span><span class="text-2xl"> empresas</span></p>
+          </div>
+          <div class="rounded-2xl bg-ink/10 p-3 text-2xl">◌</div>
+        </div>
+        <div class="mt-5 flex items-center justify-between border-t border-ink/10 pt-3 text-xs font-semibold">
+          <span><span id="risk-count">0</span> em áreas sensíveis</span>
+          <span id="analysis-date">ainda não analisado</span>
+        </div>
+      </section>
+
+      <section id="intro-panel" class="mx-5 mt-5 rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
+        <div class="flex gap-3">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-xl">✦</div>
+          <div>
+            <h2 class="font-semibold">Liga a tua conta Gmail</h2>
+            <p class="mt-1 text-sm leading-5 text-mist">Usamos a API oficial do Google em modo só de leitura. Dos teus últimos 500 emails, só lemos o remetente, o assunto e a data, e tudo é tratado neste dispositivo. Um resultado é uma pista, não uma confirmação de conta ativa.</p>
+          </div>
+        </div>
+        <label class="mt-5 block text-xs font-semibold text-slate-300" for="google-client-id">Google OAuth Client ID</label>
+        <input id="google-client-id" class="mt-2 w-full rounded-xl border border-slate-700 bg-ink px-3 py-3 text-xs outline-none placeholder:text-slate-600 focus:border-lime" placeholder="ex.: 123456789.apps.googleusercontent.com" autocomplete="off" type="text">
+        <p class="mt-2 text-[11px] leading-4 text-slate-500">Cria um cliente Web na Google Cloud Console e autoriza a origem desta página. O ID fica apenas nesta sessão.</p>
+        <button id="analyze-button" class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-sm font-bold text-ink transition hover:bg-slate-100 active:scale-[.98]" type="button">
+          Ligar Gmail e analisar <span>→</span>
+        </button>
+        <button id="demo-button" class="mt-3 w-full text-xs font-semibold text-slate-500 underline decoration-slate-700 underline-offset-4" type="button">Ver exemplo sem ligar uma conta</button>
+        <div id="analysis-progress" class="mt-4 hidden h-1.5 w-full overflow-hidden rounded-full bg-slate-800" role="progressbar" aria-label="Progresso da análise"><div class="h-full rounded-full bg-lime transition-all duration-300" style="width:0%"></div></div>
+        <p id="analysis-status" class="mt-3 hidden text-center text-xs text-slate-400"></p>
+      </section>
+
+      <section id="next-steps" class="mx-5 mt-5 hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Próximo passo</p>
+        <p id="next-steps-text" class="mt-2 text-sm leading-5 text-mist"></p>
+        <a href="#resultados" class="mt-4 flex w-full items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-bold text-ink">Ver quem pode ter os teus dados <span>→</span></a>
+        <a href="#pedidos" class="mt-2 flex w-full items-center justify-between rounded-xl border border-slate-700 px-4 py-3 text-sm font-semibold text-slate-200"><span>Ver o mapa de exposição <span id="next-steps-requests" class="text-slate-500"></span></span><span>→</span></a>
+        <button data-action="nova-analise" class="mt-3 w-full text-xs font-semibold text-slate-500 underline decoration-slate-700 underline-offset-4" type="button">Analisar de novo</button>
+      </section>
+
+      <section class="mx-5 mt-7 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+        <div class="flex gap-3">
+          <span class="text-xl">♧</span>
+          <div>
+            <h3 class="text-sm font-semibold">Privacidade por conceção</h3>
+            <p class="mt-1 text-xs leading-5 text-mist">Sem contas, sem cloud e sem bases de dados centrais. Os resultados e os pedidos ficam guardados só neste dispositivo, e podes apagar tudo quando quiseres.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===================== RESULTADOS (depois da análise) ===================== -->
+    <div id="view-resultados" data-view="resultados" class="hidden">
+      <section class="px-5 pt-8">
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Resultado da análise</p>
+        <h1 class="mt-1 font-display text-2xl font-semibold leading-tight">Quem pode ter os teus dados</h1>
+      </section>
+
+      <div id="results-empty" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-6 text-center">
+        <p class="text-sm text-mist">Ainda não analisaste o teu email.</p>
+        <a href="#inicio" class="mt-3 inline-block rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink">Analisar agora</a>
+      </div>
+
+      <div id="results-content">
+        <section class="mx-5 mt-4 rounded-3xl bg-lime p-5 text-ink">
+          <p class="font-display text-4xl font-semibold"><span id="dash-total">0</span> <span class="text-xl">empresas</span></p>
+          <p id="dash-source" class="mt-1 text-sm font-semibold text-ink/70">podem ter os teus dados, a julgar pelos teus emails.</p>
+          <div id="dash-sensitive" class="mt-4 flex items-center gap-2 rounded-xl bg-ink/10 px-3 py-2 text-xs font-semibold"></div>
+          <div class="mt-4">
+            <div id="dash-kind-bar" class="flex h-2.5 w-full overflow-hidden rounded-full bg-ink/10" role="img" aria-label="O que os emails indicam"></div>
+            <div id="dash-kind-legend" class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold text-ink/70"></div>
+          </div>
+        </section>
+
+        <section class="mx-5 mt-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+          <p class="text-sm font-semibold">Gravidade se estes dados se perderem</p>
+          <div id="severity-bar" class="mt-3 flex h-2.5 w-full gap-[2px]" role="img" aria-label="Empresas por gravidade"></div>
+          <div id="severity-legend" class="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[11px] font-semibold"></div>
+          <a href="#pedidos" class="mt-3 inline-block text-xs font-semibold text-lime">Ver no mapa de exposição →</a>
+        </section>
+
+        <section class="mt-7">
+          <div class="flex items-end justify-between px-5">
+            <h2 class="font-display text-lg font-semibold">Por área</h2>
+            <button id="sector-reset" data-action="setor" data-sector="todos" class="hidden text-xs font-semibold text-lime" type="button">Ver todas</button>
+          </div>
+          <div id="sector-grid" class="mt-3 grid grid-cols-2 gap-3 px-5"></div>
+        </section>
+
+        <section class="mt-7">
+          <div class="flex items-end justify-between px-5">
+            <h2 id="list-title" class="font-display text-lg font-semibold">Todas as empresas</h2>
+            <span id="service-total" class="text-xs text-mist"></span>
+          </div>
+          <div id="kind-filters" class="mt-3 flex gap-2 overflow-x-auto px-5 pb-1"></div>
+          <div class="mt-3 px-5">
+            <label class="relative block">
+              <span class="sr-only">Pesquisar empresas</span>
+              <input id="search-input" class="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm outline-none placeholder:text-slate-600 focus:border-lime" placeholder="Pesquisar empresa..." type="search">
+              <span class="pointer-events-none absolute right-4 top-3 text-slate-500">⌕</span>
+            </label>
+          </div>
+          <div id="companies-container" class="mt-4 flex flex-col gap-3 px-5"></div>
+          <div id="dismissed-row" class="mt-4 hidden px-5 text-center"></div>
+        </section>
+
+        <details class="mx-5 mt-7 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+          <summary class="cursor-pointer text-sm font-semibold text-slate-200">Como chegámos a esta lista?</summary>
+          <div id="kind-legend" class="mt-3 flex flex-col gap-2 text-xs leading-5 text-mist"></div>
+        </details>
+      </div>
+    </div>
+
+    <!-- ===================== PEDIDOS: MAPA DE EXPOSIÇÃO (depois de enviar) ===================== -->
+    <div id="view-pedidos" data-view="pedidos" class="hidden">
+      <section class="px-5 pt-8">
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Mapa de exposição</p>
+        <h1 class="mt-1 font-display text-2xl font-semibold leading-tight">Onde estão os teus dados</h1>
+        <p class="mt-2 text-sm leading-5 text-mist">Cada ponto é uma empresa, agrupada por área. Vê quão grave seria perder os dados de cada uma e em que ponto estão os teus pedidos.</p>
+      </section>
+
+      <div id="demo-banner" class="mx-5 mt-4 hidden rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-xs text-amber-100">
+        <span id="demo-banner-text">Isto é um exemplo: os pedidos não são reais.</span>
+        <button data-action="limpar-exemplo" class="ml-1 font-bold underline" type="button">Limpar exemplo</button>
+      </div>
+
+      <div id="map-empty" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-6 text-center">
+        <p class="text-sm text-mist">O mapa aparece depois de analisares o teu email. Cada empresa encontrada fica um ponto, e muda de cor à medida que lhe envias pedidos.</p>
+        <a href="#inicio" class="mt-3 inline-block rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink">Analisar agora</a>
+        <button data-action="exemplo-mapa" class="mt-3 block w-full text-xs font-semibold text-slate-500 underline decoration-slate-700 underline-offset-4" type="button">Ver um exemplo</button>
+      </div>
+
+      <div id="map-content" class="hidden">
+        <section id="map-card" class="mx-5 mt-5 rounded-3xl border border-slate-800 bg-slate-900/40 p-4">
+          <p id="map-summary" class="text-sm text-slate-300"></p>
+          <div id="map-mode" class="mt-3 flex gap-1 rounded-xl bg-ink/70 p-1 text-xs font-semibold" role="group" aria-label="Colorir os pontos por"></div>
+          <p id="map-mode-help" class="mt-2 text-[11px] leading-4 text-mist"></p>
+          <div id="dot-map" class="mt-3"></div>
+          <div id="map-legend" class="mt-3 flex flex-wrap gap-1.5"></div>
+        </section>
+
+        <section id="map-detail" class="mx-5 mt-4 scroll-mb-24 rounded-2xl border border-slate-800 bg-slate-900/60 p-4" aria-live="polite"></section>
+
+        <div id="no-requests" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-5 text-center">
+          <p class="text-sm text-mist">Ainda não enviaste nenhum pedido. Começa pelas empresas de gravidade crítica: toca num ponto e pede os teus dados.</p>
+          <p class="mt-2 text-xs text-slate-500">Os contactos de privacidade deste protótipo são de exemplo.</p>
+          <button data-action="exemplo-mapa" class="mt-3 block w-full text-xs font-semibold text-slate-500 underline decoration-slate-700 underline-offset-4" type="button">Simular respostas nas minhas empresas</button>
+        </div>
+
+        <div id="requests-section">
+          <h2 class="mx-5 mt-9 font-display text-xl font-semibold">Os teus pedidos</h2>
+          <section id="group-attention" class="mx-5 mt-4">
+            <h3 class="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Precisam de ti</h3>
+            <div class="mt-3 flex flex-col gap-3"></div>
+          </section>
+          <section id="group-waiting" class="mx-5 mt-6">
+            <h3 class="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">À espera de resposta</h3>
+            <div class="mt-3 flex flex-col gap-3"></div>
+          </section>
+          <section id="group-done" class="mx-5 mt-6">
+            <h3 class="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Concluídos</h3>
+            <div class="mt-3 flex flex-col gap-3"></div>
+          </section>
+        </div>
+      </div>
+
+      <section class="mx-5 mt-8 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-xs leading-5 text-mist">
+        Os estados dos pedidos são indicados por ti: o Veto não lê as respostas das empresas. Tudo fica guardado só neste dispositivo.
+        <button data-action="apagar-tudo" class="mt-3 block w-full rounded-lg border border-rose-400/30 py-2.5 text-xs font-bold text-rose-200" type="button">Apagar tudo deste dispositivo</button>
+      </section>
+    </div>
+  </main>
+
+  <nav class="fixed bottom-0 left-1/2 z-10 flex w-full max-w-md -translate-x-1/2 justify-around border-t border-slate-800 bg-ink/95 px-6 py-3 backdrop-blur">
+    <a href="#inicio" data-nav="inicio" class="nav-button flex flex-col items-center gap-1 text-slate-500"><span>⌂</span><span class="text-[10px] font-semibold">Início</span></a>
+    <a href="#resultados" data-nav="resultados" class="nav-button flex flex-col items-center gap-1 text-slate-500"><span>◫</span><span class="text-[10px] font-semibold">Resultados</span></a>
+    <a href="#pedidos" data-nav="pedidos" class="nav-button relative flex flex-col items-center gap-1 text-slate-500"><span>◉</span><span class="text-[10px] font-semibold">Mapa</span><span id="nav-badge" class="absolute -right-2 -top-1 hidden min-w-[16px] rounded-full bg-rose-400 px-1 text-center text-[10px] font-bold leading-4 text-ink"></span></a>
+  </nav>
+
+  <div id="sheet" class="fixed inset-0 z-30 hidden items-end justify-center bg-black/60" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="w-full max-w-md rounded-t-3xl border-t border-slate-700 bg-slate-900 p-5 pb-8">
+      <h2 id="sheet-title" class="font-display text-lg font-semibold"></h2>
+      <p id="sheet-text" class="mt-2 text-sm leading-5 text-mist"></p>
+      <div id="sheet-options" class="mt-5 flex flex-col gap-2"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="pointer-events-none fixed bottom-20 left-1/2 z-40 hidden w-[calc(100%-40px)] max-w-sm -translate-x-1/2 rounded-xl bg-white px-4 py-3 text-center text-sm font-semibold text-ink shadow-xl"></div>
+  <script src="app.js"></script>
+</body>
+</html>

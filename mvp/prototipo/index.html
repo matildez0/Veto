@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#07111f">
+  <meta name="theme-color" content="#2c2d2a">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232c2d2a'/%3E%3Cpath transform='translate(-3.91 -5.65) scale(0.3903)' d='M40.76 61.5H54.43L79.79 117.85Q81.43 121.5 85.43 121.5H98.57Q102.57 121.5 104.21 117.85L129.57 61.5H143.24L116.09 125.38Q111.79 135.5 100.79 135.5H83.21Q72.21 135.5 67.91 125.38Z' fill='%23c2ea5d'/%3E%3C/svg%3E">
   <title>Veto: a tua pegada, sob controlo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +16,14 @@
       theme: {
         extend: {
           fontFamily: { sans: ['DM Sans', 'sans-serif'], display: ['Space Grotesk', 'sans-serif'] },
-          colors: { ink: '#07111f', lime: '#c8f169', mist: '#9eabbc' }
+          colors: {
+            ink: '#2c2d2a',   // fundo da app
+            plum: '#200223',  // pormenores (seleções, navegação, destaques)
+            lime: '#c2ea5d', // verde do logo
+            mist: '#a5a59e',
+            // Cinzentos quentes, a condizer com o fundo
+            slate: { 100: '#f1f1ec', 200: '#e3e3dd', 300: '#c9c9c2', 400: '#a5a59e', 500: '#7f7f79', 600: '#63645f', 700: '#4c4d49', 800: '#3d3e3a', 900: '#343531', 950: '#232421' }
+          }
         }
       }
     };
@@ -24,16 +32,48 @@
     /* Os pontos do mapa aparecem um a um ao entrar na página e ao mudar a cor */
     @keyframes dot-in { from { opacity: 0; transform: scale(0.2); } to { opacity: 1; transform: scale(1); } }
     .dot-in { transform-box: fill-box; transform-origin: center; animation: dot-in 0.45s cubic-bezier(0.2, 0.8, 0.3, 1.25) both; }
-    @media (prefers-reduced-motion: reduce) { .dot-in { animation: none; } }
+    /* O mapa está sempre vivo: as bolhas flutuam e os pontos mais graves emitem um sinal */
+    @keyframes flutuar { 0%, 100% { transform: translate(0, 0); } 33% { transform: translate(1.5px, -3.5px); } 66% { transform: translate(-1.5px, -1.5px); } }
+    .bolha-flutua { animation: flutuar var(--dur, 6s) ease-in-out infinite; animation-delay: var(--atraso, 0s); }
+    @keyframes radar { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(2.6); opacity: 0; } }
+    .ponto-radar { transform-box: fill-box; transform-origin: center; animation: radar 2.4s ease-out infinite; }
+    /* Quando um pedido muda de estado, o ponto salta e solta uma onda */
+    @keyframes mudou { 0% { transform: scale(1); } 35% { transform: scale(1.9); } 100% { transform: scale(1); } }
+    .ponto-mudou { transform-box: fill-box; transform-origin: center; animation: mudou 0.7s cubic-bezier(0.2, 0.8, 0.3, 1.2) 2; }
+    @keyframes onda { from { transform: scale(1); opacity: 0.8; } to { transform: scale(3.4); opacity: 0; } }
+    .ponto-onda { transform-box: fill-box; transform-origin: center; animation: onda 1s ease-out 3 both; }
+    @keyframes respirar { 0%, 100% { stroke-opacity: 1; } 50% { stroke-opacity: 0.35; } }
+    .bolha-ativa { animation: respirar 1.8s ease-in-out infinite; }
+    /* Ao analisar de novo, o bloco de teste aparece por cima do resumo */
+    #intro-panel:not(.hidden) + #home-summary { margin-top: 1.25rem; }
+    @media (prefers-reduced-motion: reduce) {
+      .dot-in, .bolha-flutua, .ponto-radar, .ponto-mudou, .ponto-onda, .bolha-ativa { animation: none; }
+      .ponto-radar, .ponto-onda { display: none; }
+    }
   </style>
 </head>
 <body class="bg-ink text-slate-100 antialiased">
+  <!-- Aparece se o app.js não carregar (por exemplo, se o ficheiro mudou de nome ao ser descarregado) -->
+  <div id="erro-app" hidden style="position:sticky;top:0;z-index:50;background:#fb7185;color:#2c2d2a;padding:12px 16px;font:600 14px/1.4 system-ui,sans-serif;text-align:center">
+    A app não arrancou: não encontrei o ficheiro <b>app.js</b>. Põe-no na mesma pasta que este index.html, com o nome exatamente <b>app.js</b>.
+  </div>
   <main class="mx-auto min-h-screen w-full max-w-md overflow-hidden bg-ink pb-28">
     <header class="px-5 pt-8">
-      <div class="flex items-center justify-between">
-        <a href="#inicio" class="font-display text-2xl font-bold tracking-tight">veto<span class="text-lime">.</span></a>
-        <button id="privacy-button" class="flex items-center gap-1.5 rounded-full border border-slate-700/80 px-3 py-1.5 text-xs font-semibold text-slate-300" type="button">
-          <span class="h-1.5 w-1.5 rounded-full bg-lime"></span> local-first
+      <div class="flex items-center justify-between gap-3">
+        <a href="#inicio" aria-label="Veto, início" class="block shrink-0">
+          <svg viewBox="0 0 446 74" class="h-[19px] w-auto" role="img" aria-hidden="true">
+            <g fill="#c2ea5d" transform="translate(-40.5 -61.5)">
+              <path d="M40.76 61.5H54.43L79.79 117.85Q81.43 121.5 85.43 121.5H98.58Q102.58 121.5 104.22 117.85L129.58 61.5H141.5V68.33L115.79 125.47Q111.28 135.5 100.28 135.5H83.21Q72.21 135.5 67.91 125.38Z"/>
+              <path d="M244 61.5H177.5A36 36 0 0 0 141.5 97.5V99.5A36 36 0 0 0 177.5 135.5H244A3 3 0 0 0 247 132.5V124.5A3 3 0 0 0 244 121.5H181.5A23.5 23.5 0 0 1 160.01 107.5H213.5A3 3 0 0 0 216.5 104.5V96.5A3 3 0 0 0 213.5 93.5H158.65A23.5 23.5 0 0 1 181.5 75.5H244A3 3 0 0 0 247 72.5V64.5A3 3 0 0 0 244 61.5Z"/>
+              <path d="M262.5 61.5H361.5A3 3 0 0 1 364.5 64.5V72.5A3 3 0 0 1 361.5 75.5H319.5V135.5H303.5V75.5H262.5A3 3 0 0 1 259.5 72.5V64.5A3 3 0 0 1 262.5 61.5Z"/>
+              <path fill-rule="evenodd" d="M406.5 61.5H448.5A37 37 0 0 1 448.5 135.5H406.5A37 37 0 0 1 406.5 61.5ZM409.5 75.5H445.5A23 23 0 0 1 445.5 121.5H409.5A23 23 0 0 1 409.5 75.5Z"/>
+            </g>
+          </svg>
+        </a>
+        <!-- Veto Plus: sempre visível no topo, em todas as páginas -->
+        <button data-action="plus" data-onde="topo" class="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-lime px-3 py-1.5 text-xs font-bold text-ink transition active:scale-95" type="button" aria-label="Veto Plus">
+          <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          Plus
         </button>
       </div>
     </header>
@@ -45,37 +85,65 @@
         <h1 class="mt-1 font-display text-3xl font-semibold leading-tight">A tua pegada,<br><span class="text-slate-400">sob controlo.</span></h1>
       </div>
 
-      <section class="mx-5 rounded-3xl bg-lime p-5 text-ink shadow-[0_18px_50px_rgba(200,241,105,0.12)]">
+      <!-- Teste: o primeiro bloco do Início, com os passos e o botão para ligar o Gmail -->
+      <section id="intro-panel" class="mx-5 rounded-3xl border border-lime/30 bg-slate-900/60 p-5">
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Testa o Veto</p>
+        <h2 class="mt-1 font-display text-xl font-semibold leading-tight">Descobre que empresas têm os teus dados</h2>
+        <ol class="mt-4 flex flex-col gap-3">
+          <li class="flex gap-3">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lime text-xs font-bold text-ink">1</span>
+            <div>
+              <p class="text-sm font-semibold text-white">Liga o teu Gmail</p>
+              <p class="mt-0.5 text-xs leading-5 text-mist">Só lemos o remetente, o assunto e a data dos teus últimos 500 emails. Tudo fica neste dispositivo.</p>
+            </div>
+          </li>
+          <li class="flex gap-3">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lime text-xs font-bold text-ink">2</span>
+            <div>
+              <p class="text-sm font-semibold text-white">Vê quem tem os teus dados</p>
+              <p class="mt-0.5 text-xs leading-5 text-mist">As empresas que encontrámos, por área, com a gravidade de uma fuga em cada uma.</p>
+            </div>
+          </li>
+          <li class="flex gap-3">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lime text-xs font-bold text-ink">3</span>
+            <div>
+              <p class="text-sm font-semibold text-white">Decide e diz-nos o que achaste</p>
+              <p class="mt-0.5 text-xs leading-5 text-mist">Pede às empresas que apaguem os teus dados, cancela subscrições e deixa a tua opinião no fim.</p>
+            </div>
+          </li>
+        </ol>
+        <div id="client-id-box">
+          <label class="mt-5 block text-xs font-semibold text-slate-300" for="google-client-id">Google OAuth Client ID</label>
+          <input id="google-client-id" class="mt-2 w-full rounded-xl border border-slate-700 bg-ink px-3 py-3 text-xs outline-none placeholder:text-slate-600 focus:border-lime" placeholder="ex.: 123456789.apps.googleusercontent.com" autocomplete="off" type="text">
+          <p class="mt-2 text-[11px] leading-4 text-slate-500">Cria um cliente Web na Google Cloud Console e autoriza a origem desta página. O ID fica apenas nesta sessão.</p>
+        </div>
+        <button id="analyze-button" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-lime py-3.5 text-sm font-bold text-ink transition hover:brightness-95 active:scale-[.98]" type="button">
+          Ligar Gmail e começar <span>→</span>
+        </button>
+        <p class="mt-3 text-[11px] leading-4 text-slate-400">O Google vai avisar que a app ainda não foi validada. É normal num teste: carrega em «Continuar» ou em «Avançadas» › «Aceder a Veto».</p>
+        <div id="analysis-progress" class="mt-4 hidden h-1.5 w-full overflow-hidden rounded-full bg-slate-800" role="progressbar" aria-label="Progresso da análise"><div class="h-full rounded-full bg-lime transition-all duration-300" style="width:0%"></div></div>
+        <p id="analysis-status" class="mt-3 hidden text-center text-xs text-slate-400"></p>
+        <div id="closed-test" class="mt-3 hidden rounded-xl bg-plum p-4 text-left">
+          <p class="text-sm font-semibold">Não foi possível ligar o Gmail</p>
+          <p id="closed-test-text" class="mt-1 text-xs leading-5 text-slate-300"></p>
+          <a id="closed-test-request" target="_blank" rel="noopener noreferrer" class="mt-3 block rounded-lg bg-white py-2 text-center text-xs font-bold text-ink">Pedir acesso</a>
+          <p id="closed-test-dev" class="mt-3 hidden border-t border-white/10 pt-3 text-[11px] leading-4 text-slate-400"></p>
+        </div>
+      </section>
+
+      <!-- Resumo: só aparece depois da primeira análise -->
+      <section id="home-summary" class="mx-5 hidden rounded-3xl bg-lime p-5 text-ink shadow-[0_18px_50px_rgba(194,234,93,0.12)]">
         <div class="flex items-start justify-between">
           <div>
             <p class="text-xs font-bold uppercase tracking-[0.16em] text-ink/60">Shadow data</p>
             <p class="mt-2 font-display text-5xl font-semibold"><span id="service-count">0</span><span class="text-2xl"> empresas</span></p>
           </div>
-          <div class="rounded-2xl bg-ink/10 p-3 text-2xl">◌</div>
+          <div class="rounded-2xl bg-ink p-3 text-lime"><svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7.5v-2a2 2 0 0 1 2-2h2M16.5 3.5h2a2 2 0 0 1 2 2v2M20.5 16.5v2a2 2 0 0 1-2 2h-2M7.5 20.5h-2a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3.5"/></svg></div>
         </div>
         <div class="mt-5 flex items-center justify-between border-t border-ink/10 pt-3 text-xs font-semibold">
           <span><span id="risk-count">0</span> em áreas sensíveis</span>
           <span id="analysis-date">ainda não analisado</span>
         </div>
-      </section>
-
-      <section id="intro-panel" class="mx-5 mt-5 rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
-        <div class="flex gap-3">
-          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-xl">✦</div>
-          <div>
-            <h2 class="font-semibold">Liga a tua conta Gmail</h2>
-            <p class="mt-1 text-sm leading-5 text-mist">Usamos a API oficial do Google em modo só de leitura. Dos teus últimos 500 emails, só lemos o remetente, o assunto e a data, e tudo é tratado neste dispositivo. Um resultado é uma pista, não uma confirmação de conta ativa.</p>
-          </div>
-        </div>
-        <label class="mt-5 block text-xs font-semibold text-slate-300" for="google-client-id">Google OAuth Client ID</label>
-        <input id="google-client-id" class="mt-2 w-full rounded-xl border border-slate-700 bg-ink px-3 py-3 text-xs outline-none placeholder:text-slate-600 focus:border-lime" placeholder="ex.: 123456789.apps.googleusercontent.com" autocomplete="off" type="text">
-        <p class="mt-2 text-[11px] leading-4 text-slate-500">Cria um cliente Web na Google Cloud Console e autoriza a origem desta página. O ID fica apenas nesta sessão.</p>
-        <button id="analyze-button" class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-sm font-bold text-ink transition hover:bg-slate-100 active:scale-[.98]" type="button">
-          Ligar Gmail e analisar <span>→</span>
-        </button>
-        <button id="demo-button" class="mt-3 w-full text-xs font-semibold text-slate-500 underline decoration-slate-700 underline-offset-4" type="button">Ver exemplo sem ligar uma conta</button>
-        <div id="analysis-progress" class="mt-4 hidden h-1.5 w-full overflow-hidden rounded-full bg-slate-800" role="progressbar" aria-label="Progresso da análise"><div class="h-full rounded-full bg-lime transition-all duration-300" style="width:0%"></div></div>
-        <p id="analysis-status" class="mt-3 hidden text-center text-xs text-slate-400"></p>
       </section>
 
       <section id="next-steps" class="mx-5 mt-5 hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
@@ -86,9 +154,56 @@
         <button data-action="nova-analise" class="mt-3 w-full text-xs font-semibold text-slate-500 underline decoration-slate-700 underline-offset-4" type="button">Analisar de novo</button>
       </section>
 
+      <!-- Opinião: o passo 3 do teste, depois da análise -->
+      <section id="feedback-panel" class="mx-5 mt-5 hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-5" data-nota="">
+        <h2 class="font-semibold">O Veto foi útil para ti?</h2>
+        <div id="feedback-stars" class="mt-3 flex gap-2" role="group" aria-label="Nota de 1 a 5">
+          <button data-action="nota" data-value="1" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">1</button>
+          <button data-action="nota" data-value="2" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">2</button>
+          <button data-action="nota" data-value="3" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">3</button>
+          <button data-action="nota" data-value="4" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">4</button>
+          <button data-action="nota" data-value="5" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">5</button>
+        </div>
+        <div class="mt-1 flex justify-between text-[10px] text-slate-500"><span>Nada útil</span><span>Muito útil</span></div>
+        <textarea id="feedback-text" rows="3" maxlength="1000" class="mt-3 w-full rounded-xl border border-slate-700 bg-ink px-3 py-2 text-sm outline-none placeholder:text-slate-600 focus:border-lime" placeholder="O que te surpreendeu? O que mudavas?"></textarea>
+        <button data-action="enviar-opiniao" class="mt-3 w-full rounded-xl border border-slate-700 py-2.5 text-sm font-bold text-slate-200" type="button">Enviar opinião</button>
+        <p id="feedback-done" class="mt-2 hidden text-center text-xs text-lime">Recebemos a tua opinião. Obrigado!</p>
+      </section>
+
+      <!-- Estatísticas anónimas (consentimento): o que permite à equipa medir o teste -->
+      <section id="test-panel" class="mx-5 mt-5 rounded-2xl bg-plum p-5">
+        <div id="test-join">
+          <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Estatísticas anónimas</p>
+          <h2 class="mt-1 font-semibold">Ajuda-nos a saber se o Veto é útil</h2>
+          <p class="mt-1 text-sm leading-5 text-slate-300">Se aceitares, contamos de forma anónima o que fazes na app, como quantas empresas encontraste ou que pedidos preparaste. Nunca o teu email, os nomes das empresas nem o conteúdo dos emails.</p>
+          <details class="mt-3 text-xs leading-5 text-slate-300">
+            <summary class="cursor-pointer font-semibold text-slate-200">O que é enviado, exatamente</summary>
+            <ul class="mt-2 list-disc space-y-1 pl-4">
+              <li>Um identificador aleatório deste dispositivo e de onde vieste (por exemplo, LinkedIn).</li>
+              <li>Quando abres a app e quando fazes uma análise: quantos emails e quantas empresas, por área e por gravidade.</li>
+              <li>Quando preparas, envias ou registas a resposta a um pedido: o tipo de pedido e a área da empresa.</li>
+              <li>Quando cancelas uma subscrição ou abres uma notícia.</li>
+              <li>Se abres o Veto Plus e se escolhes um plano (mensal ou anual).</li>
+              <li><span class="font-semibold text-white">Nunca:</span> o teu endereço de email, nomes de empresas, assuntos ou conteúdo dos emails.</li>
+            </ul>
+          </details>
+          <button data-action="entrar-teste" class="mt-4 w-full rounded-xl bg-white py-3 text-sm font-bold text-ink" type="button">Aceitar estatísticas anónimas</button>
+        </div>
+        <div id="test-joined" class="hidden">
+          <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Estatísticas anónimas</p>
+          <p class="mt-1 text-sm text-slate-200">Estás a ajudar-nos de forma anónima. Obrigado!</p>
+          <p id="test-status" class="mt-1 text-xs leading-5 text-mist"></p>
+          <details class="mt-2 text-xs text-mist">
+            <summary class="cursor-pointer font-semibold text-slate-200">Ver o que está por enviar</summary>
+            <pre id="test-log" class="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-ink/70 p-2 text-[10px] leading-4 text-slate-300"></pre>
+          </details>
+          <button data-action="sair-teste" class="mt-3 text-xs font-semibold text-slate-300 underline decoration-slate-500 underline-offset-4" type="button">Deixar de participar</button>
+        </div>
+      </section>
+
       <section class="mx-5 mt-7 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
         <div class="flex gap-3">
-          <span class="text-xl">♧</span>
+          <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ink text-slate-200"><svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg></span>
           <div>
             <h3 class="text-sm font-semibold">Privacidade por conceção</h3>
             <p class="mt-1 text-xs leading-5 text-mist">Sem contas, sem cloud e sem bases de dados centrais. Os resultados e os pedidos ficam guardados só neste dispositivo, e podes apagar tudo quando quiseres.</p>
@@ -113,11 +228,24 @@
         <section class="mx-5 mt-4 rounded-3xl bg-lime p-5 text-ink">
           <p class="font-display text-4xl font-semibold"><span id="dash-total">0</span> <span class="text-xl">empresas</span></p>
           <p id="dash-source" class="mt-1 text-sm font-semibold text-ink/70">podem ter os teus dados, a julgar pelos teus emails.</p>
+          <p id="dash-time" class="mt-3 text-sm font-semibold text-ink"></p>
           <div id="dash-sensitive" class="mt-4 flex items-center gap-2 rounded-xl bg-ink/10 px-3 py-2 text-xs font-semibold"></div>
           <div class="mt-4">
             <div id="dash-kind-bar" class="flex h-2.5 w-full overflow-hidden rounded-full bg-ink/10" role="img" aria-label="O que os emails indicam"></div>
             <div id="dash-kind-legend" class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold text-ink/70"></div>
           </div>
+        </section>
+
+        <!-- Veto Plus: logo a seguir ao tempo perdido, quando a pessoa sente o problema -->
+        <section id="plus-card" class="mx-5 mt-4 rounded-2xl bg-plum p-4">
+          <div class="flex items-center justify-between">
+            <p class="font-display text-base font-semibold text-white">Veto Plus</p>
+            <span class="rounded-full border border-lime/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-lime">Em breve</span>
+          </div>
+          <p id="plus-card-text" class="mt-1.5 text-sm leading-5 text-slate-300"></p>
+          <button data-action="plus" data-onde="resultados" class="mt-3 flex w-full items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-bold text-ink transition hover:bg-slate-100 active:scale-[.98]" type="button">
+            <span>Ver o Veto Plus</span><span id="plus-card-price" class="text-ink/60"></span>
+          </button>
         </section>
 
         <section class="mx-5 mt-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
@@ -145,7 +273,7 @@
             <label class="relative block">
               <span class="sr-only">Pesquisar empresas</span>
               <input id="search-input" class="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm outline-none placeholder:text-slate-600 focus:border-lime" placeholder="Pesquisar empresa..." type="search">
-              <span class="pointer-events-none absolute right-4 top-3 text-slate-500">⌕</span>
+              <span class="pointer-events-none absolute right-4 top-3.5 text-slate-500"><svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.4-4.4"/></svg></span>
             </label>
           </div>
           <div id="companies-container" class="mt-4 flex flex-col gap-3 px-5"></div>
@@ -167,15 +295,9 @@
         <p class="mt-2 text-sm leading-5 text-mist">Cada ponto é uma empresa, agrupada por área. Vê quão grave seria perder os dados de cada uma e em que ponto estão os teus pedidos.</p>
       </section>
 
-      <div id="demo-banner" class="mx-5 mt-4 hidden rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-xs text-amber-100">
-        <span id="demo-banner-text">Isto é um exemplo: os pedidos não são reais.</span>
-        <button data-action="limpar-exemplo" class="ml-1 font-bold underline" type="button">Limpar exemplo</button>
-      </div>
-
       <div id="map-empty" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-6 text-center">
         <p class="text-sm text-mist">O mapa aparece depois de analisares o teu email. Cada empresa encontrada fica um ponto, e muda de cor à medida que lhe envias pedidos.</p>
         <a href="#inicio" class="mt-3 inline-block rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink">Analisar agora</a>
-        <button data-action="exemplo-mapa" class="mt-3 block w-full text-xs font-semibold text-slate-500 underline decoration-slate-700 underline-offset-4" type="button">Ver um exemplo</button>
       </div>
 
       <div id="map-content" class="hidden">
@@ -191,8 +313,7 @@
 
         <div id="no-requests" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-5 text-center">
           <p class="text-sm text-mist">Ainda não enviaste nenhum pedido. Começa pelas empresas de gravidade crítica: toca num ponto e pede os teus dados.</p>
-          <p class="mt-2 text-xs text-slate-500">Os contactos de privacidade deste protótipo são de exemplo.</p>
-          <button data-action="exemplo-mapa" class="mt-3 block w-full text-xs font-semibold text-slate-500 underline decoration-slate-700 underline-offset-4" type="button">Simular respostas nas minhas empresas</button>
+          <p class="mt-2 text-xs text-slate-500">Os contactos de privacidade ainda não estão verificados: confirma o endereço antes de enviar.</p>
         </div>
 
         <div id="requests-section">
@@ -217,23 +338,69 @@
         <button data-action="apagar-tudo" class="mt-3 block w-full rounded-lg border border-rose-400/30 py-2.5 text-xs font-bold text-rose-200" type="button">Apagar tudo deste dispositivo</button>
       </section>
     </div>
+    <!-- ===================== NOTÍCIAS ===================== -->
+    <div id="view-noticias" data-view="noticias" class="hidden">
+      <section class="px-5 pt-8">
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Notícias</p>
+        <h1 class="mt-1 font-display text-2xl font-semibold leading-tight">O que as empresas fazem com os teus dados</h1>
+      </section>
+      <div id="news-mine" class="mx-5 mt-4 flex items-start gap-2 rounded-2xl border border-slate-800 bg-slate-900/50 px-4 py-3 text-xs leading-5 text-mist"></div>
+
+      <section class="mt-7">
+        <h2 class="px-5 font-display text-lg font-semibold">Como os teus dados são tratados</h2>
+        <div id="news-explainers" class="mt-3 flex snap-x gap-3 overflow-x-auto px-5 pb-2"></div>
+      </section>
+
+      <section class="mt-6">
+        <h2 class="px-5 font-display text-lg font-semibold">Casos reais</h2>
+        <div id="news-filters" class="mt-3 flex gap-2 overflow-x-auto px-5 pb-1"></div>
+        <div id="news-list" class="mt-4 flex flex-col gap-3 px-5"></div>
+        <p id="news-updated" class="mt-4 px-5 text-[11px] leading-4 text-slate-500"></p>
+      </section>
+    </div>
   </main>
 
-  <nav class="fixed bottom-0 left-1/2 z-10 flex w-full max-w-md -translate-x-1/2 justify-around border-t border-slate-800 bg-ink/95 px-6 py-3 backdrop-blur">
-    <a href="#inicio" data-nav="inicio" class="nav-button flex flex-col items-center gap-1 text-slate-500"><span>⌂</span><span class="text-[10px] font-semibold">Início</span></a>
-    <a href="#resultados" data-nav="resultados" class="nav-button flex flex-col items-center gap-1 text-slate-500"><span>◫</span><span class="text-[10px] font-semibold">Resultados</span></a>
-    <a href="#pedidos" data-nav="pedidos" class="nav-button relative flex flex-col items-center gap-1 text-slate-500"><span>◉</span><span class="text-[10px] font-semibold">Mapa</span><span id="nav-badge" class="absolute -right-2 -top-1 hidden min-w-[16px] rounded-full bg-rose-400 px-1 text-center text-[10px] font-bold leading-4 text-ink"></span></a>
+  <nav class="fixed bottom-0 left-1/2 z-10 flex w-full max-w-md -translate-x-1/2 justify-around border-t border-slate-800 bg-ink/95 px-4 py-2.5 backdrop-blur">
+    <a href="#inicio" data-nav="inicio" class="nav-button flex flex-col items-center gap-1 px-3 py-1.5 text-slate-500 transition">
+      <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+      <span class="text-[10px] font-semibold">Início</span>
+    </a>
+    <a href="#resultados" data-nav="resultados" class="nav-button flex flex-col items-center gap-1 px-3 py-1.5 text-slate-500 transition">
+      <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span class="text-[10px] font-semibold">Resultados</span>
+    </a>
+    <a href="#pedidos" data-nav="pedidos" class="nav-button relative flex flex-col items-center gap-1 px-3 py-1.5 text-slate-500 transition">
+      <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="8" r="3.5"/><circle cx="17" cy="7" r="2.5"/><circle cx="15" cy="17" r="4"/><circle cx="6" cy="17.5" r="1.8"/></svg>
+      <span class="text-[10px] font-semibold">Mapa</span>
+      <span id="nav-badge" class="absolute -right-2 -top-1 hidden min-w-[16px] rounded-full bg-rose-400 px-1 text-center text-[10px] font-bold leading-4 text-ink"></span>
+    </a>
+    <a href="#noticias" data-nav="noticias" class="nav-button flex flex-col items-center gap-1 px-3 py-1.5 text-slate-500 transition">
+      <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h13v14a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2Z"/><path d="M17 9h3v10a2 2 0 0 1-2 2"/><path d="M7.5 9h6M7.5 12.5h6M7.5 16h4"/></svg>
+      <span class="text-[10px] font-semibold">Notícias</span>
+    </a>
   </nav>
 
   <div id="sheet" class="fixed inset-0 z-30 hidden items-end justify-center bg-black/60" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
-    <div class="w-full max-w-md rounded-t-3xl border-t border-slate-700 bg-slate-900 p-5 pb-8">
+    <div class="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl border-t border-slate-700 bg-slate-900 p-5 pb-8">
       <h2 id="sheet-title" class="font-display text-lg font-semibold"></h2>
       <p id="sheet-text" class="mt-2 text-sm leading-5 text-mist"></p>
+      <ul id="sheet-list" class="mt-4 hidden flex-col gap-3"></ul>
+      <p id="sheet-note" class="mt-4 hidden rounded-xl bg-ink/70 px-3 py-2.5 text-xs leading-5 text-slate-300"></p>
       <div id="sheet-options" class="mt-5 flex flex-col gap-2"></div>
     </div>
   </div>
 
+  <div id="consent-banner" class="fixed bottom-[72px] left-1/2 z-20 hidden w-[calc(100%-24px)] max-w-sm -translate-x-1/2 rounded-2xl bg-lime p-4 text-ink shadow-[0_12px_40px_rgba(0,0,0,0.45)]" role="dialog" aria-label="Estatísticas anónimas">
+    <p class="text-sm font-bold">Ajuda-nos a melhorar o Veto</p>
+    <p class="mt-1 text-xs leading-5 text-ink/80">Podemos contar, de forma anónima, o que fazes na app? Nunca o teu email, as empresas que encontrarmos nem o conteúdo dos emails.</p>
+    <div class="mt-3 flex gap-2">
+      <button data-action="entrar-teste" class="flex-1 rounded-lg bg-ink py-2 text-xs font-bold text-lime" type="button">Aceitar</button>
+      <button data-action="recusar-teste" class="flex-1 rounded-lg bg-ink py-2 text-xs font-bold text-lime" type="button">Não, obrigado</button>
+    </div>
+    <a href="#inicio" data-action="saber-mais-teste" class="mt-2 inline-block text-[11px] font-semibold text-ink/70 underline underline-offset-4">O que é enviado?</a>
+  </div>
+
   <div id="toast" class="pointer-events-none fixed bottom-20 left-1/2 z-40 hidden w-[calc(100%-40px)] max-w-sm -translate-x-1/2 rounded-xl bg-white px-4 py-3 text-center text-sm font-semibold text-ink shadow-xl"></div>
-  <script src="app.js"></script>
+  <script src="app.js" onerror="document.getElementById('erro-app').hidden = false"></script>
 </body>
 </html>

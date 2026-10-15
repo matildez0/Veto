@@ -9,7 +9,6 @@
 <p align="center"><strong>Your digital footprint, under your control.</strong></p>
 
 <p align="center">
-  <a href="https://matildez0.github.io/Veto/mvp/prototipo/">Try the prototype</a> ·
   <a href="https://matildez0.github.io/Veto/mvp/prototipo/privacidade.html">Privacy policy</a> ·
   <a href="mvp/MVP_SCOPE%20.md">MVP scope</a> ·
   <a href="mvp/ARCHITECTURE.md">Architecture</a>

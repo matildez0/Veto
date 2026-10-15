@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 124.38 32.56">
+  <defs>
+    <style>
+      .cls-1 {
+        letter-spacing: -.04em;
+      }
+
+      .cls-2 {
+        fill: #200623;
+        font-family: Rostex-Regular, Rostex;
+        font-size: 30px;
+      }
+
+      .cls-3 {
+        letter-spacing: 0em;
+      }
+
+      .cls-4 {
+        letter-spacing: -.12em;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <text class="cls-2" transform="translate(0 25.39)"><tspan class="cls-4" x="0" y="0">V</tspan><tspan x="28.17" y="0">E</tspan><tspan class="cls-1" x="59.91" y="0">T</tspan><tspan class="cls-3" x="90.18" y="0">O</tspan></text>
+  </g>
+</svg>

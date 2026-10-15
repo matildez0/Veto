@@ -241,7 +241,7 @@ const EXPLICADORES = [
    Cola em URL o endereço da tua Web App (termina em /exec). Enquanto estiver
    vazio, os eventos ficam guardados neste dispositivo e seguem mais tarde.
    ========================================================================== */
-const TESTE = { URL: '', MAX_FILA: 300 };
+const TESTE = { URL: 'https://script.google.com/macros/s/AKfycbwNh_t1JNLYzHaId9Mnte7rRiGPtZefjsOl7GnlxwwgMZW6hYoU8GIQWizqoVZwTq7i/exec', MAX_FILA: 300 };
 
 // O teu Google OAuth Client ID (termina em .apps.googleusercontent.com). Não é segredo:
 // com ele preenchido, os testadores não veem o campo e só carregam em "Ligar Gmail".
@@ -2156,14 +2156,8 @@ function tratarClique(evento) {
     case 'ver-area': selecaoMapa = { tipo: 'setor', chave: sector }; location.hash = '#pedidos'; break;
     case 'entrar-teste': entrarNoTeste(); break;
     case 'recusar-teste': recusarTeste(); break;
-    case 'saber-mais-teste':
-      esconderPerguntaConsentimento();
-      setTimeout(() => {
-        const painel = document.getElementById('test-panel');
-        painel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        painel.querySelector('details')?.setAttribute('open', '');
-      }, 50);
-      break;
+    case 'saber-mais-teste': mostrarOQueEEnviado(); break;
+    case 'alternar-estatisticas': if (estado.teste?.consentimento) sairDoTeste(); else entrarNoTeste(); break;
     case 'sair-teste': sairDoTeste(); break;
     case 'nota': marcarNota(Number(alvo.dataset.value)); break;
     case 'enviar-opiniao': enviarOpiniao(); break;
@@ -2347,7 +2341,7 @@ function sairDoTeste() {
   estado.decisaoTeste = 'recusado';
   guardarEstado();
   renderTeste();
-  mostrarToast('Saíste do programa de teste. Não enviamos mais nada.');
+  mostrarToast('Estatísticas anónimas desligadas. Não enviamos mais nada.');
 }
 
 function enviarOpiniao() {
@@ -2377,17 +2371,37 @@ function marcarNota(nota) {
   });
 }
 
+// Estado das estatísticas anónimas, na linha da secção de privacidade do Início
 function renderTeste() {
-  const t = estado.teste;
-  document.getElementById('test-join').classList.toggle('hidden', Boolean(t));
-  document.getElementById('test-joined').classList.toggle('hidden', !t);
-  if (!t) return;
-  const fila = (estado.filaEnvio || []).length;
-  document.getElementById('test-status').textContent = `${estado.enviadosTotal || 0} registos enviados${fila ? `, ${fila} à espera de envio` : ''}.${TESTE.URL ? '' : ' (Servidor de teste ainda não configurado: os registos ficam neste dispositivo.)'}`;
-  const ultimos = (estado.filaEnvio || []).slice(-8);
-  document.getElementById('test-log').textContent = ultimos.length
-    ? ultimos.map((registo) => `${registo.quando.slice(0, 16).replace('T', ' ')}  ${registo.evento}  ${JSON.stringify(registo.detalhes)}`).join('\n')
-    : 'Tudo o que foi registado já seguiu para a equipa Veto.';
+  const ligadas = Boolean(estado.teste?.consentimento);
+  document.getElementById('stats-state').textContent = ligadas ? 'ligadas' : 'desligadas';
+  document.getElementById('stats-toggle').textContent = ligadas ? 'Deixar de participar' : 'Ligar';
+}
+
+// "O que é enviado?": a lista completa numa folha, com a decisão logo ali
+function mostrarOQueEEnviado() {
+  const ligadas = Boolean(estado.teste?.consentimento);
+  abrirFolha({
+    titulo: 'Estatísticas anónimas',
+    texto: 'Para sabermos se o Veto é útil, contamos de forma anónima o que fazes na app. Podes mudar de ideias quando quiseres, no fim do Início.',
+    lista: [
+      ['Um identificador aleatório', 'Um código deste dispositivo, que não te identifica, e de onde vieste (por exemplo, LinkedIn).'],
+      ['A análise', 'Quantos emails e quantas empresas encontrámos, por área e por gravidade.'],
+      ['Os pedidos', 'O tipo de pedido que preparas, envias ou registas, e a área da empresa.'],
+      ['Outras ações', 'Quando abres a app, cancelas uma subscrição, abres uma notícia ou vês o Veto Plus.']
+    ],
+    nota: 'Nunca enviamos o teu endereço de email, os nomes das empresas, os assuntos nem o conteúdo dos emails.',
+    opcoes: ligadas
+      ? [
+        { label: 'Fechar', estilo: 'primary', acao: () => {} },
+        { label: 'Deixar de participar', estilo: 'ghost', acao: () => sairDoTeste() }
+      ]
+      : [
+        // Os dois botões com o mesmo peso: o consentimento tem de ser livre
+        { label: 'Aceitar', estilo: 'secondary', acao: () => entrarNoTeste() },
+        { label: 'Não, obrigado', estilo: 'secondary', acao: () => recusarTeste() }
+      ]
+  });
 }
 
 /* ==========================================================================

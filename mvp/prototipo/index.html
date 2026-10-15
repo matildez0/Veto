@@ -170,37 +170,6 @@
         <p id="feedback-done" class="mt-2 hidden text-center text-xs text-lime">Recebemos a tua opinião. Obrigado!</p>
       </section>
 
-      <!-- Estatísticas anónimas (consentimento): o que permite à equipa medir o teste -->
-      <section id="test-panel" class="mx-5 mt-5 rounded-2xl bg-plum p-5">
-        <div id="test-join">
-          <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Estatísticas anónimas</p>
-          <h2 class="mt-1 font-semibold">Ajuda-nos a saber se o Veto é útil</h2>
-          <p class="mt-1 text-sm leading-5 text-slate-300">Se aceitares, contamos de forma anónima o que fazes na app, como quantas empresas encontraste ou que pedidos preparaste. Nunca o teu email, os nomes das empresas nem o conteúdo dos emails.</p>
-          <details class="mt-3 text-xs leading-5 text-slate-300">
-            <summary class="cursor-pointer font-semibold text-slate-200">O que é enviado, exatamente</summary>
-            <ul class="mt-2 list-disc space-y-1 pl-4">
-              <li>Um identificador aleatório deste dispositivo e de onde vieste (por exemplo, LinkedIn).</li>
-              <li>Quando abres a app e quando fazes uma análise: quantos emails e quantas empresas, por área e por gravidade.</li>
-              <li>Quando preparas, envias ou registas a resposta a um pedido: o tipo de pedido e a área da empresa.</li>
-              <li>Quando cancelas uma subscrição ou abres uma notícia.</li>
-              <li>Se abres o Veto Plus e se escolhes um plano (mensal ou anual).</li>
-              <li><span class="font-semibold text-white">Nunca:</span> o teu endereço de email, nomes de empresas, assuntos ou conteúdo dos emails.</li>
-            </ul>
-          </details>
-          <button data-action="entrar-teste" class="mt-4 w-full rounded-xl bg-white py-3 text-sm font-bold text-ink" type="button">Aceitar estatísticas anónimas</button>
-        </div>
-        <div id="test-joined" class="hidden">
-          <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Estatísticas anónimas</p>
-          <p class="mt-1 text-sm text-slate-200">Estás a ajudar-nos de forma anónima. Obrigado!</p>
-          <p id="test-status" class="mt-1 text-xs leading-5 text-mist"></p>
-          <details class="mt-2 text-xs text-mist">
-            <summary class="cursor-pointer font-semibold text-slate-200">Ver o que está por enviar</summary>
-            <pre id="test-log" class="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-ink/70 p-2 text-[10px] leading-4 text-slate-300"></pre>
-          </details>
-          <button data-action="sair-teste" class="mt-3 text-xs font-semibold text-slate-300 underline decoration-slate-500 underline-offset-4" type="button">Deixar de participar</button>
-        </div>
-      </section>
-
       <section class="mx-5 mt-7 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
         <div class="flex gap-3">
           <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ink text-slate-200"><svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg></span>
@@ -208,6 +177,12 @@
             <h3 class="text-sm font-semibold">Privacidade por conceção</h3>
             <p class="mt-1 text-xs leading-5 text-mist">Sem contas, sem cloud e sem bases de dados centrais. Os resultados e os pedidos ficam guardados só neste dispositivo, e podes apagar tudo quando quiseres.</p>
             <a href="privacidade.html" class="mt-2 inline-block text-xs font-semibold text-lime">Ler a política de privacidade →</a>
+            <!-- Estatísticas anónimas: o consentimento pede-se no pop-up; aqui só se vê o estado e se muda de ideias -->
+            <p class="mt-3 border-t border-slate-800 pt-3 text-xs leading-5 text-mist">
+              Estatísticas anónimas: <span id="stats-state" class="font-semibold text-slate-200">desligadas</span>
+              · <button id="stats-toggle" data-action="alternar-estatisticas" class="font-semibold text-lime underline underline-offset-4" type="button">Ligar</button>
+              · <button data-action="saber-mais-teste" class="font-semibold text-slate-300 underline underline-offset-4" type="button">O que é enviado?</button>
+            </p>
           </div>
         </div>
       </section>
@@ -398,7 +373,7 @@
       <button data-action="entrar-teste" class="flex-1 rounded-lg bg-ink py-2 text-xs font-bold text-lime" type="button">Aceitar</button>
       <button data-action="recusar-teste" class="flex-1 rounded-lg bg-ink py-2 text-xs font-bold text-lime" type="button">Não, obrigado</button>
     </div>
-    <a href="#inicio" data-action="saber-mais-teste" class="mt-2 inline-block text-[11px] font-semibold text-ink/70 underline underline-offset-4">O que é enviado?</a>
+    <button data-action="saber-mais-teste" class="mt-2 inline-block text-[11px] font-semibold text-ink/70 underline underline-offset-4" type="button">O que é enviado?</button>
   </div>
 
   <div id="toast" class="pointer-events-none fixed bottom-20 left-1/2 z-40 hidden w-[calc(100%-40px)] max-w-sm -translate-x-1/2 rounded-xl bg-white px-4 py-3 text-center text-sm font-semibold text-ink shadow-xl"></div>

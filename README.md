@@ -75,22 +75,6 @@ Veto is a privacy app, so it has to hold itself to the same standard it asks of 
 - Requests are sent from your own email; Veto never acts as an intermediary.
 - The prototype only collects anonymous usage statistics if you accept them, to help us validate the idea. The details are in the [privacy policy](https://matildez0.github.io/Veto/mvp/prototipo/privacidade.html) and in [SECURITY_AND_PRIVACY.md](mvp/SECURITY_AND_PRIVACY.md).
 
-## Try it
-
-The web prototype is live at **[matildez0.github.io/Veto/mvp/prototipo](https://matildez0.github.io/Veto/mvp/prototipo/)**.
-
-Veto has not been verified by Google yet, so Google shows a warning before you connect your Gmail. This is expected during testing: choose **Continue** (or **Advanced › Go to Veto**).
-
-To run it on your own computer:
-
-```bash
-cd mvp/prototipo
-python -m http.server 8000
-# open http://localhost:8000
-```
-
-Connecting Gmail locally only works if `http://localhost:8000` is registered as an authorised JavaScript origin in the Google OAuth client.
-
 ## Repository
 
 | Folder | What it contains |

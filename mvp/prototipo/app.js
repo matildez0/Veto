@@ -256,8 +256,9 @@ const TESTE = { URL: 'https://script.google.com/macros/s/AKfycbwNh_t1JNLYzHaId9M
 
 // O teu Google OAuth Client ID (termina em .apps.googleusercontent.com). Não é segredo:
 // com ele preenchido, os testadores não veem o campo e só carregam em "Ligar Gmail".
-// const GOOGLE_CLIENT_ID = '788465290091-1499vipmp7l7fv0t9oguigev9mlptibq.apps.googleusercontent.com';
-const GOOGLE_CLIENT_ID = '937297986746-k81vu89sv318tkvmv6ev8e2ht7dt3r82.apps.googleusercontent.com';
+
+const GOOGLE_CLIENT_ID = '788465290091-1499vipmp7l7fv0t9oguigev9mlptibq.apps.googleusercontent.com';
+//const GOOGLE_CLIENT_ID = '937297986746-k81vu89sv318tkvmv6ev8e2ht7dt3r82.apps.googleusercontent.com';
 // Enquanto a app estiver em teste no Google, só contas convidadas podem ligar o Gmail.
 // Cola aqui o link de um formulário (por exemplo, Google Forms) onde as pessoas pedem acesso.
 const PEDIR_ACESSO_URL = '';

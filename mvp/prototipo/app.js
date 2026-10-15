@@ -127,7 +127,7 @@ function demo(domain, name, sector, kind, dpoEmail, count, days, subject) {
     // No exemplo, o link de cancelamento não abre nada ("exemplo")
     unsubscribe: domain === 'clinicaexemplo.pt' ? '' : 'exemplo',
     evidence: {
-      count, lastDate: diasAtras(days), sampleSubject: subject, reason: reasons[kind],
+      count, recentCount: count, firstDate: diasAtras(Math.max(days + 30, days)), lastDate: diasAtras(days), sampleSubject: subject, reason: reasons[kind],
       totalRecebidos: DEMO_EXTRA[domain]?.[0] ?? count, enviados: DEMO_EXTRA[domain]?.[1] ?? 0
     }
   };
@@ -139,6 +139,17 @@ const empresasConhecidas = [
   { id: 'anthropic.com', name: 'Anthropic', domain: 'anthropic.com', sector: 'outros', icon: 'A', dpo_email: '' }
 ];
 const knownCompanies = new Map(empresasConhecidas.map((company) => [company.domain, company]));
+
+// Alguns grupos usam um domínio diferente em cada país. Só juntamos aliases
+// confirmados, para não fundir empresas diferentes apenas por terem o mesmo nome.
+const COMPANY_DOMAIN_ALIASES = new Map([
+  ['inpost.pt', 'inpost.pt'],
+  ['inpost.es', 'inpost.pt'],
+  ['inpost.com', 'inpost.pt'],
+  ['vinted.pt', 'vinted.pt'],
+  ['vinted.com', 'vinted.pt'],
+  ['vinted.es', 'vinted.pt']
+]);
 
 /* ==========================================================================
    Notícias: incidentes e multas reais, com fonte. Resumos da equipa Veto.
@@ -245,8 +256,8 @@ const TESTE = { URL: '', MAX_FILA: 300 };
 
 // O teu Google OAuth Client ID (termina em .apps.googleusercontent.com). Não é segredo:
 // com ele preenchido, os testadores não veem o campo e só carregam em "Ligar Gmail".
-const GOOGLE_CLIENT_ID = '788465290091-1499vipmp7l7fv0t9oguigev9mlptibq.apps.googleusercontent.com';
-
+// const GOOGLE_CLIENT_ID = '788465290091-1499vipmp7l7fv0t9oguigev9mlptibq.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '937297986746-k81vu89sv318tkvmv6ev8e2ht7dt3r82.apps.googleusercontent.com';
 // Enquanto a app estiver em teste no Google, só contas convidadas podem ligar o Gmail.
 // Cola aqui o link de um formulário (por exemplo, Google Forms) onde as pessoas pedem acesso.
 const PEDIR_ACESSO_URL = '';
@@ -670,6 +681,7 @@ async function analisarCabecalhos(accessToken) {
   });
 
   const porEmpresa = new Map();
+  const limiteUltimos30Dias = Date.now() - 30 * 86400000;
   detalhes.forEach((detalhe) => {
     const headers = detalhe.payload?.headers || [];
     const obter = (nome) => headers.find((header) => header.name.toLowerCase() === nome.toLowerCase())?.value || '';
@@ -681,12 +693,18 @@ async function analisarCabecalhos(accessToken) {
     const sinal = classificarEmail(assunto, Boolean(obter('List-Unsubscribe')));
     const cancelar = linkDeCancelamento(obter('List-Unsubscribe'));
 
-    const atual = porEmpresa.get(dominioEmpresa) || { domain: dominioEmpresa, senderName: remetente.name, count: 0, lastDate: null, kind: 'unknown', sampleSubject: '', reason: 'Nenhuma regra correspondeu' };
+    const atual = porEmpresa.get(dominioEmpresa) || {
+      domain: dominioEmpresa, domains: new Set(), senderName: remetente.name, count: 0, recentCount: 0, firstDate: null, lastDate: null,
+      kind: 'unknown', sampleSubject: '', reason: 'Nenhuma regra correspondeu'
+    };
+    atual.domains.add(remetente.domain);
     atual.count += 1;
+    if (!Number.isNaN(data.getTime()) && data.getTime() >= limiteUltimos30Dias) atual.recentCount += 1;
     if (!atual.senderName && remetente.name) atual.senderName = remetente.name;
     // Prefere o link web ao email de cancelamento
     if (cancelar && (!atual.unsubscribe || (/^mailto:/i.test(atual.unsubscribe) && /^https:/i.test(cancelar)))) atual.unsubscribe = cancelar;
     if (!Number.isNaN(data.getTime()) && (!atual.lastDate || data > new Date(atual.lastDate))) atual.lastDate = data.toISOString();
+    if (!Number.isNaN(data.getTime()) && (!atual.firstDate || data < new Date(atual.firstDate))) atual.firstDate = data.toISOString();
     // A categoria da empresa é o sinal mais forte encontrado:
     // conta provável > compra > newsletter > desconhecido.
     const sinalMaisForte = KIND_ORDER.indexOf(sinal.kind) < KIND_ORDER.indexOf(atual.kind);
@@ -704,9 +722,10 @@ async function analisarCabecalhos(accessToken) {
   const agregados = [...porEmpresa.values()];
   mostrarProgresso(0);
   await emLotes(agregados, GMAIL_PARALELO, async (agregado) => {
+    const dominios = [...agregado.domains];
     const [recebidos, enviados] = await Promise.all([
-      contarEmails(`from:${agregado.domain} -in:spam -in:trash`, accessToken),
-      contarEmails(`in:sent to:${agregado.domain}`, accessToken)
+      contarEmails(`{${dominios.map((domain) => `from:${domain}`).join(' ')}} -in:spam -in:trash`, accessToken),
+      contarEmails(`in:sent {${dominios.map((domain) => `to:${domain}`).join(' ')}}`, accessToken)
     ]);
     agregado.totalRecebidos = Math.max(recebidos, agregado.count);
     agregado.enviados = enviados;
@@ -880,6 +899,8 @@ function isProviderDomain(domain) {
 }
 
 function obterDominioEmpresa(domain) {
+  const alias = COMPANY_DOMAIN_ALIASES.get(domain);
+  if (alias) return alias;
   const conhecido = [...knownCompanies.keys()].find((companyDomain) => (
     domain === companyDomain || domain.endsWith(`.${companyDomain}`)
   ));
@@ -892,7 +913,7 @@ function obterDominioEmpresa(domain) {
 
 function criarEmpresaLocal(agregado) {
   const evidence = {
-    count: agregado.count, lastDate: agregado.lastDate, sampleSubject: agregado.sampleSubject, reason: agregado.reason,
+    count: agregado.count, recentCount: agregado.recentCount ?? 0, firstDate: agregado.firstDate, lastDate: agregado.lastDate, sampleSubject: agregado.sampleSubject, reason: agregado.reason,
     totalRecebidos: agregado.totalRecebidos ?? agregado.count, enviados: agregado.enviados ?? 0
   };
   const unsubscribe = agregado.unsubscribe || '';
@@ -1375,6 +1396,8 @@ function renderPainel() {
   document.getElementById('severity-legend').innerHTML = porGravidade
     .map((item) => `<span class="flex items-center gap-1.5 ${item.n ? '' : 'opacity-40'}">${iconeGravidade(item.chave)}<span class="text-slate-300">${SEVERITY[item.chave].label}</span><span class="font-display text-sm font-semibold text-white">${item.n}</span></span>`).join('');
 
+  renderFrequencia(lista);
+
   // Grelha por área (sensíveis primeiro, depois por número de empresas)
   const areas = SECTOR_ORDER
     .map((chave) => ({ chave, empresas: lista.filter((empresa) => empresa.sector === chave) }))
@@ -1408,6 +1431,37 @@ function renderPainel() {
     <p>Olhamos só para quem te enviou emails, o assunto e a data. Cada empresa fica numa área (estimada pelo nome, quando não está no nosso catálogo) e numa de quatro categorias:</p>
     ${KIND_ORDER.map((chave) => `<p><span class="mr-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${KINDS[chave].style}">${KINDS[chave].label}</span>${esc(KINDS[chave].help)}</p>`).join('')}
     <p>Se uma empresa não for tua, abre "Mais opções" e escolhe "Não é minha".</p>`;
+}
+
+function emailsUltimos30Dias(empresa) {
+  const ev = empresa.evidence || {};
+  const count = Number(ev.recentCount || 0);
+  return count;
+}
+
+function renderFrequencia(lista) {
+  const section = document.getElementById('frequency-section');
+  const container = document.getElementById('frequency-list');
+  const contagens = lista
+    .map((empresa) => ({ empresa, contagem: emailsUltimos30Dias(empresa) }))
+    .sort((a, b) => b.contagem - a.contagem);
+  const frequentes = contagens.filter((item) => item.contagem > 0).slice(0, 5);
+  const semInformacao = frequentes.length === 0 ? contagens : [];
+  section.classList.toggle('hidden', contagens.length === 0);
+  const ranking = frequentes.map(({ empresa, contagem }, indice) => `
+    <div class="flex items-center gap-3 rounded-xl bg-ink/60 px-3 py-2">
+      <span class="w-4 text-center text-xs font-bold text-mist">${indice + 1}</span>
+      <span class="min-w-0 flex-1 truncate text-sm font-semibold">${esc(empresa.name)}</span>
+      <span class="shrink-0 text-xs text-lime">${contagem} ${contagem === 1 ? 'email' : 'emails'}</span>
+    </div>`).join('');
+  const semInformacaoTexto = semInformacao.length
+    ? `<div class="rounded-xl bg-ink/60 px-3 py-2 text-xs leading-4 text-mist">
+        <span class="font-semibold text-slate-200">Sem informação nos últimos 30 dias:</span>
+        ${esc(semInformacao.slice(0, 5).map(({ empresa }) => empresa.name).join(', '))}
+        ${semInformacao.length > 5 ? ` e mais ${semInformacao.length - 5}.` : '.'}
+      </div>`
+    : '';
+  container.innerHTML = ranking + semInformacaoTexto;
 }
 
 function renderEmpresas() {

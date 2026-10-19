@@ -84,7 +84,7 @@ function iconeNoMapa(nome, x, y, tamanho, cor) {
 /* ==========================================================================
    Catálogo de demonstração
    - sector: área da empresa
-   - kind: o que os emails indicam (conta provável, compra, newsletter, desconhecido)
+   - kind: o que os emails indicam (conta, compra, newsletter, desconhecido)
    Os contactos de privacidade são todos de exemplo. As empresas que não têm um
    contacto aqui recebem um endereço gerado (privacy@dominio), também de exemplo.
    Na versão final, os contactos vêm de um catálogo verificado.
@@ -127,7 +127,7 @@ function demo(domain, name, sector, kind, dpoEmail, count, days, subject) {
     // No exemplo, o link de cancelamento não abre nada ("exemplo")
     unsubscribe: domain === 'clinicaexemplo.pt' ? '' : 'exemplo',
     evidence: {
-      count, recentCount: count, firstDate: diasAtras(Math.max(days + 30, days)), lastDate: diasAtras(days), sampleSubject: subject, reason: reasons[kind],
+      count, recentCount: count, firstDate: diasAtras(Math.max(days + 30, days)), lastDate: diasAtras(days), sampleSubject: subject, sampleDate: diasAtras(days), reason: reasons[kind],
       totalRecebidos: DEMO_EXTRA[domain]?.[0] ?? count, enviados: DEMO_EXTRA[domain]?.[1] ?? 0
     }
   };
@@ -303,10 +303,18 @@ const ignoredDomains = new Set([
 ]);
 
 const KINDS = {
-  likely_account: { label: 'Conta provável', style: 'text-rose-200 bg-rose-400/10', bar: 'bg-ink', help: 'Recebeste um email de boas-vindas, de registo ou de palavra-passe. Provavelmente tens conta.' },
+  likely_account: { label: 'Conta', style: 'text-rose-200 bg-rose-400/10', bar: 'bg-ink', help: 'Recebeste um email de boas-vindas, de registo ou de palavra-passe. Provavelmente tens conta.' },
   purchase: { label: 'Compra', style: 'text-amber-200 bg-amber-400/10', bar: 'bg-ink/60', help: 'Recebeste recibos, faturas ou confirmações de encomenda. A empresa guarda dados da compra, como o nome e a morada.' },
   newsletter: { label: 'Newsletter', style: 'text-sky-200 bg-sky-400/10', bar: 'bg-ink/30', help: 'Só recebes marketing. A empresa tem o teu email, mas pode não haver conta.' },
   unknown: { label: 'Desconhecido', style: 'text-slate-300 bg-slate-700/60', bar: 'bg-ink/15', help: 'Há emails desta empresa, mas nenhuma regra os explica. Revê tu.' }
+};
+
+// O que cada tipo de relação costuma deixar nas mãos da empresa ("Porquê esta empresa?")
+const O_QUE_GUARDAM = {
+  likely_account: 'Os dados da conta (nome, email e, muitas vezes, telefone) e o que fazes no serviço.',
+  purchase: 'Nome, morada, contactos e o histórico das tuas compras.',
+  newsletter: 'O teu email e, muitas vezes, quando abres as mensagens e em que links carregas.',
+  unknown: 'Pelo menos o teu endereço de email.'
 };
 const KIND_ORDER = ['likely_account', 'purchase', 'newsletter', 'unknown'];
 
@@ -434,7 +442,7 @@ const SEVERITY = {
   critica: { label: 'Crítica', nivel: 4, hex: '#d03b3b', r: 7.5 },
   alta: { label: 'Alta', nivel: 3, hex: '#ec835a', r: 6.5 },
   media: { label: 'Média', nivel: 2, hex: '#fab219', r: 5.5 },
-  baixa: { label: 'Baixa', nivel: 1, hex: '#0ca30c', r: 4.5 }
+  baixa: { label: 'Baixa', nivel: 1, hex: '#719b08', r: 4.5 }
 };
 const SEVERITY_ORDER = ['critica', 'alta', 'media', 'baixa'];
 
@@ -495,14 +503,19 @@ const REDE = {
   EMPRESA: '#c2ea5d',   // verde do logo
   TERCEIRO: '#b9a2f5',  // lilás, a condizer com o fundo
   INCIDENTE: '#ff7a6b', // coral
-  TU: '#f3f1f4',
   PORMENOR: '#719b08',
-  ANEL1: 80,            // raio das empresas
-  ANEL2: 132,           // raio dos terceiros e das fugas
-  ETIQUETAS: 7,         // empresas com nome visível sem tocar
-  LETRA: 10.5
+  NUCLEO: '#807785',    // centro de cada área
+  PASSO: 11,            // distância entre empresas vizinhas (unidades do desenho)
+  FOLGA: 22,            // espaço entre áreas, onde cabe o nome da área
+  LETRA: 10.5,          // tamanho dos nomes em píxeis, igual com qualquer zoom
+  SATELITE: 44          // distância, em píxeis, da empresa escolhida aos seus terceiros e fugas
 };
-const RAIO_EMPRESA = { critica: 6.5, alta: 5.5, media: 4.6, baixa: 3.8 };
+// Zoom do mapa (k = escala; x, y = deslocação, em unidades do desenho). Mantém-se ao escolher pontos.
+let zoomMapa = { k: 1, x: 0, y: 0, assinatura: '' };
+let redeDesenhada = null; // posições e nomes do último desenho, para o zoom
+let pedidoDeZoom = 0;
+let animacaoDeZoom = 0;
+const RAIO_EMPRESA = { critica: 4.6, alta: 4, media: 3.5, baixa: 3 };
 
 // Serviços de envio de email conhecidos (domínio do link de cancelamento → nome)
 const TERCEIROS = {
@@ -550,7 +563,7 @@ function guardarEstado() {
       ...empresa,
       evidence: empresa.evidence ? {
         count: empresa.evidence.count, recentCount: empresa.evidence.recentCount,
-        firstDate: empresa.evidence.firstDate, lastDate: empresa.evidence.lastDate, reason: empresa.evidence.reason,
+        firstDate: empresa.evidence.firstDate, lastDate: empresa.evidence.lastDate, sampleDate: empresa.evidence.sampleDate, reason: empresa.evidence.reason,
         totalRecebidos: empresa.evidence.totalRecebidos, enviados: empresa.evidence.enviados
       } : null
     }));
@@ -578,6 +591,7 @@ registarAbertura();
 document.getElementById('analyze-button').addEventListener('click', ligarGmail);
 document.getElementById('search-input').addEventListener('input', renderEmpresas);
 document.addEventListener('click', tratarClique);
+ligarZoomDoMapa();
 // As áreas do mapa são elementos SVG: Enter e Espaço também as abrem.
 document.addEventListener('keydown', (evento) => {
   if ((evento.key === 'Enter' || evento.key === ' ') && evento.target instanceof SVGElement && evento.target.closest('[data-action]')) {
@@ -623,6 +637,10 @@ function ligarGmail() {
   const button = document.getElementById('analyze-button');
   button.disabled = true;
   button.innerHTML = 'A preparar ligação <span class="animate-pulse">•••</span>';
+  document.getElementById('closed-test').classList.add('hidden');
+  status.classList.add('hidden');
+  registo.comecar();
+  registo.passo('login', 'A abrir o login do Google');
   const tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: clientId,
     scope: GMAIL_READ_SCOPE,
@@ -630,23 +648,29 @@ function ligarGmail() {
     callback: (response) => {
       if (response.error) {
         repor(button);
-        atualizarStatus(`A ligação foi recusada: ${response.error}`, true);
+        registo.erro(response.error === 'access_denied' ? 'O Google não deixou ligar esta conta.' : `O Google recusou a ligação (${response.error}).`);
         if (response.error === 'access_denied') mostrarTesteFechado();
         return;
       }
       // O Google deixa desmarcar a permissão no ecrã de consentimento: sem ela, o Gmail responde 403.
       if (google.accounts.oauth2.hasGrantedAllScopes?.(response, GMAIL_READ_SCOPE) === false) {
         repor(button);
-        atualizarStatus('Não foi dada permissão para ler os emails. Tenta outra vez e, no ecrã do Google, marca a caixa "Ver as suas mensagens de email".', true);
+        registo.erro('Não foi dada permissão para ler os emails. Tenta outra vez e, no ecrã do Google, marca a caixa «Ver as suas mensagens de email».');
         google.accounts.oauth2.revoke(response.access_token, () => {});
         return;
       }
+      registo.feito('login', 'Sessão iniciada no Google');
+      button.innerHTML = 'A analisar <span class="animate-pulse">•••</span>';
       analisarCabecalhos(response.access_token)
-        .catch((error) => { mostrarProgresso(null); atualizarStatus(`Não foi possível ler o Gmail: ${error.message}`, true); })
+        .catch((error) => {
+          mostrarProgresso(null);
+          registo.erro(`Não foi possível ler o Gmail: ${error.message}`);
+        })
         .finally(() => {
           repor(button);
           // Ligação por análise: o acesso é revogado assim que a análise termina.
           google.accounts.oauth2.revoke(response.access_token, () => {});
+          registo.feito('revogar', 'Acesso ao Gmail cancelado');
         });
     }
   });
@@ -661,7 +685,7 @@ function erroNaJanelaGoogle(erro, button) {
     popup_failed_to_open: 'O browser bloqueou a janela de login do Google. Permite pop-ups para este site (ícone à direita na barra de endereço) e tenta outra vez.',
     popup_closed: 'A janela do Google fechou antes de terminares.'
   };
-  atualizarStatus(mensagens[erro?.type] || `Não foi possível abrir o login do Google (${erro?.type || 'erro desconhecido'}).`, true);
+  registo.erro(mensagens[erro?.type] || `Não foi possível abrir o login do Google (${erro?.type || 'erro desconhecido'}).`);
   if (erro?.type === 'popup_closed') mostrarTesteFechado();
 }
 
@@ -694,26 +718,25 @@ function repor(button) {
 }
 
 async function analisarCabecalhos(accessToken) {
-  atualizarStatus('A procurar os teus últimos emails. Só lemos remetente, assunto e data.');
   mostrarProgresso(0);
   gastosGmail.length = 0;
   // O endereço da conta serve para abrir o Gmail na conta certa ao enviar pedidos (fica só neste dispositivo).
+  registo.passo('conta', 'A identificar a conta');
   const perfil = await gmailFetch('/profile', accessToken, GMAIL_QUOTA.CUSTO_LIST).catch(() => null);
   if (perfil?.emailAddress) estado.contaEmail = perfil.emailAddress;
+  registo.feito('conta', perfil?.emailAddress ? `Conta ${perfil.emailAddress}` : 'Conta Gmail ligada');
+  registo.passo('lista', 'A procurar os teus emails mais recentes');
   const messages = await listarMensagens(accessToken);
+  registo.feito('lista', 'Emails para analisar', `${messages.length}`);
   const porMinuto = Math.floor((GMAIL_QUOTA.UNIDADES * GMAIL_QUOTA.MARGEM) / GMAIL_QUOTA.CUSTO_GET);
   const minutos = Math.ceil(messages.length / porMinuto);
-  const aviso = minutos > 1 ? ` O Gmail deixa ler cerca de ${porMinuto} por minuto, por isso demora uns ${minutos} minutos.` : '';
+  if (minutos > 1) registo.feito('ritmo', `O Gmail deixa ler ${porMinuto} por minuto: demora uns ${minutos} min`);
   const cabecalhos = ['From', 'Subject', 'Date', 'List-Unsubscribe'].map((nome) => `metadataHeaders=${nome}`).join('&');
 
-  const detalhes = await emLotes(messages, GMAIL_PARALELO, (message) => gmailFetch(`/messages/${message.id}?format=metadata&${cabecalhos}`, accessToken, GMAIL_QUOTA.CUSTO_GET), (feitos) => {
-    atualizarStatus(`A analisar ${feitos} de ${messages.length} emails…${aviso}`);
-    mostrarProgresso(feitos / Math.max(messages.length, 1));
-  });
-
+  // Cada email é juntado à empresa que o enviou logo que chega, para o registo mostrar as empresas a aparecer
   const porEmpresa = new Map();
   const limiteUltimos30Dias = Date.now() - 30 * 86400000;
-  detalhes.forEach((detalhe) => {
+  const juntar = (detalhe) => {
     const headers = detalhe.payload?.headers || [];
     const obter = (nome) => headers.find((header) => header.name.toLowerCase() === nome.toLowerCase())?.value || '';
     const remetente = analisarRemetente(obter('From'));
@@ -724,6 +747,11 @@ async function analisarCabecalhos(accessToken) {
     const sinal = classificarEmail(assunto, Boolean(obter('List-Unsubscribe')));
     const cancelar = linkDeCancelamento(obter('List-Unsubscribe'));
 
+    if (!porEmpresa.has(dominioEmpresa)) {
+      const conhecida = knownCompanies.get(dominioEmpresa);
+      const nome = conhecida?.name || remetente.name || dominioEmpresa;
+      registo.empresa(nome, (SECTORS[conhecida?.sector || estimarSetor(dominioEmpresa, nome)] || SECTORS.outros).short);
+    }
     const atual = porEmpresa.get(dominioEmpresa) || {
       domain: dominioEmpresa, domains: new Set(), senderName: remetente.name, count: 0, recentCount: 0, firstDate: null, lastDate: null,
       kind: 'unknown', sampleSubject: '', reason: 'Nenhuma regra correspondeu'
@@ -744,14 +772,25 @@ async function analisarCabecalhos(accessToken) {
       atual.kind = sinal.kind;
       atual.reason = sinal.reason;
       atual.sampleSubject = assunto;
+      atual.sampleDate = Number.isNaN(data.getTime()) ? null : data.toISOString();
     }
     porEmpresa.set(dominioEmpresa, atual);
+  };
+
+  registo.passo('ler', 'A ler remetente, assunto e data', `0 de ${messages.length}`);
+  await emLotes(messages, GMAIL_PARALELO, async (message) => {
+    juntar(await gmailFetch(`/messages/${message.id}?format=metadata&${cabecalhos}`, accessToken, GMAIL_QUOTA.CUSTO_GET));
+  }, (feitos) => {
+    registo.atualizar('ler', { extra: `${feitos} de ${messages.length}` });
+    mostrarProgresso(feitos / Math.max(messages.length, 1));
   });
+  registo.feito('ler', 'Remetente, assunto e data lidos (o texto não é aberto)', `${messages.length}`);
 
   // Quantas vezes cada empresa aparece na caixa toda, e quantos emails lhe escreveste.
   // São pesquisas (5 unidades), não leituras: não se abre nenhum email.
   const agregados = [...porEmpresa.values()];
   mostrarProgresso(0);
+  registo.passo('contar', 'A contar os emails de cada empresa na caixa toda', `0 de ${agregados.length}`);
   await emLotes(agregados, GMAIL_PARALELO, async (agregado) => {
     const dominios = [...agregado.domains];
     const [recebidos, enviados] = await Promise.all([
@@ -761,15 +800,17 @@ async function analisarCabecalhos(accessToken) {
     agregado.totalRecebidos = Math.max(recebidos, agregado.count);
     agregado.enviados = enviados;
   }, (feitos) => {
-    atualizarStatus(`A contar os emails de cada empresa: ${feitos} de ${agregados.length}…`);
+    registo.atualizar('contar', { extra: `${feitos} de ${agregados.length}` });
     mostrarProgresso(feitos / Math.max(agregados.length, 1));
   });
+  registo.feito('contar', 'Emails contados por empresa', `${agregados.length}`);
 
   const encontradas = agregados.map(criarEmpresaLocal);
   estado.emailsAnalisados = messages.length;
   substituirEmpresas(encontradas, false);
   mostrarProgresso(null);
-  atualizarStatus(`${messages.length} emails analisados neste dispositivo. O conteúdo nunca foi lido.`);
+  const areas = new Set(encontradas.map((empresa) => empresa.sector)).size;
+  registo.feito('fim', `Análise concluída: ${encontradas.length} ${plural(encontradas.length, 'empresa', 'empresas')} em ${areas} ${plural(areas, 'área', 'áreas')}`);
   registarEvento('analise_concluida', { demo: false, emails: messages.length, ...resumoParaEventos(encontradas) });
   location.hash = '#resultados';
 }
@@ -890,9 +931,10 @@ function contagemDecrescente(fim) {
     if (falta <= 0) {
       clearInterval(contagemDecrescente.relogio);
       contagemDecrescente.fim = 0;
+      registo.remover('quota');
       return;
     }
-    atualizarStatus(`Limite do Gmail por minuto atingido. A continuar dentro de ${falta} s…`);
+    registo.aviso('quota', `Limite do Gmail por minuto: a continuar dentro de ${falta} s`);
   };
   mostrar();
   contagemDecrescente.relogio = setInterval(mostrar, 1000);
@@ -912,6 +954,93 @@ function explicarErroGmail(codigo, motivos, mensagem) {
   }
   return `o Gmail respondeu com ${codigo}${mensagem ? `: ${mensagem}` : ''}`;
 }
+
+/* ==========================================================================
+   Registo da análise: cada passo aparece com o estado (a decorrer, feito, aviso, erro).
+   O passo a decorrer fica sempre em baixo; as descobertas (empresas) aparecem por cima dele.
+   ========================================================================== */
+const registo = {
+  linhas: [],
+  maxEmpresas: 25,
+  comecar() {
+    this.linhas = [];
+    this.empresasVistas = 0;
+    this.desenhar();
+  },
+  linha(id) {
+    return this.linhas.find((l) => l.id === id);
+  },
+  // Novo passo: o anterior que ainda estivesse a decorrer fica feito
+  passo(id, texto, extra = '') {
+    this.linhas.forEach((l) => { if (l.estado === 'ativo') l.estado = 'feito'; });
+    this.linhas.push({ id, texto, extra, estado: 'ativo' });
+    this.desenhar();
+  },
+  atualizar(id, mudancas) {
+    const l = this.linha(id);
+    if (l) Object.assign(l, mudancas);
+    this.desenhar();
+  },
+  feito(id, texto, extra = '') {
+    const l = this.linha(id);
+    if (l) Object.assign(l, { estado: 'feito', texto: texto || l.texto, extra });
+    else this.linhas.push({ id, texto, extra, estado: 'feito' });
+    this.desenhar();
+  },
+  // Empresas encontradas enquanto se leem os emails (as primeiras uma a uma, depois só a contagem)
+  empresa(nome, area) {
+    this.empresasVistas += 1;
+    if (this.empresasVistas <= this.maxEmpresas) this.linhas.push({ id: `e${this.empresasVistas}`, texto: nome, extra: area, estado: 'nota' });
+    else {
+      const resto = this.linha('mais-empresas');
+      const texto = `e mais ${this.empresasVistas - this.maxEmpresas} ${plural(this.empresasVistas - this.maxEmpresas, 'empresa', 'empresas')}`;
+      if (resto) resto.texto = texto;
+      else this.linhas.push({ id: 'mais-empresas', texto, extra: '', estado: 'nota' });
+    }
+    this.desenhar();
+  },
+  aviso(id, texto) {
+    const l = this.linha(id);
+    if (l) l.texto = texto;
+    else this.linhas.push({ id, texto, extra: '', estado: 'aviso' });
+    this.desenhar();
+  },
+  remover(id) {
+    this.linhas = this.linhas.filter((l) => l.id !== id);
+    this.desenhar();
+  },
+  // O passo a decorrer passa a erro, com a explicação no lugar do texto
+  erro(texto) {
+    const ativo = this.linhas.find((l) => l.estado === 'ativo');
+    if (ativo) Object.assign(ativo, { estado: 'erro', texto, extra: '' });
+    else this.linhas.push({ id: 'erro', texto, extra: '', estado: 'erro' });
+    this.desenhar();
+  },
+  desenhar() {
+    const lista = document.getElementById('analysis-log');
+    if (!lista) return;
+    lista.classList.toggle('hidden', this.linhas.length === 0);
+    const icones = {
+      ativo: '<svg viewBox="0 0 16 16" class="h-3.5 w-3.5 animate-spin text-lime" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-opacity="0.25" stroke-width="2"/><path d="M14 8a6 6 0 0 0-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+      feito: '<svg viewBox="0 0 16 16" class="h-3.5 w-3.5 text-lime" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 8.5 3 3 6-7"/></svg>',
+      nota: '<span class="mx-auto block h-1 w-1 rounded-full bg-slate-500"></span>',
+      aviso: '<svg viewBox="0 0 16 16" class="h-3.5 w-3.5 text-amber-300" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 4.8V8.5l2 1.3"/></svg>',
+      erro: '<svg viewBox="0 0 16 16" class="h-3.5 w-3.5 text-rose-300" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m4.5 4.5 7 7m0-7-7 7"/></svg>'
+    };
+    // O passo a decorrer e os avisos ficam no fim, à vista
+    const ordem = [...this.linhas.filter((l) => !['ativo', 'aviso'].includes(l.estado)), ...this.linhas.filter((l) => l.estado === 'ativo'), ...this.linhas.filter((l) => l.estado === 'aviso')];
+    lista.innerHTML = ordem.map((l) => {
+      const nota = l.estado === 'nota';
+      const erro = l.estado === 'erro';
+      return `<li class="flex ${erro ? 'items-start' : 'items-center'} gap-2 py-0.5 ${nota ? 'pl-5' : ''}">
+        <span class="flex h-5 w-3.5 shrink-0 items-center justify-center">${icones[l.estado] || ''}</span>
+        <span class="min-w-0 flex-1 ${erro ? 'text-rose-200' : 'truncate'} ${l.estado === 'ativo' ? 'font-semibold text-white' : nota ? 'text-slate-400' : erro ? '' : 'text-slate-300'}">${esc(l.texto)}</span>
+        ${l.extra ? `<span class="shrink-0 tabular-nums text-mist">${esc(l.extra)}</span>` : ''}
+      </li>`;
+    }).join('');
+    lista.scrollTop = lista.scrollHeight;
+  }
+};
 
 function mostrarProgresso(fracao) {
   const barra = document.getElementById('analysis-progress');
@@ -967,7 +1096,7 @@ function obterDominioEmpresa(domain) {
 
 function criarEmpresaLocal(agregado) {
   const evidence = {
-    count: agregado.count, recentCount: agregado.recentCount ?? 0, firstDate: agregado.firstDate, lastDate: agregado.lastDate, sampleSubject: agregado.sampleSubject, reason: agregado.reason,
+    count: agregado.count, recentCount: agregado.recentCount ?? 0, firstDate: agregado.firstDate, lastDate: agregado.lastDate, sampleSubject: agregado.sampleSubject, sampleDate: agregado.sampleDate || null, reason: agregado.reason,
     totalRecebidos: agregado.totalRecebidos ?? agregado.count, enviados: agregado.enviados ?? 0
   };
   const unsubscribe = agregado.unsubscribe || '';
@@ -1314,11 +1443,12 @@ function renderTudo() {
   renderTudo.ultimaVista = vista;
 
   renderResumo();
+  renderPlus(visiveis().reduce((soma, empresa) => soma + tempoPerdidoS(empresa), 0));
   renderPainel();
   renderEmpresas();
   renderPedidos();
   renderNoticias();
-  if (vista === 'resultados') registarPlusVisto();
+  if (vista === 'inicio') registarPlusVisto();
 }
 
 
@@ -1395,6 +1525,8 @@ function renderResumo() {
   const enviados = estado.pedidos.filter((pedido) => pedido.status !== 'draft').length;
   const atencao = estado.pedidos.filter(precisaDeAtencao).length;
   document.getElementById('service-count').textContent = lista.length;
+  document.getElementById('service-noun').textContent = plural(lista.length, 'empresa', 'empresas');
+  document.getElementById('service-verb').textContent = `${lista.length === 1 ? 'tem' : 'têm'} provavelmente os teus dados`;
   document.getElementById('risk-count').textContent = sensiveis;
   document.getElementById('analysis-date').textContent = estado.analisadoEm ? `analisado ${descreverDia(estado.analisadoEm)}` : 'ainda não analisado';
 
@@ -1404,6 +1536,14 @@ function renderResumo() {
   document.getElementById('next-steps').classList.toggle('hidden', !analisado || renderResumo.novaAnalise);
   document.getElementById('feedback-panel').classList.toggle('hidden', !analisado);
   document.getElementById('next-steps-requests').textContent = enviados ? `(${enviados})` : '';
+
+  // Terceiros e fugas nas empresas encontradas (o mapa mostra-os ao tocar numa empresa)
+  document.getElementById('relations-info').classList.toggle('hidden', !analisado || renderResumo.novaAnalise);
+  if (analisado) {
+    const rede = construirRede(nosDoMapa());
+    document.getElementById('relations-terceiros').textContent = rede.terceiros.length ? `· ${rede.terceiros.length} nas tuas empresas` : '· nenhum encontrado';
+    document.getElementById('relations-fugas').textContent = rede.incidentes.length ? `· ${rede.incidentes.length} nas tuas empresas` : '· nenhuma conhecida';
+  }
 
   const badge = document.getElementById('nav-badge');
   badge.textContent = atencao;
@@ -1419,8 +1559,6 @@ function renderPainel() {
 
   // Total e áreas sensíveis
   document.getElementById('dash-total').textContent = lista.length;
-  const tempoTotal = lista.reduce((soma, empresa) => soma + tempoPerdidoS(empresa), 0);
-  renderPlus(tempoTotal);
   document.getElementById('dash-source').textContent = estado.demo || !estado.emailsAnalisados
     ? 'provavelmente têm os teus dados.'
     : `provavelmente têm os teus dados, segundo os teus últimos ${estado.emailsAnalisados} emails.`;
@@ -1579,12 +1717,37 @@ function criarCard(empresa) {
       ${empresa.unsubscribe && !empresa.unsubscribedAt ? `<button data-action="cancelar-subscricao" data-id="${esc(empresa.id)}" type="button" class="rounded-lg bg-slate-800 px-3 py-2.5 text-xs font-bold text-slate-200">Cancelar subscrição</button>` : ''}
     </div>
     ${!estado.demo ? `<button data-action="apagar-emails" data-id="${esc(empresa.id)}" type="button" class="mt-3 block text-[11px] font-semibold text-rose-200/90 underline decoration-rose-300/30 underline-offset-4">Apagar os emails desta empresa no Gmail</button>` : ''}
-    <details class="mt-2 text-[11px] leading-4 text-mist">
+    <details class="mt-2 text-xs leading-5 text-mist">
       <summary class="cursor-pointer font-semibold text-slate-500">Porquê esta empresa?</summary>
-      <p class="mt-1.5">${esc(empresa.domain)} · ${esc(setor.label)}${empresa.sectorEstimated ? ' (área estimada)' : ''}.${ev.reason ? ` ${esc(ev.reason)}${ev.sampleSubject ? `: "${esc(ev.sampleSubject)}"` : ''}.` : ''}${ev.lastDate ? ` Último email a ${formatarData(ev.lastDate)}.` : ''}</p>
-      <button data-action="descartar" data-id="${esc(empresa.id)}" type="button" class="mt-1.5 font-semibold text-slate-400 underline decoration-slate-700 underline-offset-4">Não é minha</button>
+      ${porqueEstaEmpresa(empresa)}
+      <button data-action="descartar" data-id="${esc(empresa.id)}" type="button" class="mt-2 font-semibold text-slate-400 underline decoration-slate-700 underline-offset-4">Não é minha</button>
     </details>
   </article>`;
+}
+
+// "Porquê esta empresa?": o que encontrámos na caixa, o que estas empresas costumam guardar e a área.
+// O assunto do email só existe logo a seguir à análise (não fica guardado); a data fica.
+function porqueEstaEmpresa(empresa) {
+  const ev = empresa.evidence || {};
+  const setor = SECTORS[empresa.sector] || SECTORS.outros;
+  const recebidos = ev.totalRecebidos ?? ev.count ?? 0;
+  const dominios = (empresa.domains?.length ? empresa.domains : [empresa.domain]).join(', ');
+  // Se o email que deu a pista for o último, não se repete a data
+  const eOUltimo = ev.sampleDate && ev.lastDate && formatarData(ev.sampleDate) === formatarData(ev.lastDate);
+  const qual = eOUltimo ? 'O último' : 'Um deles';
+  const exemplo = `${ev.sampleSubject ? `: «${esc(ev.sampleSubject)}»` : ''}${ev.sampleDate && !eOUltimo ? `, de ${formatarData(ev.sampleDate)}` : ''}`;
+  const sinal = {
+    likely_account: `${qual} é de boas-vindas, registo ou palavra-passe${exemplo}. Por isso, deves ter conta.`,
+    purchase: `${qual} é um recibo, fatura ou encomenda${exemplo}. Por isso, deves ter comprado lá.`,
+    newsletter: 'Trazem um link para cancelar a subscrição: estás na lista de marketing.',
+    unknown: 'Nenhum indica conta, compra ou marketing. Confirma se a empresa é tua.'
+  }[empresa.kind] || '';
+  const linha = (titulo, texto) => `<div><dt class="font-semibold text-slate-300">${titulo}</dt><dd class="mt-0.5">${texto}</dd></div>`;
+  return `<dl class="mt-2 space-y-2">
+    ${linha('O que encontrámos', `Recebeste ≈ ${recebidos} ${plural(recebidos, 'email', 'emails')} de ${esc(dominios)}${ev.lastDate ? `, o último a ${formatarData(ev.lastDate)}` : ''}.${ev.enviados ? ` Escreveste-lhes ${ev.enviados} ${plural(ev.enviados, 'vez', 'vezes')}.` : ''} ${sinal}`)}
+    ${linha('O que costumam guardar', O_QUE_GUARDAM[empresa.kind] || O_QUE_GUARDAM.unknown)}
+    ${linha('Área', `${esc(setor.label)}${empresa.sectorEstimated ? ' (estimada pelo nome)' : ''}. ${esc(setor.porque || '')}`)}
+  </dl>`;
 }
 
 function irParaMapa(empresaId) {
@@ -1676,6 +1839,7 @@ function renderPedidos() {
       if (!existe || !existe()) selecaoMapa = null;
     }
     document.getElementById('dot-map').innerHTML = desenharRede(rede);
+    aplicarZoom();
     animarMapa = false;
     document.getElementById('map-legend').innerHTML = legendaDaRede(rede);
     document.getElementById('map-detail').innerHTML = detalheDoMapa(nos, rede);
@@ -1703,11 +1867,12 @@ function preencherGrupo(id, pedidos, vazio) {
 }
 
 /* ==========================================================================
-   Mapa de exposição: uma rede com três tipos de pontos
-   - Empresas que têm os teus dados, ligadas a ti (no centro)
-   - Terceiros: serviços que recebem o teu email através de uma empresa.
-     Vêm do link de cancelamento dos emails (por exemplo, Mailchimp ou SendGrid).
-   - Fugas e burlas conhecidas que envolvem essas empresas (das Notícias)
+   Mapa de exposição: as empresas agrupadas por área, cada área em espiral.
+   Cabe qualquer número de empresas; com zoom aparecem os nomes.
+   Ao tocar numa empresa, aparecem à volta dela:
+   - Terceiros: serviços que tratam os teus dados por conta da empresa (por exemplo, o
+     Mailchimp, que lhe envia os emails). Vêm do link de cancelamento dos emails.
+   - Fugas e burlas conhecidas que a envolvem (das Notícias)
    ========================================================================== */
 function dominioRegistavel(host) {
   const partes = String(host || '').toLowerCase().replace(/^www\./, '').replace(/\.$/, '').split('.').filter(Boolean);
@@ -1768,151 +1933,459 @@ function construirRede(nos) {
 function desenharRede(rede) {
   const r1 = (n) => Math.round(n * 10) / 10;
   const sel = selecaoMapa || {};
-  const pos = new Map([['tu', { x: 0, y: 0, angulo: Math.PI / 2 }]]);
+  const pos = new Map();
+  const raios = new Map();
 
-  // Empresas à tua volta, agrupadas por área, com um pequeno intervalo entre áreas
-  const empresas = [...rede.empresas].sort((a, b) => SECTOR_ORDER.indexOf(a.sector) - SECTOR_ORDER.indexOf(b.sector)
-    || SEVERITY_ORDER.indexOf(a.gravidade) - SEVERITY_ORDER.indexOf(b.gravidade) || a.name.localeCompare(b.name));
-  const nAreas = new Set(empresas.map((no) => no.sector)).size;
-  const intervalo = nAreas > 1 ? 0.8 : 0;
-  const total = empresas.length + intervalo * nAreas;
-  const doisAneis = empresas.length > 26;
-  let passo = intervalo / 2;
-  empresas.forEach((no, i) => {
-    if (i > 0 && no.sector !== empresas[i - 1].sector) passo += intervalo;
-    const angulo = -Math.PI / 2 + (2 * Math.PI * (passo + 0.5)) / total;
-    const raio = doisAneis ? REDE.ANEL1 + (i % 2 ? 12 : -12) : REDE.ANEL1;
-    pos.set(no.id, { x: raio * Math.cos(angulo), y: raio * Math.sin(angulo), angulo });
-    passo += 1;
+  // 1. Cada área é um grupo. As empresas ficam em espiral à volta do centro da área
+  //    (espiral de Vogel: vizinhas sempre à mesma distância, quantas forem),
+  //    as mais graves e com mais emails mais perto do centro.
+  const c = REDE.PASSO / 1.8;
+  const i0 = ((REDE.PASSO * 1.1) / c) ** 2;
+  const ouro = Math.PI * (3 - Math.sqrt(5));
+  const grupos = SECTOR_ORDER.map((chave) => ({
+    chave,
+    nos: rede.empresas.filter((no) => no.sector === chave).sort((a, b) => SEVERITY_ORDER.indexOf(a.gravidade) - SEVERITY_ORDER.indexOf(b.gravidade)
+      || (b.empresa?.evidence?.totalRecebidos ?? 0) - (a.empresa?.evidence?.totalRecebidos ?? 0) || a.name.localeCompare(b.name))
+  })).filter((g) => g.nos.length);
+  grupos.forEach((g) => {
+    g.pontos = g.nos.map((no, i) => {
+      const r = c * Math.sqrt(i + i0);
+      const a = i * ouro - Math.PI / 2;
+      return { no, dx: r * Math.cos(a), dy: r * Math.sin(a) };
+    });
+    g.raio = c * Math.sqrt(g.nos.length - 1 + i0) + 6;
   });
 
-  // Terceiros e fugas no anel de fora, perto das empresas a que estão ligados, sem se sobreporem
-  const exteriores = [...rede.terceiros, ...rede.incidentes].map((item) => {
-    const sx = item.ligados.reduce((soma, no) => soma + Math.cos(pos.get(no.id).angulo), 0);
-    const sy = item.ligados.reduce((soma, no) => soma + Math.sin(pos.get(no.id).angulo), 0);
-    return { item, angulo: Math.atan2(sy, sx) };
-  }).sort((a, b) => a.angulo - b.angulo);
-  const minimo = exteriores.length ? Math.min(0.42, (2 * Math.PI) / exteriores.length) : 0;
-  for (let volta = 0; volta < 80 && exteriores.length > 1; volta++) {
-    exteriores.forEach((a, i) => {
-      const b = exteriores[(i + 1) % exteriores.length];
-      const diferenca = b.angulo - a.angulo + (i === exteriores.length - 1 ? 2 * Math.PI : 0);
-      if (diferenca < minimo) {
-        a.angulo -= (minimo - diferenca) / 2;
-        b.angulo += (minimo - diferenca) / 2;
+  // 2. As áreas arrumam-se lado a lado, as mais sensíveis primeiro (ao centro).
+  //    Cada nova área encosta-se às que já estão, no sítio livre mais perto do centro.
+  const ordem = [...grupos].sort((a, b) => SEVERITY_ORDER.indexOf(SECTORS[a.chave].gravidade) - SEVERITY_ORDER.indexOf(SECTORS[b.chave].gravidade)
+    || b.nos.length - a.nos.length);
+  const colocados = [];
+  ordem.forEach((g) => {
+    if (!colocados.length) {
+      Object.assign(g, { x: 0, y: 0 });
+      colocados.push(g);
+      return;
+    }
+    let melhor = null;
+    colocados.forEach((p) => {
+      for (let passo = 0; passo < 48; passo++) {
+        const angulo = (passo / 48) * 2 * Math.PI;
+        const d = p.raio + g.raio + REDE.FOLGA;
+        const x = p.x + d * Math.cos(angulo);
+        const y = p.y + d * Math.sin(angulo);
+        if (colocados.some((q) => Math.hypot(x - q.x, y - q.y) < q.raio + g.raio + REDE.FOLGA - 0.5)) continue;
+        const custo = Math.hypot(x * 1.05, y); // um pouco mais alto do que largo, como o ecrã do telemóvel
+        if (!melhor || custo < melhor.custo) melhor = { x, y, custo };
       }
     });
-  }
-  exteriores.forEach(({ item, angulo }) => pos.set(item.id, { x: REDE.ANEL2 * Math.cos(angulo), y: REDE.ANEL2 * Math.sin(angulo), angulo }));
+    Object.assign(g, { x: melhor.x, y: melhor.y });
+    colocados.push(g);
+  });
 
-  // Ao escolher um ponto, fica aceso o que está ligado a ele; o resto esbate-se
+  // 3. O desenho fica centrado em (0, 0), nem muito achatado nem muito comprido
+  const limites = grupos.reduce((l, g) => ({
+    x1: Math.min(l.x1, g.x - g.raio), x2: Math.max(l.x2, g.x + g.raio),
+    y1: Math.min(l.y1, g.y - g.raio - REDE.FOLGA), y2: Math.max(l.y2, g.y + g.raio)
+  }), { x1: Infinity, x2: -Infinity, y1: Infinity, y2: -Infinity });
+  const cx = (limites.x1 + limites.x2) / 2;
+  const cy = (limites.y1 + limites.y2) / 2;
+  let W = Math.max(220, limites.x2 - limites.x1 + 16);
+  let H = limites.y2 - limites.y1 + 16;
+  if (H < W * 0.8) H = W * 0.8;
+  if (H > W * 1.3) W = H / 1.3;
+  // "u" converte píxeis em unidades do desenho (o mapa tem ~330 px de largura):
+  // os nomes e as linhas ficam sempre do mesmo tamanho no ecrã, com 5 ou 500 empresas
+  const u = W / 330;
+  grupos.forEach((g) => {
+    pos.set(`s:${g.chave}`, { x: g.x - cx, y: g.y - cy });
+    raios.set(`s:${g.chave}`, 2.6);
+    g.pontos.forEach(({ no, dx, dy }) => {
+      pos.set(no.id, { x: g.x - cx + dx, y: g.y - cy + dy, grupo: g.chave });
+      raios.set(no.id, (RAIO_EMPRESA[no.gravidade] || 3.5) + (no.balde !== 'sempedido' ? 2.2 : 0));
+    });
+  });
+
+  // Zoom: até as vizinhas ficarem a ~40 px; os nomes aparecem quando ficam a ~22 px
+  const zoomMax = Math.max(6, (40 * u) / REDE.PASSO);
+  const zoomNomes = Math.max(1.5, (22 * u) / REDE.PASSO);
+  const assinatura = `${rede.empresas.length}:${grupos.length}:${Math.round(W)}`;
+  if (zoomMapa.assinatura !== assinatura) zoomMapa = { k: 1, x: 0, y: 0, assinatura };
+
+  // 4. O que se escolhe: uma empresa mostra os seus terceiros e fugas à volta dela;
+  //    um terceiro ou uma fuga mostra todas as empresas ligadas. O resto esbate-se.
   let acesos = null;
-  if (['empresa', 'terceiro', 'incidente'].includes(sel.tipo)) {
-    acesos = new Set([sel.chave]);
-    rede.ligacoes.forEach((l) => { if (l.de === sel.chave || l.para === sel.chave) { acesos.add(l.de); acesos.add(l.para); } });
-  } else if (sel.tipo === 'setor') {
-    acesos = new Set(rede.empresas.filter((no) => no.sector === sel.chave).map((no) => no.id));
-  }
-  const aceso = (id) => id === 'tu' || !acesos || acesos.has(id);
-
-  const linha = (a, b, cor, largura, opacidade, tracejado) => `<line x1="${r1(a.x)}" y1="${r1(a.y)}" x2="${r1(b.x)}" y2="${r1(b.y)}" stroke="${cor}" stroke-width="${largura}" stroke-opacity="${opacidade}" stroke-linecap="round"${tracejado ? ' stroke-dasharray="2.5 3"' : ''}/>`;
-  const centro = pos.get('tu');
-  const linhas = [
-    ...rede.empresas.map((no) => linha(centro, pos.get(no.id), REDE.EMPRESA, 0.7, aceso(no.id) ? (acesos ? 0.6 : 0.22) : 0.05)),
-    ...rede.ligacoes.map((l) => {
-      const ativa = !acesos || (acesos.has(l.de) && acesos.has(l.para));
-      return l.tipo === 'terceiro'
-        ? linha(pos.get(l.de), pos.get(l.para), REDE.TERCEIRO, 0.9, ativa ? (acesos ? 0.9 : 0.45) : 0.05, true)
-        : linha(pos.get(l.de), pos.get(l.para), REDE.INCIDENTE, 1.1, ativa ? (acesos ? 0.95 : 0.55) : 0.05, false);
-    })
-  ].join('');
-
-  // Etiquetas para fora do centro, alinhadas pelo lado em que estão.
-  // As opcionais (nomes de empresas) não aparecem se taparem outra etiqueta ou outro ponto.
-  const caixas = [];
-  const obstaculos = [...pos.values()].map((p) => ({ x1: p.x - 6, x2: p.x + 6, y1: p.y - 6, y2: p.y + 6, ponto: p }));
-  const toca = (a, b) => a.x1 < b.x2 + 2 && a.x2 + 2 > b.x1 && a.y1 < b.y2 + 1 && a.y2 + 1 > b.y1;
-  const etiqueta = (p, r, texto, cor, opcional) => {
-    const curto = texto.length > 15 ? `${texto.slice(0, 14)}…` : texto;
-    const c = Math.cos(p.angulo);
-    const s = Math.sin(p.angulo);
-    let x = p.x + c * (r + 5);
-    let y = p.y + s * (r + 5) + REDE.LETRA * 0.35;
-    let ancora = c > 0.3 ? 'start' : c < -0.3 ? 'end' : 'middle';
-    if (ancora === 'middle') { x = p.x; y = s > 0 ? p.y + r + REDE.LETRA + 2 : p.y - r - 5; }
-    const largura = curto.length * REDE.LETRA * 0.56;
-    const x1 = ancora === 'start' ? x : ancora === 'end' ? x - largura : x - largura / 2;
-    const caixa = { x1, x2: x1 + largura, y1: y - REDE.LETRA * 0.8, y2: y + 2 };
-    if (opcional && (caixas.some((c) => toca(caixa, c)) || obstaculos.some((o) => o.ponto !== p && toca(caixa, o)))) return '';
-    caixas.push(caixa);
-    return `<text x="${r1(x)}" y="${r1(y)}" text-anchor="${ancora}" font-size="${REDE.LETRA}" font-weight="600" fill="${cor}" pointer-events="none">${esc(curto)}</text>`;
-  };
-
-  let ordem = 0;
-  const ponto = ({ id, r, cor, brilho, acao, titulo, anel, pulsar, texto, corTexto, opcional }) => {
+  const satelites = [];
+  const relacoes = [];
+  const direcao = (id) => {
     const p = pos.get(id);
+    const centro = pos.get(`s:${p.grupo}`);
+    return Math.atan2(p.y - centro.y, p.x - centro.x) || -Math.PI / 2;
+  };
+  if (sel.tipo === 'empresa' && pos.has(sel.chave)) {
+    acesos = new Set([sel.chave]);
+    const ligadas = rede.ligacoes.filter((l) => l.de === sel.chave);
+    const base = direcao(sel.chave);
+    ligadas.forEach((l, i) => {
+      satelites.push({ id: l.para, tipo: l.tipo, rel: { de: sel.chave, angulo: base + (i - (ligadas.length - 1) / 2) * 0.95 } });
+      relacoes.push(l);
+      acesos.add(l.para);
+    });
+  } else if (sel.tipo === 'terceiro' || sel.tipo === 'incidente') {
+    const item = (sel.tipo === 'terceiro' ? rede.terceiros : rede.incidentes).find((x) => x.id === sel.chave);
+    if (item) {
+      acesos = new Set([item.id, ...item.ligados.map((no) => no.id)]);
+      if (item.ligados.length === 1) {
+        satelites.push({ id: item.id, tipo: sel.tipo, rel: { de: item.ligados[0].id, angulo: direcao(item.ligados[0].id) } });
+      } else {
+        const x = item.ligados.reduce((soma, no) => soma + pos.get(no.id).x, 0) / item.ligados.length;
+        const y = item.ligados.reduce((soma, no) => soma + pos.get(no.id).y, 0) / item.ligados.length;
+        satelites.push({ id: item.id, tipo: sel.tipo, abs: { x, y } });
+      }
+      item.ligados.forEach((no) => relacoes.push({ de: no.id, para: item.id, tipo: sel.tipo }));
+    }
+  } else if (sel.tipo === 'setor') {
+    acesos = new Set([`s:${sel.chave}`, ...rede.empresas.filter((no) => no.sector === sel.chave).map((no) => no.id)]);
+  }
+  satelites.forEach((s) => {
+    pos.set(s.id, s.abs || { rel: s.rel });
+    raios.set(s.id, 4.6);
+  });
+  const aceso = (id) => !acesos || acesos.has(id);
+
+  // Com zoom, se o escolhido ficou fora do ecrã, o mapa centra-se nele
+  const escolhido = sel.chave && (pos.get(sel.chave)?.rel ? pos.get(pos.get(sel.chave).rel.de) : pos.get(sel.chave));
+  if (escolhido && !escolhido.rel && zoomMapa.k > 1) {
+    const { k } = zoomMapa;
+    if (Math.abs(escolhido.x * k + zoomMapa.x) > (W / 2) * 0.85 || Math.abs(escolhido.y * k + zoomMapa.y) > (H / 2) * 0.85) {
+      const mx = (W / 2) * (k - 1);
+      const my = (H / 2) * (k - 1);
+      zoomMapa = { ...zoomMapa, x: Math.max(-mx, Math.min(mx, -escolhido.x * k)), y: Math.max(-my, Math.min(my, -escolhido.y * k)) };
+    }
+  }
+
+  // 5. Desenho. As posições no ecrã são postas por aplicarZoom(), logo a seguir.
+  const linha = (de, para, cor, largura, opacidade, tracejado) => `<line data-de="${esc(de)}" data-para="${esc(para)}" stroke="${cor}" stroke-width="${r1(largura * u)}" stroke-opacity="${opacidade}" stroke-linecap="round"${tracejado ? ` stroke-dasharray="${r1(2.5 * u)} ${r1(3 * u)}"` : ''}/>`;
+  const fundos = grupos.map((g) => `<circle data-grupo="${g.chave}" data-raio="${r1(g.raio)}" fill="#2c2330" fill-opacity="${aceso(`s:${g.chave}`) || (acesos && g.nos.some((no) => acesos.has(no.id))) ? 0.45 : 0.2}" pointer-events="none"/>`).join('');
+  const raiosAreas = rede.empresas.map((no) => linha(`s:${no.sector}`, no.id, REDE.EMPRESA, 0.5, aceso(no.id) ? (acesos ? 0.45 : 0.18) : 0.04)).join('');
+  const linhasRel = relacoes.map((l) => (l.tipo === 'terceiro'
+    ? linha(l.de, l.para, REDE.TERCEIRO, 1, 0.9, true)
+    : linha(l.de, l.para, REDE.INCIDENTE, 1.2, 0.95, false))).join('');
+
+  let ordem2 = 0;
+  const ponto = ({ id, r, cor, brilho, acao, titulo, anel, pulsar }) => {
     const ligado = aceso(id);
-    const escolhido = sel.chave === id;
-    const entrada = animarMapa ? ` class="dot-in" style="animation-delay:${Math.min(ordem++ * 18, 700)}ms"` : '';
-    return `<g opacity="${ligado ? 1 : 0.2}"><g${entrada}>
-      <circle cx="${r1(p.x)}" cy="${r1(p.y)}" r="${r1(r * 2.9)}" fill="url(#${brilho})" pointer-events="none"/>
-      ${pulsar && ligado ? `<circle cx="${r1(p.x)}" cy="${r1(p.y)}" r="${r}" fill="none" stroke="${cor}" stroke-width="1.2" class="ponto-radar" pointer-events="none"/>` : ''}
-      ${anel ? `<circle cx="${r1(p.x)}" cy="${r1(p.y)}" r="${r1(r + 3)}" fill="none" stroke="${REDE.PORMENOR}" stroke-width="1.6" pointer-events="none"/>` : ''}
-      <circle cx="${r1(p.x)}" cy="${r1(p.y)}" r="${r}" fill="${cor}" stroke="${escolhido ? '#ffffff' : 'none'}" stroke-width="2" pointer-events="none"/>
-      ${texto ? etiqueta(p, r + (anel ? 3 : 0), texto, corTexto, opcional) : ''}
-      <circle ${acao} cx="${r1(p.x)}" cy="${r1(p.y)}" r="${Math.max(r + 5, 11)}" fill="transparent" class="cursor-pointer"><title>${esc(titulo)}</title></circle>
+    const entrada = animarMapa ? ` class="dot-in" style="animation-delay:${Math.min(ordem2++ * 6, 700)}ms"` : '';
+    return `<g data-no="${esc(id)}" opacity="${ligado ? 1 : 0.22}"><g${entrada}>
+      ${brilho ? `<circle r="${r1(r * 2.6)}" fill="url(#${brilho})" pointer-events="none"/>` : ''}
+      ${pulsar ? `<circle r="${r}" fill="none" stroke="${cor}" stroke-width="1.2" class="ponto-radar" pointer-events="none"/>` : ''}
+      ${anel ? `<circle r="${r1(r + 2.2)}" fill="none" stroke="${REDE.PORMENOR}" stroke-width="1.4" pointer-events="none"/>` : ''}
+      <circle r="${r}" fill="${cor}" stroke="${sel.chave === id ? '#ffffff' : 'none'}" stroke-width="1.6" pointer-events="none"/>
+      <circle ${acao} r="${r1(Math.max(r + 3, 7 * u))}" fill="transparent" class="cursor-pointer"><title>${esc(titulo)}</title></circle>
     </g></g>`;
   };
-
-  const pontosTerceiros = rede.terceiros.map((t) => ponto({
-    id: t.id, r: 5.5, cor: REDE.TERCEIRO, brilho: 'brilho-terceiro',
-    acao: `data-action="mapa-terceiro" data-id="${esc(t.id)}"`, titulo: `${t.nome}: recebe o teu email`, texto: t.nome, corTexto: '#d9cdfb'
-  })).join('');
-  const pontosIncidentes = rede.incidentes.map((inc) => ponto({
-    id: inc.id, r: 5.5, cor: REDE.INCIDENTE, brilho: 'brilho-incidente', pulsar: true,
-    acao: `data-action="mapa-incidente" data-id="${esc(inc.id)}"`, titulo: inc.noticia.titulo, texto: inc.nome, corTexto: '#ffb4ab'
-  })).join('');
-  const tu = ponto({ id: 'tu', r: 8, cor: REDE.TU, brilho: 'brilho-empresa', acao: 'data-action="mapa-limpar"', titulo: 'Tu', texto: 'Tu', corTexto: '#f3f1f4' });
-
-  // Só algumas empresas mostram o nome sem tocar: a escolhida e as ligadas a ela,
-  // depois as que tiveram fugas e as mais graves, enquanto houver espaço
-  const comIncidente = new Set(rede.ligacoes.filter((l) => l.tipo === 'incidente').map((l) => l.de));
-  const prioridade = (no) => (no.id === sel.chave ? 0 : acesos?.has(no.id) ? 1 : 2);
-  const porPrioridade = [...rede.empresas].sort((a, b) => prioridade(a) - prioridade(b)
-    || comIncidente.has(b.id) - comIncidente.has(a.id) || SEVERITY_ORDER.indexOf(a.gravidade) - SEVERITY_ORDER.indexOf(b.gravidade));
-  const comNome = new Set(porPrioridade.filter((no) => prioridade(no) < 2).map((no) => no.id));
-  porPrioridade.filter((no) => prioridade(no) === 2).slice(0, REDE.ETIQUETAS).forEach((no) => comNome.add(no.id));
-  const pontosEmpresas = porPrioridade.map((no) => ponto({
-    id: no.id, r: RAIO_EMPRESA[no.gravidade] || 4.6, cor: REDE.EMPRESA, brilho: 'brilho-empresa',
+  const nucleos = grupos.map((g) => `<g data-no="s:${g.chave}" opacity="${aceso(`s:${g.chave}`) ? 1 : 0.35}">
+      <circle r="2.6" fill="${REDE.NUCLEO}" pointer-events="none"/>
+      <circle data-action="mapa-setor" data-sector="${g.chave}" r="${r1(Math.max(6, 8 * u))}" fill="transparent" class="cursor-pointer"><title>${esc(SECTORS[g.chave].label)}</title></circle>
+    </g>`).join('');
+  const pontosEmpresas = grupos.flatMap((g) => g.nos).map((no) => ponto({
+    id: no.id, r: RAIO_EMPRESA[no.gravidade] || 3.5, cor: REDE.EMPRESA, brilho: 'brilho-empresa',
     acao: `data-action="mapa-empresa" data-id="${esc(no.id)}"`, titulo: `${no.name}: gravidade ${SEVERITY[no.gravidade].label.toLowerCase()}`,
-    anel: no.balde !== 'sempedido', texto: comNome.has(no.id) ? no.name : '', corTexto: '#c9c4cc', opcional: prioridade(no) === 2
+    anel: no.balde !== 'sempedido'
   })).join('');
+  const nomeDe = (s) => (s.tipo === 'terceiro' ? rede.terceiros : rede.incidentes).find((x) => x.id === s.id);
+  const pontosSatelites = satelites.map((s) => {
+    const item = nomeDe(s);
+    return ponto({
+      id: s.id, r: 4.6, cor: s.tipo === 'terceiro' ? REDE.TERCEIRO : REDE.INCIDENTE, brilho: s.tipo === 'terceiro' ? 'brilho-terceiro' : 'brilho-incidente',
+      acao: `data-action="${s.tipo === 'terceiro' ? 'mapa-terceiro' : 'mapa-incidente'}" data-id="${esc(s.id)}"`,
+      titulo: s.tipo === 'terceiro' ? `${item.nome}: terceiro` : item.noticia.titulo, pulsar: s.tipo === 'incidente'
+    });
+  }).join('');
 
-  // A área do desenho cresce o suficiente para caberem as etiquetas
-  const todos = [...pos.values()];
-  const minX = Math.min(...todos.map((p) => p.x - 14), ...caixas.map((c) => c.x1)) - 4;
-  const maxX = Math.max(...todos.map((p) => p.x + 14), ...caixas.map((c) => c.x2)) + 4;
-  const minY = Math.min(...todos.map((p) => p.y - 14), ...caixas.map((c) => c.y1)) - 4;
-  const maxY = Math.max(...todos.map((p) => p.y + 14), ...caixas.map((c) => c.y2)) + 4;
-  const gradiente = (id, cor) => `<radialGradient id="${id}"><stop offset="0" stop-color="${cor}" stop-opacity="0.5"/><stop offset="0.45" stop-color="${cor}" stop-opacity="0.16"/><stop offset="1" stop-color="${cor}" stop-opacity="0"/></radialGradient>`;
-  return `<svg viewBox="${r1(minX)} ${r1(minY)} ${r1(maxX - minX)} ${r1(maxY - minY)}" class="block h-auto w-full select-none" role="group" aria-label="Rede de quem tem os teus dados">
-    <defs>${gradiente('brilho-empresa', REDE.EMPRESA)}${gradiente('brilho-terceiro', REDE.TERCEIRO)}${gradiente('brilho-incidente', REDE.INCIDENTE)}</defs>
-    <rect data-action="mapa-limpar" x="${r1(minX)}" y="${r1(minY)}" width="${r1(maxX - minX)}" height="${r1(maxY - minY)}" fill="transparent"/>
-    <circle cx="0" cy="0" r="${REDE.ANEL1}" fill="none" stroke="#3a3040" stroke-width="0.6" stroke-dasharray="1 4" pointer-events="none"/>
-    ${exteriores.length ? `<circle cx="0" cy="0" r="${REDE.ANEL2}" fill="none" stroke="#3a3040" stroke-width="0.6" stroke-dasharray="1 4" pointer-events="none"/>` : ''}
-    ${linhas}${pontosTerceiros}${pontosIncidentes}${pontosEmpresas}${tu}
-  </svg>`;
+  // 6. Nomes. Os das áreas veem-se sempre; os das empresas só com zoom (ou ligadas ao que escolheste),
+  //    por ordem de importância e sem taparem nada. O escolhido e os seus terceiros e fugas, sempre.
+  const ordemClasse = { fixa: 0, setor: 1, ligada: 2, normal: 3 };
+  const etiquetas = [
+    ...satelites.map((s) => ({ id: s.id, texto: nomeDe(s).nome, cor: s.tipo === 'terceiro' ? '#d9cdfb' : '#ffb4ab', classe: 'fixa', peso: 0 })),
+    ...grupos.map((g) => ({ id: `s:${g.chave}`, texto: `${SECTORS[g.chave].short} · ${g.nos.length}`, cor: sel.tipo === 'setor' && sel.chave === g.chave ? '#ffffff' : '#a39ca7', classe: 'setor', setor: g.chave, peso: 0 })),
+    ...grupos.flatMap((g) => g.nos).map((no, i) => ({
+      id: no.id, texto: no.name, cor: '#e4e0e6', peso: i, esbatido: !aceso(no.id),
+      classe: no.id === sel.chave ? 'fixa' : acesos?.has(no.id) ? 'ligada' : 'normal'
+    }))
+  ].map((et) => ({ ...et, texto: et.texto.length > 20 ? `${et.texto.slice(0, 19)}…` : et.texto }))
+    .sort((a, b) => ordemClasse[a.classe] - ordemClasse[b.classe] || a.peso - b.peso);
+  const textos = etiquetas.map((et, i) => `<text data-et="${i}" display="none" font-size="${r1(REDE.LETRA * u)}" font-weight="600" fill="${et.cor}"${et.esbatido ? ' opacity="0.3"' : ''}
+    stroke="#19131b" stroke-width="${r1(3 * u)}" stroke-linejoin="round" paint-order="stroke"
+    ${et.setor ? `pointer-events="auto" data-action="mapa-setor" data-sector="${et.setor}" class="cursor-pointer"` : 'pointer-events="none"'}>${esc(et.texto)}</text>`).join('');
+
+  redeDesenhada = { pos, raios, W, H, u, etiquetas, zoomMax, zoomNomes, grupos: new Map(grupos.map((g) => [g.chave, g.raio])) };
+
+  const gradiente = (id, cor) => `<radialGradient id="${id}"><stop offset="0" stop-color="${cor}" stop-opacity="0.45"/><stop offset="0.45" stop-color="${cor}" stop-opacity="0.14"/><stop offset="1" stop-color="${cor}" stop-opacity="0"/></radialGradient>`;
+  const botao = (zoom, rotulo, conteudo) => `<button data-action="mapa-zoom" data-zoom="${zoom}" type="button" aria-label="${rotulo}" title="${rotulo}"
+    class="flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 text-slate-200 transition hover:border-slate-500 disabled:opacity-30">${conteudo}</button>`;
+  const traco = (d) => `<svg viewBox="0 0 16 16" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+  return `<svg data-rede viewBox="${r1(-W / 2)} ${r1(-H / 2)} ${r1(W)} ${r1(H)}" class="block h-auto w-full select-none" role="group" aria-label="Mapa das empresas que têm os teus dados, por área">
+      <defs>${gradiente('brilho-empresa', REDE.EMPRESA)}${gradiente('brilho-terceiro', REDE.TERCEIRO)}${gradiente('brilho-incidente', REDE.INCIDENTE)}</defs>
+      <rect data-action="mapa-limpar" x="${r1(-W / 2)}" y="${r1(-H / 2)}" width="${r1(W)}" height="${r1(H)}" fill="transparent"/>
+      ${fundos}${raiosAreas}${linhasRel}${nucleos}${pontosEmpresas}${pontosSatelites}
+      <g>${textos}</g>
+    </svg>
+    <div class="mt-2 flex items-center justify-between gap-3">
+      <p id="map-zoom-hint" class="text-[11px] leading-4 text-mist">Aproxima para veres os nomes.</p>
+      <div class="flex shrink-0 gap-1.5">
+        ${botao('menos', 'Afastar', traco('M4 8h8'))}
+        ${botao('mais', 'Aproximar', traco('M4 8h8M8 4v8'))}
+        ${botao('repor', 'Ver o mapa todo', traco('M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10'))}
+      </div>
+    </div>`;
+}
+
+// Põe no ecrã cada ponto, linha e nome, conforme o zoom. Corre a cada gesto (no máximo uma vez por imagem).
+function aplicarZoom() {
+  const caixa = document.getElementById('dot-map');
+  const svg = caixa?.querySelector('svg[data-rede]');
+  if (!svg || !redeDesenhada) return;
+  const { pos, raios, W, H, u, etiquetas, zoomMax, zoomNomes, grupos } = redeDesenhada;
+  const { k, x: tx, y: ty } = zoomMapa;
+  const mx = W / 2;
+  const my = H / 2;
+  const r1 = (n) => Math.round(n * 10) / 10;
+  // Os pontos crescem um pouco com o zoom, mas muito menos do que as distâncias
+  const s = Math.min(1 + (k - 1) * 0.3, 2.2);
+  // Terceiros e fugas de uma empresa ficam a uma distância fixa dela, no ecrã
+  const ecra = (id) => {
+    const p = pos.get(id);
+    if (p.rel) {
+      const base = ecra(p.rel.de);
+      const d = REDE.SATELITE * u + (raios.get(p.rel.de) || 4) * s;
+      return { x: base.x + d * Math.cos(p.rel.angulo), y: base.y + d * Math.sin(p.rel.angulo), angulo: p.rel.angulo };
+    }
+    return { x: p.x * k + tx, y: p.y * k + ty };
+  };
+  const posicoes = new Map([...pos.keys()].map((id) => [id, ecra(id)]));
+
+  svg.querySelectorAll('circle[data-grupo]').forEach((circulo) => {
+    const p = posicoes.get(`s:${circulo.dataset.grupo}`);
+    circulo.setAttribute('cx', r1(p.x));
+    circulo.setAttribute('cy', r1(p.y));
+    circulo.setAttribute('r', r1(Number(circulo.dataset.raio) * k));
+  });
+  svg.querySelectorAll('line[data-de]').forEach((l) => {
+    const a = posicoes.get(l.dataset.de);
+    const b = posicoes.get(l.dataset.para);
+    l.setAttribute('x1', r1(a.x)); l.setAttribute('y1', r1(a.y));
+    l.setAttribute('x2', r1(b.x)); l.setAttribute('y2', r1(b.y));
+  });
+  svg.querySelectorAll('g[data-no]').forEach((g) => {
+    const p = posicoes.get(g.dataset.no);
+    g.setAttribute('transform', `translate(${r1(p.x)} ${r1(p.y)}) scale(${Math.round(s * 100) / 100})`);
+  });
+
+  // Nomes: os mais importantes primeiro; um nome que tape outro (ou um ponto) fica escondido
+  const letra = REDE.LETRA * u;
+  const comNomes = k >= zoomNomes;
+  const toca = (a, b) => a.x1 < b.x2 && a.x2 > b.x1 && a.y1 < b.y2 && a.y2 > b.y1;
+  const naMoldura = (p) => Math.abs(p.x) <= mx && Math.abs(p.y) <= my;
+  const ocupadas = [];
+  const pontos = [];
+  posicoes.forEach((p, id) => {
+    if (!naMoldura(p)) return;
+    const r = (raios.get(id) || 3) * s + u;
+    pontos.push({ id, x1: p.x - r, x2: p.x + r, y1: p.y - r, y2: p.y + r });
+  });
+  const textos = svg.querySelectorAll('text[data-et]');
+  etiquetas.forEach((et, i) => {
+    const el = textos[i];
+    if (!el) return;
+    const esconder = () => el.setAttribute('display', 'none');
+    if (et.classe === 'normal' && !comNomes) return esconder();
+    const p = posicoes.get(et.id);
+    const largura = et.texto.length * letra * 0.56;
+    const caixaDe = (x1, y) => ({ x1: x1 - u, x2: x1 + largura + u, y1: y - letra * 0.8, y2: y + 2 * u });
+    const dentro = (c) => c.x1 >= -mx && c.x2 <= mx && c.y1 >= -my && c.y2 <= my;
+    let lugares;
+    if (et.classe === 'setor') {
+      // O nome da área fica por cima do grupo, encostado para dentro da moldura
+      const y = p.y - (grupos.get(et.setor) || 10) * k - 3 * u;
+      const x1 = Math.max(-mx + 2 * u, Math.min(mx - 2 * u - largura, p.x - largura / 2));
+      lugares = [{ x: x1 + largura / 2, y, ancora: 'middle', caixa: caixaDe(x1, y) }];
+    } else {
+      if (!naMoldura(p) && et.classe !== 'fixa') return esconder();
+      const r = (raios.get(et.id) || 3) * s;
+      // Tenta: para fora do grupo (ou do lado com mais espaço), do outro lado, por cima e por baixo
+      const fora = p.angulo !== undefined ? (Math.cos(p.angulo) >= 0 ? 'start' : 'end') : (p.x > 0 ? 'end' : 'start');
+      lugares = [fora, fora === 'end' ? 'start' : 'end', 'cima', 'baixo'].map((lado) => {
+        const lateral = lado === 'start' || lado === 'end';
+        const y = lateral ? p.y + letra * 0.35 : lado === 'cima' ? p.y - r - 3 * u : p.y + r + letra + 2 * u;
+        const x1 = lado === 'start' ? p.x + r + 3 * u : lado === 'end' ? p.x - r - 3 * u - largura
+          : Math.max(-mx + 2 * u, Math.min(mx - 2 * u - largura, p.x - largura / 2));
+        const ancora = lateral ? lado : 'middle';
+        return { x: ancora === 'start' ? x1 : ancora === 'end' ? x1 + largura : x1 + largura / 2, y, ancora, caixa: caixaDe(x1, y) };
+      });
+    }
+    const livre = (c) => !ocupadas.some((o) => toca(c, o)) && (et.classe !== 'normal' || !pontos.some((o) => o.id !== et.id && toca(c, o)));
+    const lugar = et.classe === 'fixa'
+      ? lugares.find((l) => dentro(l.caixa) && livre(l.caixa)) || lugares.find((l) => dentro(l.caixa)) || lugares[0]
+      : lugares.find((l) => dentro(l.caixa) && livre(l.caixa));
+    if (!lugar) return esconder();
+    ocupadas.push(lugar.caixa);
+    el.removeAttribute('display');
+    el.setAttribute('x', r1(lugar.x));
+    el.setAttribute('y', r1(lugar.y));
+    el.setAttribute('text-anchor', lugar.ancora);
+    return null;
+  });
+
+  // Sem zoom, um dedo faz scroll à página; com zoom, arrasta o mapa
+  caixa.style.touchAction = k > 1 ? 'none' : 'pan-y';
+  const dica = document.getElementById('map-zoom-hint');
+  if (dica) dica.textContent = comNomes ? 'Arrasta para percorrer o mapa.' : 'Aproxima para veres os nomes.';
+  caixa.querySelector('[data-zoom="menos"]')?.toggleAttribute('disabled', k <= 1);
+  caixa.querySelector('[data-zoom="repor"]')?.toggleAttribute('disabled', k <= 1);
+  caixa.querySelector('[data-zoom="mais"]')?.toggleAttribute('disabled', k >= zoomMax - 0.01);
+}
+
+function pedirZoom() {
+  if (!pedidoDeZoom) pedidoDeZoom = requestAnimationFrame(() => { pedidoDeZoom = 0; aplicarZoom(); });
+}
+
+// O mapa nunca sai da moldura: com zoom k, pode deslocar-se no máximo metade × (k − 1) para cada lado
+function limitarZoom(k, x, y) {
+  const { W = 0, H = 0, zoomMax = 6 } = redeDesenhada || {};
+  const kk = Math.min(zoomMax, Math.max(1, k));
+  const mx = (W / 2) * (kk - 1);
+  const my = (H / 2) * (kk - 1);
+  return { ...zoomMapa, k: kk, x: Math.max(-mx, Math.min(mx, x)), y: Math.max(-my, Math.min(my, y)) };
+}
+
+// Zoom à volta de um ponto do desenho (px, py): esse ponto fica no mesmo sítio do ecrã
+function zoomEm(k, px = 0, py = 0) {
+  const z = zoomMapa;
+  const novo = Math.min(redeDesenhada?.zoomMax || 6, Math.max(1, k));
+  return limitarZoom(novo, px - ((px - z.x) / z.k) * novo, py - ((py - z.y) / z.k) * novo);
+}
+
+// Os botões mudam o zoom com uma pequena animação
+function animarZoomPara(alvo) {
+  cancelAnimationFrame(animacaoDeZoom);
+  const inicio = { ...zoomMapa };
+  const t0 = performance.now();
+  const passo = (agora) => {
+    const t = Math.min(1, (agora - t0) / 220);
+    const e = 1 - (1 - t) ** 3;
+    zoomMapa = {
+      ...zoomMapa,
+      k: Math.exp(Math.log(inicio.k) + (Math.log(alvo.k) - Math.log(inicio.k)) * e),
+      x: inicio.x + (alvo.x - inicio.x) * e,
+      y: inicio.y + (alvo.y - inicio.y) * e
+    };
+    aplicarZoom();
+    if (t < 1) animacaoDeZoom = requestAnimationFrame(passo);
+  };
+  animacaoDeZoom = requestAnimationFrame(passo);
+}
+
+function botaoDeZoom(tipo) {
+  // Com um ponto escolhido, aproxima à volta dele; sem nada escolhido, à volta do centro do ecrã
+  const p = selecaoMapa?.chave && redeDesenhada?.pos.get(selecaoMapa.chave);
+  const escolhido = p?.rel ? redeDesenhada.pos.get(p.rel.de) : p;
+  const px = escolhido ? escolhido.x * zoomMapa.k + zoomMapa.x : 0;
+  const py = escolhido ? escolhido.y * zoomMapa.k + zoomMapa.y : 0;
+  if (tipo === 'mais') animarZoomPara(zoomEm(zoomMapa.k * 1.8, px, py));
+  else if (tipo === 'menos') animarZoomPara(zoomEm(zoomMapa.k / 1.8, px, py));
+  else animarZoomPara({ k: 1, x: 0, y: 0 });
+}
+
+// Gestos no mapa: dois dedos para aproximar, um dedo (ou o rato) para arrastar quando há zoom,
+// e Ctrl + roda (ou o gesto de pinça do trackpad) no computador.
+function ligarZoomDoMapa() {
+  const caixa = document.getElementById('dot-map');
+  if (!caixa) return;
+  const dedos = new Map();
+  let gesto = null;
+  let arrastou = false;
+  const noDesenho = (clientX, clientY) => {
+    const m = caixa.querySelector('svg[data-rede]')?.getScreenCTM();
+    if (!m) return { x: 0, y: 0 };
+    const p = new DOMPoint(clientX, clientY).matrixTransform(m.inverse());
+    return { x: p.x, y: p.y };
+  };
+  const comecar = () => {
+    const v = [...dedos.values()];
+    gesto = {
+      zoom: { ...zoomMapa },
+      inicio: new Map(dedos),
+      dist: v.length >= 2 ? Math.hypot(v[0].x - v[1].x, v[0].y - v[1].y) : 0,
+      meio: v.length >= 2 ? { x: (v[0].x + v[1].x) / 2, y: (v[0].y + v[1].y) / 2 } : null
+    };
+  };
+
+  caixa.addEventListener('pointerdown', (evento) => {
+    if (!caixa.querySelector('svg[data-rede]') || evento.target.closest('button')) return;
+    if (evento.pointerType === 'mouse' && evento.button !== 0) return;
+    dedos.set(evento.pointerId, { x: evento.clientX, y: evento.clientY });
+    if (dedos.size === 1) arrastou = false;
+    comecar();
+  });
+  caixa.addEventListener('pointermove', (evento) => {
+    if (!gesto || !dedos.has(evento.pointerId)) return;
+    dedos.set(evento.pointerId, { x: evento.clientX, y: evento.clientY });
+    if (dedos.size >= 2 && gesto.dist) {
+      const v = [...dedos.values()];
+      const dist = Math.hypot(v[0].x - v[1].x, v[0].y - v[1].y);
+      const meio = { x: (v[0].x + v[1].x) / 2, y: (v[0].y + v[1].y) / 2 };
+      const a = noDesenho(gesto.meio.x, gesto.meio.y);
+      const b = noDesenho(meio.x, meio.y);
+      const z = gesto.zoom;
+      const k = Math.min(redeDesenhada?.zoomMax || 6, Math.max(1, z.k * (dist / gesto.dist)));
+      zoomMapa = limitarZoom(k, b.x - ((a.x - z.x) / z.k) * k, b.y - ((a.y - z.y) / z.k) * k);
+      arrastou = true;
+      pedirZoom();
+      return;
+    }
+    const inicio = gesto.inicio.get(evento.pointerId);
+    if (!inicio || gesto.zoom.k <= 1) return;
+    if (!arrastou && Math.hypot(evento.clientX - inicio.x, evento.clientY - inicio.y) < 6) return;
+    if (!arrastou) {
+      arrastou = true;
+      caixa.setPointerCapture?.(evento.pointerId);
+    }
+    const a = noDesenho(inicio.x, inicio.y);
+    const b = noDesenho(evento.clientX, evento.clientY);
+    zoomMapa = limitarZoom(gesto.zoom.k, gesto.zoom.x + (b.x - a.x), gesto.zoom.y + (b.y - a.y));
+    pedirZoom();
+  });
+  const largar = (evento) => {
+    if (!dedos.delete(evento.pointerId)) return;
+    if (dedos.size) comecar();
+    else gesto = null;
+  };
+  caixa.addEventListener('pointerup', largar);
+  caixa.addEventListener('pointercancel', largar);
+  // Depois de arrastar ou aproximar, o toque não escolhe nenhum ponto
+  caixa.addEventListener('click', (evento) => {
+    if (!arrastou) return;
+    arrastou = false;
+    evento.stopPropagation();
+    evento.preventDefault();
+  }, true);
+  caixa.addEventListener('wheel', (evento) => {
+    if (!evento.ctrlKey && !evento.metaKey) return;
+    evento.preventDefault();
+    const p = noDesenho(evento.clientX, evento.clientY);
+    zoomMapa = zoomEm(zoomMapa.k * Math.exp(-evento.deltaY * 0.01), p.x, p.y);
+    pedirZoom();
+  }, { passive: false });
 }
 
 function legendaDaRede(rede) {
-  const item = (cor, texto, n) => `<span class="flex items-center gap-1.5">
-    <span class="h-2.5 w-2.5 rounded-full" style="background:${cor};box-shadow:0 0 8px ${cor}"></span>
-    <span class="text-slate-300">${texto}</span><span class="font-semibold text-white">${n}</span></span>`;
-  return `<div class="flex flex-wrap gap-x-4 gap-y-1.5 text-xs">
-      ${item(REDE.EMPRESA, 'Empresas', rede.empresas.length)}
-      ${item(REDE.TERCEIRO, 'Terceiros', rede.terceiros.length)}
-      ${item(REDE.INCIDENTE, 'Fugas e burlas', rede.incidentes.length)}
-    </div>
+  const areas = new Set(rede.empresas.map((no) => no.sector)).size;
+  return `<p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+      <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full" style="background:${REDE.EMPRESA};box-shadow:0 0 8px ${REDE.EMPRESA}"></span>
+      <span class="text-slate-300">Empresas</span><span class="font-semibold text-white">${rede.empresas.length}</span></span>
+      <span class="text-slate-300">em <span class="font-semibold text-white">${areas}</span> ${plural(areas, 'área', 'áreas')}</span>
+    </p>
     <p class="mt-2 text-[11px] leading-4 text-mist">Quanto maior o ponto, mais grave seria uma fuga. O anel verde marca um pedido enviado.</p>`;
 }
 
@@ -1972,9 +2445,9 @@ function detalheDoMapa(nos, rede) {
   if (sel.tipo === 'terceiro') {
     const t = rede.terceiros.find((item) => item.id === sel.chave);
     const uma = t.ligados.length === 1;
-    return `${cabecalho(bola(REDE.TERCEIRO), esc(t.nome), esc(t.dominio))}
-      <p class="mt-3 text-sm leading-5 text-slate-300">${esc(nomes(t.ligados))} ${uma ? 'envia-te' : 'enviam-te'} emails através de ${esc(t.nome)}. Por isso, ${esc(t.nome)} também tem o teu endereço de email e pode saber quando abres as mensagens.</p>
-      <p class="mt-2 text-xs leading-5 text-mist">Se pedires o apagamento ${uma ? 'à empresa' : 'a estas empresas'}, ${uma ? 'ela tem' : 'elas têm'} de avisar ${esc(t.nome)} (artigo 19.º do RGPD).</p>
+    return `${cabecalho(bola(REDE.TERCEIRO), esc(t.nome), `Terceiro · ${esc(t.dominio)}`)}
+      <p class="mt-3 text-sm leading-5 text-slate-300">${esc(nomes(t.ligados))} ${uma ? 'usa' : 'usam'} o ${esc(t.nome)} para te enviar emails. O ${esc(t.nome)} recebe o teu endereço em nome ${uma ? 'dela' : 'delas'} e pode registar quando abres as mensagens.</p>
+      <p class="mt-2 text-xs leading-5 text-mist">Não comprou os teus dados: trabalha por conta ${uma ? 'da empresa' : 'das empresas'}. Se pedires o apagamento, ${uma ? 'ela tem' : 'elas têm'} de avisar o ${esc(t.nome)} (artigo 19.º do RGPD).</p>
       ${linhas(t.ligados, true)}`;
   }
 
@@ -2012,8 +2485,9 @@ function detalheDoMapa(nos, rede) {
   const terceiro = no.empresa ? terceiroDe(no.empresa) : null;
   const incidentes = incidentesDe(no.empresa);
   const ligacoes = terceiro || incidentes.length ? `
-    <div class="mt-3 flex flex-col gap-1.5">
-      ${terceiro ? `<button data-action="mapa-terceiro" data-id="${esc(terceiro.id)}" type="button" class="flex items-center gap-2 text-left text-xs text-slate-300">${bola(REDE.TERCEIRO)}Envia-te emails através de ${esc(terceiro.nome)}</button>` : ''}
+    <p class="mt-4 text-xs font-semibold text-slate-400">Terceiros e fugas</p>
+    <div class="mt-2 flex flex-col gap-1.5">
+      ${terceiro ? `<button data-action="mapa-terceiro" data-id="${esc(terceiro.id)}" type="button" class="flex items-center gap-2 text-left text-xs text-slate-300">${bola(REDE.TERCEIRO)}Usa o ${esc(terceiro.nome)} para te enviar emails</button>` : ''}
       ${incidentes.map((n) => `<button data-action="mapa-incidente" data-id="i:${esc(n.id)}" type="button" class="flex items-center gap-2 text-left text-xs text-slate-300">${bola(REDE.INCIDENTE)}${n.tipo === 'fuga' ? 'Fuga de dados' : 'Burla com dados de clientes'} em ${n.data.slice(0, 4)}</button>`).join('')}
     </div>` : '';
   // Os quatro direitos: cada um mostra se já há um pedido aberto
@@ -2098,7 +2572,7 @@ function criarCartaoPedido(pedido) {
   } else if (pedido.status === 'awaiting_confirmation') {
     acoes.push(botao('confirmar-envio', pedido.id, 'Sim, enviei', 'primary'), botao('nao-enviado', pedido.id, 'Ainda não', 'secondary'));
   } else if (pedido.status === 'sent') {
-    acoes.push(botao('resposta', pedido.id, 'A empresa respondeu', 'primary'));
+    acoes.push(botao('resposta', pedido.id, 'Registar resposta', 'primary'));
     if (prazo !== null && prazo < 0) {
       acoes.push(botao('insistir', pedido.id, pedido.followUpAt ? 'Insistir de novo' : 'Enviar insistência', 'secondary'), botao('sem-resposta', pedido.id, 'Marcar sem resposta', 'ghost'));
     }
@@ -2190,8 +2664,8 @@ function fecharFolha() {
 
 /* ==========================================================================
    Veto Plus: teste de interesse (a subscrição ainda não existe)
-   Eventos: plus_visto (viu o cartão nos resultados), plus_aberto (abriu o plano),
-   plus_quero (escolheu mensal ou anual), plus_agora_nao. Todos dizem onde foi o clique (onde: resultados ou topo).
+   Eventos: plus_visto (viu o cartão no Início), plus_aberto (abriu o plano),
+   plus_quero (escolheu mensal ou anual), plus_agora_nao. Todos dizem onde foi o clique (onde: inicio ou topo).
    ========================================================================== */
 function renderPlus(tempoTotal) {
   const interesse = estado.plusInteresse;
@@ -2205,9 +2679,9 @@ function renderPlus(tempoTotal) {
 
 // Uma vez por dispositivo: dá a base para calcular quantos dos que viram o cartão carregaram nele.
 function registarPlusVisto() {
-  if (estado.plusVisto || !estado.teste?.consentimento || !estado.empresas.length) return;
+  if (estado.plusVisto || !estado.teste?.consentimento) return;
   estado.plusVisto = true;
-  registarEvento('plus_visto', { onde: 'resultados', demo: estado.demo });
+  registarEvento('plus_visto', { onde: 'inicio', analisou: estado.empresas.length > 0 });
 }
 
 function abrirPlus(onde = 'outro') {
@@ -2282,6 +2756,7 @@ function tratarClique(evento) {
     case 'abrir-fonte': registarEvento('noticia_aberta', { noticia: id }); break; // o link abre normalmente
     case 'cancelar-subscricao': cancelarSubscricao(id); break;
     case 'apagar-emails': apagarEmailsEmpresa(id); break;
+    case 'mapa-zoom': botaoDeZoom(alvo.dataset.zoom); break;
     case 'plus': abrirPlus(alvo.dataset.onde); break;
     case 'descartar': definirDescartada(id, true); break;
     case 'repor-descartadas': estado.empresas.forEach((empresa) => { empresa.dismissed = false; }); guardarEstado(); renderTudo(); break;

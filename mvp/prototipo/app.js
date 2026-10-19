@@ -397,10 +397,10 @@ const ignoredDomains = new Set([
 ]);
 
 const KINDS = {
-  likely_account: { label: 'Conta', style: 'text-rose-200 bg-rose-400/10', bar: 'bg-ink', help: 'Recebeste um email de boas-vindas, de registo ou de palavra-passe. Provavelmente tens conta.' },
-  purchase: { label: 'Compra', style: 'text-amber-200 bg-amber-400/10', bar: 'bg-ink/60', help: 'Recebeste recibos, faturas ou confirmações de encomenda. A empresa guarda dados da compra, como o nome e a morada.' },
-  newsletter: { label: 'Newsletter', style: 'text-sky-200 bg-sky-400/10', bar: 'bg-ink/30', help: 'Só recebes marketing. A empresa tem o teu email, mas pode não haver conta.' },
-  unknown: { label: 'Desconhecido', style: 'text-slate-300 bg-slate-700/60', bar: 'bg-ink/15', help: 'Há emails desta empresa, mas nenhuma regra os explica. Revê tu.' }
+  likely_account: { label: 'Conta', filtro: 'Tens conta', style: 'text-rose-200 bg-rose-400/10', bar: 'bg-ink', help: 'Recebeste um email de boas-vindas, de registo ou de palavra-passe. Provavelmente tens conta.' },
+  purchase: { label: 'Compra', filtro: 'Compraste', style: 'text-amber-200 bg-amber-400/10', bar: 'bg-ink/60', help: 'Recebeste recibos, faturas ou confirmações de encomenda. A empresa guarda dados da compra, como o nome e a morada.' },
+  newsletter: { label: 'Newsletter', filtro: 'Recebes publicidade', style: 'text-sky-200 bg-sky-400/10', bar: 'bg-ink/30', help: 'Só recebes marketing. A empresa tem o teu email, mas pode não haver conta.' },
+  unknown: { label: 'Por confirmar', filtro: 'Sem tipo claro', style: 'text-slate-300 bg-slate-700/60', bar: 'bg-ink/15', help: 'Há emails desta empresa, mas nenhuma regra os explica. Revê tu.' }
 };
 
 // O que cada tipo de relação costuma deixar nas mãos da empresa ("Porquê esta empresa?")
@@ -656,7 +656,7 @@ function guardarEstado() {
     const empresas = estado.empresas.map((empresa) => ({
       ...empresa,
       evidence: empresa.evidence ? {
-        count: empresa.evidence.count, recentCount: empresa.evidence.recentCount,
+        count: empresa.evidence.count, recentCount: empresa.evidence.recentCount, kinds: empresa.evidence.kinds,
         firstDate: empresa.evidence.firstDate, lastDate: empresa.evidence.lastDate, sampleDate: empresa.evidence.sampleDate, reason: empresa.evidence.reason,
         totalRecebidos: empresa.evidence.totalRecebidos, enviados: empresa.evidence.enviados
       } : null
@@ -875,6 +875,8 @@ async function analisarCabecalhos(accessToken) {
     };
     atual.domains.add(remetente.domain);
     atual.count += 1;
+    if (!atual.kinds) atual.kinds = new Set();
+    if (sinal.kind !== 'unknown') atual.kinds.add(sinal.kind);
     if (!Number.isNaN(data.getTime()) && data.getTime() >= limiteUltimos30Dias) atual.recentCount += 1;
     if (!atual.senderName && remetente.name) atual.senderName = remetente.name;
     // Prefere o link web ao email de cancelamento
@@ -896,7 +898,7 @@ async function analisarCabecalhos(accessToken) {
 
   registo.passo('ler', 'A ler remetente, assunto e data', `0 de ${messages.length}`);
   await emLotes(messages, GMAIL_PARALELO, async (message) => {
-    juntar(await gmailFetch(`/messages/${message.id}?format=metadata&${cabecalhos}`, accessToken, GMAIL_QUOTA.CUSTO_GET));
+    juntar(await gmailFetch(`/messages/${message.id}?format=metadata&${cabecalhos}&fields=id,internalDate,payload/headers`, accessToken, GMAIL_QUOTA.CUSTO_GET));
   }, (feitos) => {
     registo.atualizar('ler', { extra: `${feitos} de ${messages.length}` });
     mostrarProgresso(feitos / Math.max(messages.length, 1));
@@ -943,13 +945,22 @@ async function emLotes(itens, tamanho, tarefa, progresso) {
 }
 
 // Número (aproximado) de emails que correspondem a uma pesquisa, sem abrir nenhum
+// O "resultSizeEstimate" do Gmail é só uma estimativa (dá muitas vezes 201), por isso contam-se
+// os identificadores página a página (500 por página, só ids), até CONTAGEM_MAX.
+const CONTAGEM_MAX = 2000;
 async function contarEmails(pesquisa, accessToken) {
+  let total = 0;
+  let pagina = '';
   try {
-    const resposta = await gmailFetch(`/messages?maxResults=1&q=${encodeURIComponent(pesquisa)}`, accessToken, GMAIL_QUOTA.CUSTO_LIST);
-    return resposta.resultSizeEstimate || (resposta.messages?.length ?? 0);
+    do {
+      const resposta = await gmailFetch(`/messages?maxResults=500&fields=messages/id,nextPageToken&q=${encodeURIComponent(pesquisa)}${pagina ? `&pageToken=${encodeURIComponent(pagina)}` : ''}`, accessToken, GMAIL_QUOTA.CUSTO_LIST);
+      total += resposta.messages?.length || 0;
+      pagina = resposta.nextPageToken || '';
+    } while (pagina && total < CONTAGEM_MAX);
   } catch (erro) {
-    return 0;
+    return total;
   }
+  return total;
 }
 
 // Do cabeçalho List-Unsubscribe, só se aceitam links https e mailto (nunca javascript: ou outros)
@@ -1213,7 +1224,7 @@ function obterDominioEmpresa(domain) {
 
 function criarEmpresaLocal(agregado) {
   const evidence = {
-    count: agregado.count, recentCount: agregado.recentCount ?? 0, firstDate: agregado.firstDate, lastDate: agregado.lastDate, sampleSubject: agregado.sampleSubject, sampleDate: agregado.sampleDate || null, reason: agregado.reason,
+    count: agregado.count, recentCount: agregado.recentCount ?? 0, firstDate: agregado.firstDate, lastDate: agregado.lastDate, sampleSubject: agregado.sampleSubject, sampleDate: agregado.sampleDate || null, reason: agregado.reason, kinds: agregado.kinds ? [...agregado.kinds] : [],
     totalRecebidos: agregado.totalRecebidos ?? agregado.count, enviados: agregado.enviados ?? 0
   };
   const unsubscribe = agregado.unsubscribe || '';
@@ -1732,7 +1743,7 @@ function renderPainel() {
 
   // Filtros pelo que os emails indicam
   const naArea = lista.filter((empresa) => filtroSetor === 'todos' || empresa.sector === filtroSetor);
-  const filtros = [['todas', `Todas · ${naArea.length}`], ...KIND_ORDER.map((chave) => [chave, `${KINDS[chave].label} · ${naArea.filter((empresa) => empresa.kind === chave).length}`])];
+  const filtros = [['todas', `Todas · ${naArea.length}`], ...KIND_ORDER.map((chave) => [chave, `${KINDS[chave].filtro} · ${naArea.filter((empresa) => tiposDe(empresa).includes(chave)).length}`])];
   document.getElementById('kind-filters').innerHTML = filtros.map(([chave, texto]) => `
     <button data-action="filtro" data-kind="${chave}" type="button" class="shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${filtroTipo === chave ? 'border-oliva bg-oliva text-ink' : 'border-slate-700 text-slate-300'}">${esc(texto)}</button>`).join('');
 
@@ -1740,7 +1751,7 @@ function renderPainel() {
   document.getElementById('kind-legend').innerHTML = `
     <p>Olhamos só para quem te enviou emails, o assunto e a data. Cada empresa fica numa área (estimada pelo nome, quando não está no nosso catálogo) e numa de quatro categorias:</p>
     ${KIND_ORDER.map((chave) => `<p><span class="mr-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${KINDS[chave].style}">${KINDS[chave].label}</span>${esc(KINDS[chave].help)}</p>`).join('')}
-    <p>Se uma empresa não for tua, abre "Porquê esta empresa?" e escolhe "Não é minha".</p>`;
+    <p>Se uma empresa não for tua, abre "Porquê esta empresa?" e escolhe "Não tenho dados aqui".</p>`;
 }
 
 function emailsUltimos30Dias(empresa) {
@@ -1781,7 +1792,7 @@ function renderEmpresas() {
   const lista = visiveis();
   const filtradas = lista
     .filter((empresa) => filtroSetor === 'todos' || empresa.sector === filtroSetor)
-    .filter((empresa) => filtroTipo === 'todas' || empresa.kind === filtroTipo)
+    .filter((empresa) => filtroTipo === 'todas' || tiposDe(empresa).includes(filtroTipo))
     .filter((empresa) => `${empresa.name} ${empresa.domain} ${SECTORS[empresa.sector]?.label || ''}`.toLowerCase().includes(query))
     .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || (b.evidence?.count || 0) - (a.evidence?.count || 0));
 
@@ -1835,7 +1846,7 @@ function criarCard(empresa) {
     <div class="flex items-center gap-3">
       <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-base font-bold text-ink">${esc(empresa.icon)}</div>
       <div class="min-w-0 flex-1">
-        <div class="flex items-center gap-2"><h4 class="truncate font-semibold">${esc(empresa.name)}</h4><span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${tipo.style}">${tipo.label}</span></div>
+        <div class="flex flex-wrap items-center gap-x-2 gap-y-1"><h4 class="truncate font-semibold">${esc(empresa.name)}</h4>${tiposDe(empresa).map((chave) => `<span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${KINDS[chave].style}">${KINDS[chave].label}</span>`).join('')}</div>
         <p class="mt-0.5 truncate text-xs text-mist">≈ ${recebidos} emails · ${duracaoCurta(tempoPerdidoS(empresa))} gastos</p>
       </div>
       <span class="mt-1 shrink-0" title="Gravidade ${SEVERITY[gravidade].label.toLowerCase()}" aria-label="Gravidade ${SEVERITY[gravidade].label.toLowerCase()}" role="img">${iconeGravidade(gravidade)}</span>
@@ -1850,13 +1861,23 @@ function criarCard(empresa) {
     <details class="mt-2 text-xs leading-5 text-mist">
       <summary class="cursor-pointer font-semibold text-slate-500">Porquê esta empresa?</summary>
       ${porqueEstaEmpresa(empresa)}
-      <button data-action="descartar" data-id="${esc(empresa.id)}" type="button" class="mt-2 font-semibold text-slate-400 underline decoration-slate-700 underline-offset-4">Não é minha</button>
+      <button data-action="descartar" data-id="${esc(empresa.id)}" type="button" class="mt-2 font-semibold text-slate-400 underline decoration-slate-700 underline-offset-4">Não tenho dados aqui</button>
     </details>
   </article>`;
 }
 
 // "Porquê esta empresa?": o que encontrámos na caixa, o que estas empresas costumam guardar e a área.
 // O assunto do email só existe logo a seguir à análise (não fica guardado); a data fica.
+function ocultarCodigos(texto) {
+  return String(texto).replace(/\d[\d\s-]{2,}\d/g, '•••');
+}
+
+// Uma empresa pode ser de vários tipos ao mesmo tempo (conta, compras e newsletter)
+function tiposDe(empresa) {
+  const tipos = empresa.evidence?.kinds?.length ? empresa.evidence.kinds : [empresa.kind || 'unknown'];
+  return KIND_ORDER.filter((chave) => tipos.includes(chave));
+}
+
 function porqueEstaEmpresa(empresa) {
   const ev = empresa.evidence || {};
   const setor = SECTORS[empresa.sector] || SECTORS.outros;
@@ -1865,7 +1886,7 @@ function porqueEstaEmpresa(empresa) {
   // Se o email que deu a pista for o último, não se repete a data
   const eOUltimo = ev.sampleDate && ev.lastDate && formatarData(ev.sampleDate) === formatarData(ev.lastDate);
   const qual = eOUltimo ? 'O último' : 'Um deles';
-  const exemplo = `${ev.sampleSubject ? `: «${esc(ev.sampleSubject)}»` : ''}${ev.sampleDate && !eOUltimo ? `, de ${formatarData(ev.sampleDate)}` : ''}`;
+  const exemplo = `${ev.sampleSubject ? `: «${esc(ocultarCodigos(ev.sampleSubject))}»` : ''}${ev.sampleDate && !eOUltimo ? `, de ${formatarData(ev.sampleDate)}` : ''}`;
   const sinal = {
     likely_account: `${qual} é de boas-vindas, registo ou palavra-passe${exemplo}. Por isso, deves ter conta.`,
     purchase: `${qual} é um recibo, fatura ou encomenda${exemplo}. Por isso, deves ter comprado lá.`,
@@ -1941,7 +1962,7 @@ function mostrarMaisOpcoes(empresaId) {
     opcoes: [
       { label: RIGHTS.erasure.label, estilo: 'secondary', acao: () => prepararPedido(empresa.id, 'erasure') },
       { label: RIGHTS.objection.label, estilo: 'secondary', acao: () => prepararPedido(empresa.id, 'objection') },
-      { label: 'Não é minha', estilo: 'secondary', acao: () => definirDescartada(empresa.id, true) },
+      { label: 'Não tenho dados aqui', estilo: 'secondary', acao: () => definirDescartada(empresa.id, true) },
       { label: 'Cancelar', estilo: 'ghost', acao: () => {} }
     ]
   });

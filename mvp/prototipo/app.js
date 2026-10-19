@@ -346,7 +346,7 @@ const GUIA = [
    Cola em URL o endereço da tua Web App (termina em /exec). Enquanto estiver
    vazio, os eventos ficam guardados neste dispositivo e seguem mais tarde.
    ========================================================================== */
-const TESTE = { URL: 'https://script.google.com/macros/s/AKfycbwNh_t1JNLYzHaId9Mnte7rRiGPtZefjsOl7GnlxwwgMZW6hYoU8GIQWizqoVZwTq7i/exec', MAX_FILA: 300 };
+const TESTE = { URL: 'https://script.google.com/macros/s/AKfycbxriEsOIy6mvbaaf5HuabMNDDToHGYTPBjUrW6c1VA7uroZ61RUShmt5zCkJsWYp-s00Q/exec', MAX_FILA: 300 };
 
 // O teu Google OAuth Client ID (termina em .apps.googleusercontent.com). Não é segredo:
 // com ele preenchido, os testadores não veem o campo e só carregam em "Ligar Gmail".

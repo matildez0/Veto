@@ -68,7 +68,13 @@ const ICONES = {
   partilha: ['<circle cx="18" cy="5.5" r="2.5"/>', '<circle cx="6" cy="12" r="2.5"/>', '<circle cx="18" cy="18.5" r="2.5"/>', '<path d="M8.2 10.8l7.6-4.1M8.2 13.2l7.6 4.1"/>'],
   alvo: ['<circle cx="12" cy="12" r="8.5"/>', '<circle cx="12" cy="12" r="4.5"/>', '<circle cx="12" cy="12" r="0.8"/>'],
   globo: ['<circle cx="12" cy="12" r="8.5"/>', '<path d="M3.5 12h17M12 3.5c2.4 2.3 3.6 5.1 3.6 8.5s-1.2 6.2-3.6 8.5c-2.4-2.3-3.6-5.1-3.6-8.5S9.6 5.8 12 3.5z"/>'],
-  escudo: ['<path d="M12 3.5l7.5 2.8V12c0 4.4-3.1 7.4-7.5 8.5-4.4-1.1-7.5-4.1-7.5-8.5V6.3z"/>', '<path d="M12 8.5v4M12 15.6v.1"/>']
+  escudo: ['<path d="M12 3.5l7.5 2.8V12c0 4.4-3.1 7.4-7.5 8.5-4.4-1.1-7.5-4.1-7.5-8.5V6.3z"/>', '<path d="M12 8.5v4M12 15.6v.1"/>'],
+  lupa: ['<circle cx="11" cy="11" r="6.5"/>', '<path d="m20 20-4.4-4.4"/>'],
+  mensagem: ['<path d="M4 5.5h16v10.5H9.5L4 20z"/>', '<path d="M12 8.5v3M12 13.8v.1"/>'],
+  troca: ['<path d="M4 8.5h14l-3.5-3.5M20 15.5H6l3.5 3.5"/>'],
+  lixo: ['<path d="M4.5 6.5h15M9.5 6.5V4h5v2.5"/>', '<path d="M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6"/>'],
+  balanca: ['<path d="M12 4v16M8 20h8M5 7.5h14"/>', '<path d="M5 7.5 2.5 13a2.5 2.5 0 0 0 5 0zM19 7.5 16.5 13a2.5 2.5 0 0 0 5 0z"/>'],
+  cadeado: ['<rect x="5" y="10.5" width="14" height="10" rx="2"/>', '<path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/>']
 };
 
 function icone(nome, classe = 'h-4 w-4') {
@@ -236,12 +242,100 @@ const TIPOS_NOTICIA = {
 };
 
 // Como as empresas tratam os dados: o essencial, com o direito que responde a cada ponto
-const EXPLICADORES = [
-  { icone: 'relogio', titulo: 'Quanto tempo guardam', texto: 'Só podem guardar os dados enquanto forem precisos para o fim com que os recolheram (artigo 5.º do RGPD). Na prática, muitas guardam-nos durante anos.', direito: 'Pergunta o prazo com um pedido de acesso.' },
-  { icone: 'partilha', titulo: 'Com quem partilham', texto: 'Parceiros de publicidade, empresas de análise, prestadores de serviços: a lista de destinatários costuma ser longa.', direito: 'Um pedido de acesso obriga-as a dizer quem são os destinatários.' },
-  { icone: 'alvo', titulo: 'Perfis e publicidade', texto: 'Usam o que compras, vês e clicas para traçar um perfil teu e decidir que anúncios te mostram.', direito: 'O direito de oposição ao marketing é absoluto: têm de parar.' },
-  { icone: 'globo', titulo: 'Fora da Europa', texto: 'Muitos dados vão para servidores fora da União Europeia, onde só podem ir com garantias específicas.', direito: 'Pergunta para onde vão os teus dados no pedido de acesso.' },
-  { icone: 'escudo', titulo: 'Quando há uma fuga', texto: 'A empresa tem 72 horas para avisar a autoridade (artigo 33.º) e, se o risco for elevado, tem de te avisar a ti (artigo 34.º).', direito: 'Quanto menos empresas tiverem os teus dados, menos fugas te afetam.' }
+// Guia da página Notícias: as perguntas que importam, com a resposta e o artigo do RGPD.
+// Cada bloco é um parágrafo (texto) ou uma lista (array). "filtro" mostra os casos reais desse tipo.
+const GUIA = [
+  {
+    id: 'porque', icone: 'lupa', pergunta: 'Porque importa saber quem tem os teus dados?',
+    blocos: [
+      'Cada empresa que guarda os teus dados é mais um sítio de onde eles podem fugir. Muitas são contas antigas de que já nem te lembras, mas que continuam a guardar o teu nome, email, morada ou dados de pagamento.',
+      'Não podes pedir que apaguem o que não sabes que existe. Quanto menos empresas tiverem os teus dados, menos fugas te afetam.'
+    ],
+    acao: 'Começa pelas empresas de áreas sensíveis: saúde, finanças e encontros.'
+  },
+  {
+    id: 'consequencias', icone: 'mensagem', pergunta: 'O que pode acontecer se os teus dados fugirem?',
+    blocos: [
+      'Os dados de uma fuga acabam muitas vezes à venda e são usados para enganar pessoas. Com o teu nome verdadeiro e o que compraste, uma mensagem falsa parece mesmo da empresa.',
+      [
+        'Mensagens falsas em nome da empresa: uma entrega pendente, uma fatura em atraso, um problema na conta, sempre com um link.',
+        'Chamadas de falsos funcionários do banco ou da operadora, que já sabem quem és.',
+        'A burla «Olá pai, olá mãe»: alguém finge ser um filho com um número novo e pede dinheiro por MB WAY.',
+        'Entradas noutras contas, se usas a mesma palavra-passe em vários sítios.',
+        'Roubo de identidade: com o NIF, a morada e uma cópia do cartão de cidadão, podem tentar abrir contas ou pedir crédito em teu nome.',
+        'Mais spam e mais chamadas comerciais.'
+      ]
+    ],
+    filtro: ['fraude', 'Ver burlas reais']
+  },
+  {
+    id: 'venda', icone: 'troca', pergunta: 'Uma empresa pode vender ou passar os teus dados a outra?',
+    blocos: [
+      'Só se tiver uma razão legal para isso, muitas vezes o teu consentimento (artigo 6.º do RGPD). E tem de ser transparente:',
+      [
+        'Quando recolhe os teus dados, tem de te dizer a quem os vai passar, ou pelo menos a que tipo de empresas (artigo 13.º).',
+        'A empresa que os recebe tem de te avisar, em regra no prazo de um mês, e dizer-te de onde vieram (artigo 14.º).',
+        'Se deste consentimento, podes retirá-lo quando quiseres, e tem de ser tão fácil como foi dá-lo (artigo 7.º).'
+      ]
+    ],
+    acao: 'Um pedido de acesso obriga a empresa a dizer-te a quem passou os teus dados (artigo 15.º).'
+  },
+  {
+    id: 'apagar_cadeia', icone: 'lixo', pergunta: 'Se pedires a uma empresa para apagar, as outras também apagam?',
+    blocos: [
+      'Depende do papel da outra empresa.',
+      [
+        'Se trabalha por conta da primeira (um terceiro, como o Mailchimp, que lhe envia os emails): só pode usar os teus dados como a primeira manda. Quando a primeira apaga, tem de garantir que esse terceiro também apaga (artigo 28.º).',
+        'Se recebeu ou comprou os teus dados para os usar ela própria: a primeira tem de a avisar do teu pedido (artigo 19.º), a não ser que seja impossível ou exija um esforço desproporcionado. Mas a segunda responde pelos dados que tem: para teres a certeza, pede-lhe o apagamento a ela também.'
+      ]
+    ],
+    acao: 'Pergunta à primeira empresa a quem passou os teus dados: tem de te dizer (artigo 19.º).'
+  },
+  {
+    id: 'recusar', icone: 'balanca', pergunta: 'A empresa pode recusar apagar os teus dados?',
+    blocos: [
+      'Pode, em alguns casos (artigo 17.º):',
+      [
+        'se ainda precisa deles, por exemplo enquanto tens um contrato ativo;',
+        'se a lei a obriga a guardá-los, como as faturas, durante vários anos;',
+        'se precisa deles para se defender num processo em tribunal.'
+      ],
+      'Mesmo assim, tem de te responder no prazo de um mês e explicar porquê (artigo 12.º). E o marketing tem de parar sempre que o pedires (artigo 21.º).'
+    ]
+  },
+  {
+    id: 'fuga', icone: 'escudo', pergunta: 'O que tem de fazer uma empresa quando há uma fuga?',
+    blocos: [
+      'Tem 72 horas para avisar a CNPD, a autoridade portuguesa de proteção de dados (artigo 33.º). Se a fuga te puder trazer um risco elevado, tem de te avisar a ti, sem demora (artigo 34.º).',
+      'Se a fuga te causar danos, materiais ou não, tens direito a indemnização (artigo 82.º) e podes apresentar queixa na CNPD (artigo 77.º).'
+    ],
+    acao: 'Se receberes um aviso: muda a palavra-passe dessa conta e das outras onde a uses, e desconfia de mensagens em nome da empresa.',
+    filtro: ['fuga', 'Ver fugas reais']
+  },
+  {
+    id: 'tempo', icone: 'relogio', pergunta: 'Quanto tempo podem guardar os teus dados?',
+    blocos: ['Só enquanto forem precisos para o fim com que os recolheram (artigo 5.º). Na prática, muitas empresas guardam-nos durante anos, mesmo depois de deixares de ser cliente.'],
+    acao: 'Um pedido de acesso obriga-as a dizer-te durante quanto tempo os guardam (artigo 15.º).'
+  },
+  {
+    id: 'publicidade', icone: 'alvo', pergunta: 'Usam os teus dados para publicidade?',
+    blocos: ['Muitas usam o que compras, vês e clicas para traçar um perfil teu e decidir que anúncios te mostram, às vezes com a ajuda de outras empresas.'],
+    acao: 'Podes opor-te ao marketing a qualquer momento, e a empresa tem de parar (artigo 21.º).'
+  },
+  {
+    id: 'fora_europa', icone: 'globo', pergunta: 'Os teus dados podem sair da Europa?',
+    blocos: ['Podem, mas só para países com uma proteção equivalente ou com garantias específicas, como contratos-tipo aprovados pela Comissão Europeia (artigos 44.º a 49.º).'],
+    acao: 'Um pedido de acesso diz-te para onde vão os teus dados e com que garantias (artigo 15.º).'
+  },
+  {
+    id: 'proteger', icone: 'cadeado', pergunta: 'Como te podes proteger?',
+    blocos: [[
+      'Usa uma palavra-passe diferente em cada conta (um gestor de palavras-passe ajuda) e liga a autenticação em dois passos.',
+      'Desconfia de mensagens com pressa ou com links. Confirma sempre pelo site ou pelo número oficial da empresa.',
+      'Dá só os dados que são mesmo precisos.',
+      'Pede para apagar as contas que já não usas. O Veto prepara o pedido por ti.'
+    ]]
+  }
 ];
 
 /* ==========================================================================
@@ -591,6 +685,15 @@ registarAbertura();
 document.getElementById('analyze-button').addEventListener('click', ligarGmail);
 document.getElementById('search-input').addEventListener('input', renderEmpresas);
 document.addEventListener('click', tratarClique);
+// Que perguntas do guia são abertas, uma vez por pergunta em cada visita
+// (o evento "toggle" não sobe, por isso apanha-se na descida)
+const perguntasAbertas = new Set();
+document.addEventListener('toggle', (evento) => {
+  const pergunta = evento.target.matches?.('details[data-guia]') && evento.target.open && evento.target.dataset.guia;
+  if (!pergunta || perguntasAbertas.has(pergunta)) return;
+  perguntasAbertas.add(pergunta);
+  registarEvento('guia_aberto', { pergunta });
+}, true);
 ligarZoomDoMapa();
 // As áreas do mapa são elementos SVG: Enter e Espaço também as abrem.
 document.addEventListener('keydown', (evento) => {
@@ -1465,13 +1568,23 @@ function renderNoticias() {
     ? `<span class="mt-0.5 text-slate-300">${icone('marcador')}</span><span><span class="font-semibold text-white">${minhas.length} ${plural(minhas.length, 'notícia é', 'notícias são')} sobre empresas que tens:</span> ${esc([...new Set(minhas.map((noticia) => noticia.empresa))].join(', '))}.</span>`
     : '<span>Depois de analisares o teu email, marcamos aqui as notícias sobre empresas que têm os teus dados.</span>';
 
-  document.getElementById('news-explainers').innerHTML = EXPLICADORES.map((item) => `
-    <article class="w-64 shrink-0 snap-start rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-      <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-slate-200">${icone(item.icone, 'h-5 w-5')}</span>
-      <h3 class="mt-3 text-sm font-semibold">${esc(item.titulo)}</h3>
-      <p class="mt-1 text-xs leading-5 text-mist">${esc(item.texto)}</p>
-      <p class="mt-2 text-xs font-semibold leading-5 text-lime">${esc(item.direito)}</p>
-    </article>`).join('');
+  // O guia: cada pergunta abre a resposta (fica aberta entre desenhos)
+  const abertas = new Set([...document.querySelectorAll('#news-guide details[open]')].map((d) => d.dataset.guia));
+  document.getElementById('news-guide').innerHTML = GUIA.map((item) => `
+    <details data-guia="${item.id}" class="guia rounded-2xl border border-slate-800 bg-slate-900/60"${abertas.has(item.id) ? ' open' : ''}>
+      <summary class="flex cursor-pointer items-center gap-3 px-4 py-3">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ink text-slate-200">${icone(item.icone, 'h-5 w-5')}</span>
+        <span class="flex-1 text-sm font-semibold leading-5">${esc(item.pergunta)}</span>
+        <svg viewBox="0 0 16 16" class="guia-seta h-4 w-4 shrink-0 text-slate-500 transition" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+      </summary>
+      <div class="flex flex-col gap-2.5 px-4 pb-4 text-[13px] leading-5 text-slate-300">
+        ${item.blocos.map((bloco) => (Array.isArray(bloco)
+          ? `<ul class="flex flex-col gap-1.5">${bloco.map((linha) => `<li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-500"></span><span>${esc(linha)}</span></li>`).join('')}</ul>`
+          : `<p>${esc(bloco)}</p>`)).join('')}
+        ${item.acao ? `<p class="font-semibold text-lime">${esc(item.acao)}</p>` : ''}
+        ${item.filtro ? `<button data-action="ver-casos" data-filter="${item.filtro[0]}" type="button" class="self-start text-xs font-semibold text-slate-200 underline decoration-slate-600 underline-offset-4">${esc(item.filtro[1])}</button>` : ''}
+      </div>
+    </details>`).join('');
 
   const filtros = [['todas', 'Todas'], ['minhas', `As minhas empresas · ${minhas.length}`], ['fuga', 'Fugas de dados'], ['multa', 'Multas'], ['fraude', 'Burlas']];
   document.getElementById('news-filters').innerHTML = filtros.map(([chave, texto]) => `
@@ -2753,6 +2866,11 @@ function tratarClique(evento) {
     case 'nota': marcarNota(Number(alvo.dataset.value)); break;
     case 'enviar-opiniao': enviarOpiniao(); break;
     case 'filtro-noticias': filtroNoticias = alvo.dataset.filter; renderNoticias(); break;
+    case 'ver-casos':
+      filtroNoticias = alvo.dataset.filter;
+      renderNoticias();
+      document.getElementById('news-real').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      break;
     case 'abrir-fonte': registarEvento('noticia_aberta', { noticia: id }); break; // o link abre normalmente
     case 'cancelar-subscricao': cancelarSubscricao(id); break;
     case 'apagar-emails': apagarEmailsEmpresa(id); break;
@@ -2973,7 +3091,7 @@ function mostrarOQueEEnviado() {
       ['Um identificador aleatório', 'Um código deste dispositivo, que não te identifica, e de onde vieste (por exemplo, LinkedIn).'],
       ['A análise', 'Quantos emails e quantas empresas encontrámos, por área e por gravidade.'],
       ['Os pedidos', 'O tipo de pedido que preparas, envias ou registas, e a área da empresa.'],
-      ['Outras ações', 'Quando abres a app, cancelas uma subscrição, abres uma notícia ou vês o Veto Plus.']
+      ['Outras ações', 'Quando abres a app, cancelas uma subscrição, abres uma notícia ou uma pergunta do guia, ou vês o Veto Plus.']
     ],
     nota: 'Nunca enviamos o teu endereço de email, os nomes das empresas, os assuntos nem o conteúdo dos emails.',
     opcoes: ligadas

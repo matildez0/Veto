@@ -41,6 +41,7 @@ Veto is a cross-platform mobile app built with React Native (Expo). Inside the a
 
 **Email source.**
 - Real Gmail connection with the OAuth scope `gmail.readonly`, called directly from the device. Only the metadata (sender, subject, date) of candidate messages is downloaded. In the MVP, this only works for the team and invited testers, because the Google project is in Testing mode.
+- Optional manual cleanup for one detected company: Veto opens a pre-filtered Gmail search and the user selects and moves matching received emails to Gmail's Trash. Veto never requests `gmail.modify` or changes the mailbox itself.
 - **Candidate emails selected within Gmail itself.** Veto does not download the whole inbox and filter it afterwards. It uses Gmail search (the `q` parameter) to request only the emails that may point to a relationship with a company: sign-up, purchase and subscription keywords in Portuguese and English, Gmail's own categories (Purchases, Updates, Promotions) and the time period set in D5. The search runs on Google's servers, which already hold the emails; only the metadata of the results reaches the phone, requested in batches. This saves time, battery and Gmail API quota.
 - **Expired connections handled clearly.** In Testing mode, authorisation expires after about seven days. When this happens, the app does not show a technical error but a simple message ("Your Gmail connection expired for security. Tap to reconnect.") and keeps all local history intact.
 - Demo mode with a simulated inbox containing realistic messages from Portuguese and international services. It needs no login and is the main path for the pitch.
@@ -256,4 +257,3 @@ Decisions about the future (desktop, monetisation, business customers) are in [P
 **Testing.** Zero for Android testing (direct APK installation). An iPhone test build needs an Apple Developer account (99 USD per year) or the free but limited development provisioning on a team member's device; the team decides in Phase 0. Publishing to the app stores is not planned for this semester.
 
 **Other.** Development time, at least one iPhone and one Android phone for testing (one of them capable of on-device AI, for the optional local AI step) and time for the legal review of the templates.
-

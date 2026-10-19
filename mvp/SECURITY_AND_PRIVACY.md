@@ -56,7 +56,7 @@ Each of these can fail, change its rules, or see technical traffic. The app must
 
 ## 4. OAuth permissions
 
-**Scope.** Veto requests `gmail.readonly`. The app then asks the Gmail API only for candidate messages, and only for their metadata where possible. The permission granted by the user is still broader than what the app uses, and the consent screen and privacy policy must say so plainly.
+**Scope.** Veto requests only `gmail.readonly` for scanning. For cleanup, it opens a pre-filtered Gmail search and the user selects and moves messages to the Trash manually. Veto never requests permission to modify the mailbox and cannot delete messages itself.
 
 **Testing mode.** During the semester, the Google project stays in Testing mode:
 - Only accounts on the test user list can connect, and they see an "unverified app" warning.

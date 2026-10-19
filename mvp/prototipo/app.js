@@ -805,11 +805,12 @@ function mostrarTesteFechado() {
   const caixa = document.getElementById('closed-test');
   const pedir = document.getElementById('closed-test-request');
   document.getElementById('closed-test-text').textContent = 'Se fechaste a janela do Google sem querer, carrega outra vez em «Ligar Gmail e começar». '
-    + (PEDIR_ACESSO_URL
+    + (PEDIR_ACESSO_URL || TESTE.URL
       ? 'Se o Google mostrou «Acesso bloqueado», o teste ainda está limitado a algumas contas: pede acesso aqui.'
       : 'Se o Google mostrou «Acesso bloqueado», o teste ainda está limitado a algumas contas.');
-  pedir.classList.toggle('hidden', !PEDIR_ACESSO_URL);
+  pedir.classList.toggle('hidden', !PEDIR_ACESSO_URL && !TESTE.URL);
   if (PEDIR_ACESSO_URL) pedir.href = PEDIR_ACESSO_URL;
+  else { pedir.removeAttribute('href'); pedir.setAttribute('data-action', 'pedir-acesso'); pedir.setAttribute('role', 'button'); }
   // Só para quem desenvolve (a correr no próprio computador): ajuda com o erro origin_mismatch
   const dev = document.getElementById('closed-test-dev');
   const local = location.protocol === 'file:' || ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
@@ -1653,7 +1654,7 @@ function renderResumo() {
 
   const analisado = Boolean(estado.analisadoEm);
   document.getElementById('intro-panel').classList.toggle('hidden', analisado && !renderResumo.novaAnalise);
-  document.getElementById('home-summary').classList.toggle('hidden', !analisado);
+  document.getElementById('home-summary').classList.toggle('hidden', !analisado || renderResumo.novaAnalise);
   document.getElementById('next-steps').classList.toggle('hidden', !analisado || renderResumo.novaAnalise);
   document.getElementById('feedback-panel').classList.toggle('hidden', !analisado);
   document.getElementById('next-steps-requests').textContent = enviados ? `(${enviados})` : '';
@@ -2904,6 +2905,7 @@ function tratarClique(evento) {
     case 'insistir': enviarInsistencia(id); break;
     case 'sem-resposta': aplicarResultado(id, 'no_reply'); break;
     case 'apagar-tudo': confirmarApagarTudo(); break;
+    case 'pedir-acesso': pedirAcessoAoTeste(); break;
     case 'nova-analise': renderResumo.novaAnalise = true; renderResumo(); break;
     case 'mapa-setor': alternarSelecao('setor', sector); break;
     case 'mapa-empresa': alternarSelecao('empresa', id); break;
@@ -3009,6 +3011,39 @@ async function enviarFila() {
   if (vistaAtual() === 'inicio') renderTeste();
   // O que entrou na fila enquanto se enviava segue logo a seguir
   if (enviou && (estado.filaEnvio || []).length) enviarFila();
+}
+
+// Enquanto a app está em teste no Google, só contas na lista de testadores podem ligar o Gmail.
+// Quem quer entrar deixa o email; a equipa acrescenta-o na Google Cloud. É o único email que o Veto recebe.
+function pedirAcessoAoTeste() {
+  abrirFolha({
+    titulo: 'Pedir acesso ao teste',
+    texto: 'Enquanto o Veto está em teste, o Google só deixa entrar contas que a equipa acrescenta à mão. Deixa o teu endereço Gmail e avisamos-te quando estiver pronto (normalmente no próprio dia).',
+    nota: 'O endereço fica numa folha de cálculo só da equipa, serve apenas para te dar acesso ao teste e é apagado no fim do ano letivo. Não fica ligado às tuas estatísticas.',
+    opcoes: [
+      { label: 'Continuar', estilo: 'primary', acao: () => setTimeout(pedirEmailDeAcesso, 50) },
+      { label: 'Agora não', estilo: 'ghost', acao: () => {} }
+    ]
+  });
+}
+
+async function pedirEmailDeAcesso() {
+  const email = (window.prompt('O teu endereço Gmail:') || '').trim().toLowerCase();
+  if (!email) return;
+  if (!/^[^\s@]+@(gmail|googlemail)\.com$/.test(email)) {
+    mostrarToast('Escreve um endereço Gmail (termina em @gmail.com).');
+    return;
+  }
+  if (!TESTE.URL) {
+    mostrarToast('O pedido de acesso ainda não está configurado.');
+    return;
+  }
+  try {
+    await fetch(TESTE.URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ pedidoAcesso: { email, quando: new Date().toISOString(), versao: VERSAO } }) });
+    mostrarToast('Pedido enviado. Avisamos-te por email quando tiveres acesso.');
+  } catch (erro) {
+    mostrarToast('Não foi possível enviar. Verifica a ligação e tenta outra vez.');
+  }
 }
 
 function registarAbertura() {

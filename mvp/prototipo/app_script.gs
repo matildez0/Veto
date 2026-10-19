@@ -10,6 +10,9 @@
  *
  * Cada evento fica numa linha da folha "Eventos". A app só envia contagens:
  * nunca endereços de email, nomes de empresas, assuntos ou conteúdo de emails.
+ * A exceção são os pedidos de acesso ao teste: o email que a pessoa escreve fica na folha
+ * "Testers", para a equipa o acrescentar em Google Cloud > Público-alvo > Utilizadores de teste.
+ * Depois de alterar este ficheiro: Implementar > Gerir implementações > editar > Nova versão.
  */
 function doPost(e) {
   const livro = SpreadsheetApp.getActiveSpreadsheet();
@@ -18,6 +21,16 @@ function doPost(e) {
     folha.appendRow(['Recebido', 'Código', 'Dispositivo', 'Evento', 'Detalhes', 'Hora no dispositivo', 'Versão']);
   }
   const dados = JSON.parse(e.postData.contents || '{}');
+  // Pedidos de acesso ao teste: o único sítio onde chega um email, numa folha à parte
+  if (dados.pedidoAcesso) {
+    const testers = livro.getSheetByName('Testers') || livro.insertSheet('Testers');
+    if (testers.getLastRow() === 0) testers.appendRow(['Recebido', 'Email', 'Hora no dispositivo', 'Versão', 'Acrescentado na Google Cloud?']);
+    const email = String(dados.pedidoAcesso.email || '').trim().toLowerCase().slice(0, 120);
+    if (!/^[^\s@]+@(gmail|googlemail)\.com$/.test(email)) return ContentService.createTextOutput('email inválido');
+    const existentes = testers.getLastRow() > 1 ? testers.getRange(2, 2, testers.getLastRow() - 1, 1).getValues().flat() : [];
+    if (!existentes.includes(email)) testers.appendRow([new Date(), email, String(dados.pedidoAcesso.quando || ''), String(dados.pedidoAcesso.versao || ''), 'não']);
+    return ContentService.createTextOutput('ok');
+  }
   const linhas = (dados.eventos || []).map((ev) => [
     new Date(),
     String(ev.codigo || '').slice(0, 40),

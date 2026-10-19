@@ -703,7 +703,10 @@ document.addEventListener('keydown', (evento) => {
   }
 });
 document.getElementById('sheet').addEventListener('click', (evento) => {
-  if (evento.target.id === 'sheet') fecharFolha();
+  if (evento.target.id !== 'sheet') return;
+  const continuar = abrirFolha.aoFecharFora;
+  fecharFolha();
+  if (continuar) continuar();
 });
 window.addEventListener('hashchange', renderTudo);
 let esperaRedimensionar = 0;
@@ -719,6 +722,8 @@ document.addEventListener('visibilitychange', () => {
 });
 // O modo exemplo foi retirado: apaga o que tenha ficado guardado de versões anteriores.
 if (estado.demo || estado.pedidos.some((pedido) => pedido.demo)) limparExemplo();
+// Prazos antigos (mês + 3 dias) passam a 30 dias depois do envio
+estado.pedidos.forEach((pedido) => { if (pedido.sentAt) pedido.dueDate = estimarPrazo(pedido.sentAt); });
 renderTudo();
 mostrarPerguntaConsentimento();
 setTimeout(verificarPendente, 600);
@@ -999,12 +1004,12 @@ function apagarEmailsEmpresa(empresaId) {
   const pesquisa = `{${dominios.map((domain) => `from:${domain}`).join(' ')}} -in:spam -in:trash -in:sent -in:drafts -in:chats`;
   const url = `https://mail.google.com/mail/u/0/#search/${encodeURIComponent(pesquisa)}`;
   abrirFolha({
-    titulo: `Apagar emails da ${empresa.name}`,
-    texto: 'O Veto não tem permissão para alterar a tua caixa. O Gmail vai abrir uma pesquisa com os emails desta empresa; confirma a seleção e move-os manualmente para o Lixo.',
-    nota: 'A pesquisa exclui spam, Lixo, enviados, rascunhos e chats. Confirma cada email antes de o apagar.',
+    titulo: `Apagar os emails da ${empresa.name}`,
+    texto: 'O Gmail abre com os emails desta empresa. Seleciona-os e move-os para o Lixo.',
+    nota: 'O Veto não apaga emails por ti.',
     opcoes: [
       {
-        label: 'Abrir pesquisa no Gmail', estilo: 'primary', acao: () => {
+        label: 'Abrir no Gmail', estilo: 'primary', acao: () => {
           const janela = window.open(url, '_blank');
           if (janela) janela.opener = null;
           else window.location.href = url;
@@ -1256,9 +1261,14 @@ function prepararPedido(empresaId, right) {
     mostrarToast('Ainda não temos um contacto de privacidade verificado para esta empresa.');
     return;
   }
-  const pendente = estado.pedidos.find((pedido) => pedido.status === 'awaiting_confirmation');
+  // Se há um pedido por confirmar, pergunta uma vez; clicar fora da janela segue com o pedido novo
+  const pendente = !prepararPedido.semPergunta && estado.pedidos.find((pedido) => pedido.status === 'awaiting_confirmation' && !pedido.perguntaAdiada);
   if (pendente) {
-    perguntarSeEnviou(pendente);
+    perguntarSeEnviou(pendente, () => {
+      pendente.perguntaAdiada = true;
+      guardarEstado();
+      prepararPedido(empresaId, right);
+    });
     return;
   }
   const aberto = estado.pedidos.find((pedido) => pedido.companyId === empresaId && pedido.right === right && !['closed', 'draft'].includes(pedido.status));
@@ -1362,8 +1372,9 @@ function verificarPendente() {
   if (pendente) perguntarSeEnviou(pendente);
 }
 
-function perguntarSeEnviou(pedido) {
+function perguntarSeEnviou(pedido, aoFecharFora = null) {
   abrirFolha({
+    aoFecharFora,
     titulo: `Enviaste o pedido à ${pedido.companyName}?`,
     texto: 'Só tu sabes: o Veto não tem acesso ao teu email enviado. Se disseres que sim, começamos a contar o prazo de resposta.',
     opcoes: [
@@ -1474,12 +1485,9 @@ function mudarEstado(pedido, novo) {
 
 /* Prazo: um mês de calendário (artigo 12.º, n.º 3) + 3 dias de margem, na data local. */
 function estimarPrazo(dataEnvioISO) {
-  const envio = new Date(dataEnvioISO);
-  const ano = envio.getFullYear();
-  const mes = envio.getMonth();
-  const ultimoDiaMesSeguinte = new Date(ano, mes + 2, 0).getDate();
-  const prazo = new Date(ano, mes + 1, Math.min(envio.getDate(), ultimoDiaMesSeguinte));
-  prazo.setDate(prazo.getDate() + RESPONSE_BUFFER_DAYS);
+  // Prazo de resposta: 30 dias depois do envio (um mês, artigo 12.º do RGPD)
+  const prazo = new Date(dataEnvioISO);
+  prazo.setDate(prazo.getDate() + 30);
   return dataLocalISO(prazo);
 }
 
@@ -1972,13 +1980,13 @@ function renderPedidos() {
   if (!temPedidos) return;
 
   const pedidos = [...estado.pedidos];
-  const atencao = pedidos.filter(precisaDeAtencao).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  const espera = pedidos.filter((pedido) => !precisaDeAtencao(pedido) && pedido.status === 'sent')
-    .sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
+  const concluido = (pedido) => pedido.status === 'closed' || (pedido.status === 'reply_received' && pedido.holdsData !== null);
+  // À espera: os que precisam de uma ação tua primeiro, depois pelo prazo
+  const espera = pedidos.filter((pedido) => !concluido(pedido))
+    .sort((a, b) => precisaDeAtencao(b) - precisaDeAtencao(a) || (a.dueDate || '9').localeCompare(b.dueDate || '9'));
   const concluidos = pedidos.filter((pedido) => pedido.status === 'closed' || (pedido.status === 'reply_received' && pedido.holdsData !== null))
     .sort((a, b) => (b.closedAt || b.replyAt || '').localeCompare(a.closedAt || a.replyAt || ''));
 
-  preencherGrupo('group-attention', atencao, 'Nada pendente. Está tudo em dia.');
   preencherGrupo('group-waiting', espera, 'Nenhum pedido à espera de resposta.');
   preencherGrupo('group-done', concluidos, 'Ainda nenhum pedido concluído.');
 }
@@ -2723,7 +2731,7 @@ function criarCartaoPedido(pedido) {
         <p class="flex items-center gap-2 font-semibold"><span class="h-2 w-2 shrink-0 rounded-full ${balde ? BUCKETS[balde].dot : 'bg-slate-500'}"></span>${esc(pedido.companyName)} <span class="text-slate-500" title="${esc(setor.label)}">${icone(pedido.companySector || 'outros', 'h-3.5 w-3.5')}</span></p>
         <p class="mt-0.5 text-xs text-mist">${esc(direito.short)} · ${esc(direito.article)}</p>
       </div>
-      ${resultado}
+      ${resultado || (['sent', 'awaiting_confirmation'].includes(pedido.status) && pedido.email ? `<button data-action="enviar-novamente" data-id="${esc(pedido.id)}" type="button" class="shrink-0 rounded-lg border border-slate-700 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 hover:border-slate-500">Enviar novamente</button>` : '')}
     </div>
     <div class="mt-3 flex flex-col gap-1 text-[11px] text-mist">
       <span>${esc(STATUS_LABELS[pedido.status])}</span>
@@ -2757,8 +2765,9 @@ function descreverPedido(pedido) {
 /* ==========================================================================
    Folha (pergunta no fundo do ecrã)
    ========================================================================== */
-function abrirFolha({ titulo, texto, lista = [], nota = '', opcoes }) {
+function abrirFolha({ titulo, texto, lista = [], nota = '', opcoes, aoFecharFora = null }) {
   opcoesFolha = opcoes;
+  abrirFolha.aoFecharFora = aoFecharFora;
   folhaAberta = true;
   document.getElementById('sheet-title').textContent = titulo;
   document.getElementById('sheet-text').textContent = texto;
@@ -2819,10 +2828,10 @@ function registarPlusVisto() {
 function abrirPlus(onde = 'outro') {
   registarEvento('plus_aberto', { onde, demo: estado.demo });
   abrirFolha({
-    titulo: 'Veto Plus',
+    titulo: 'Veto+',
     texto: 'Para deixares de perder tempo com os emails das empresas e teres os teus pedidos tratados até ao fim.',
     lista: PLUS.FUNCOES,
-    nota: 'Em breve. O Veto Plus ainda não está disponível e escolher um plano não cobra nada: estamos a medir quantas pessoas o querem antes de o construir.',
+    nota: 'Em breve. O Veto+ ainda não está disponível e escolher um plano não cobra nada: estamos a medir quantas pessoas o querem antes de o construir.',
     opcoes: [
       { label: `Quero o mensal · ${PLUS.MENSAL}/mês`, estilo: 'primary', acao: () => quererPlus('mensal', onde) },
       { label: `Quero o anual · ${PLUS.ANUAL}/ano (2 meses grátis)`, estilo: 'secondary', acao: () => quererPlus('anual', onde) },
@@ -2842,7 +2851,7 @@ function quererPlus(plano, onde) {
   const podePerguntar = !estado.teste?.consentimento && estado.decisaoTeste !== 'recusado';
   abrirFolha({
     titulo: 'Obrigado! Registámos o teu interesse',
-    texto: 'O Veto Plus ainda não existe e não pagaste nada. A tua escolha ajuda-nos a decidir se o construímos e a que preço.',
+    texto: 'O Veto+ ainda não existe e não pagaste nada. A tua escolha ajuda-nos a decidir se o construímos e a que preço.',
     nota: podePerguntar ? 'Para a tua escolha contar no nosso teste, aceita as estatísticas anónimas. Nunca enviamos o teu email, as empresas nem o conteúdo dos emails.' : '',
     opcoes: podePerguntar
       ? [
@@ -2905,6 +2914,15 @@ function tratarClique(evento) {
     case 'insistir': enviarInsistencia(id); break;
     case 'sem-resposta': aplicarResultado(id, 'no_reply'); break;
     case 'apagar-tudo': confirmarApagarTudo(); break;
+    case 'alternar-menu': alternarMenu(); break;
+    case 'enviar-novamente': {
+      const pedido = obterPedido(id);
+      if (pedido) {
+        registarEvento('pedido_reenviado', { direito: pedido.right, area: pedido.companySector });
+        abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => {});
+      }
+      break;
+    }
     case 'pedir-acesso': pedirAcessoAoTeste(); break;
     case 'nova-analise': renderResumo.novaAnalise = true; renderResumo(); break;
     case 'mapa-setor': alternarSelecao('setor', sector); break;
@@ -3015,6 +3033,21 @@ async function enviarFila() {
 
 // Enquanto a app está em teste no Google, só contas na lista de testadores podem ligar o Gmail.
 // Quem quer entrar deixa o email; a equipa acrescenta-o na Google Cloud. É o único email que o Veto recebe.
+// Menu lateral (computador): aberto ou só com ícones; a escolha fica neste browser
+function alternarMenu(fechado = !document.body.classList.contains('menu-fechado')) {
+  document.body.classList.toggle('menu-fechado', fechado);
+  const botao = document.querySelector('[data-action="alternar-menu"]');
+  if (botao) {
+    const texto = fechado ? 'Mostrar o menu' : 'Esconder o menu';
+    botao.setAttribute('aria-label', texto);
+    botao.title = texto;
+    botao.querySelector('.nav-rotulo').textContent = fechado ? 'Mostrar menu' : 'Esconder menu';
+  }
+  try { localStorage.setItem('veto-menu-fechado', fechado ? '1' : '0'); } catch (erro) { /* sem armazenamento: só vale nesta visita */ }
+  if (vistaAtual() === 'pedidos') setTimeout(renderPedidos, 50); // o mapa ocupa o espaço novo
+}
+try { if (localStorage.getItem('veto-menu-fechado') === '1') alternarMenu(true); } catch (erro) { /* ignora */ }
+
 function pedirAcessoAoTeste() {
   abrirFolha({
     titulo: 'Pedir acesso ao teste',
@@ -3144,7 +3177,7 @@ function mostrarOQueEEnviado() {
       ['Um identificador aleatório', 'Um código deste dispositivo, que não te identifica, e de onde vieste (por exemplo, LinkedIn).'],
       ['A análise', 'Quantos emails e quantas empresas encontrámos, por área e por gravidade.'],
       ['Os pedidos', 'O tipo de pedido que preparas, envias ou registas, e a área da empresa.'],
-      ['Outras ações', 'Quando abres a app, cancelas uma subscrição, abres uma notícia ou uma pergunta do guia, ou vês o Veto Plus.']
+      ['Outras ações', 'Quando abres a app, cancelas uma subscrição, abres uma notícia ou uma pergunta do guia, ou vês o Veto+.']
     ],
     nota: 'Nunca enviamos o teu endereço de email, os nomes das empresas, os assuntos nem o conteúdo dos emails.',
     opcoes: ligadas

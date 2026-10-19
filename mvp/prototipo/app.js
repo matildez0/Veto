@@ -706,6 +706,14 @@ document.getElementById('sheet').addEventListener('click', (evento) => {
   if (evento.target.id === 'sheet') fecharFolha();
 });
 window.addEventListener('hashchange', renderTudo);
+let esperaRedimensionar = 0;
+window.addEventListener('resize', () => {
+  clearTimeout(esperaRedimensionar);
+  esperaRedimensionar = setTimeout(() => {
+    const largura = document.getElementById('dot-map')?.clientWidth;
+    if (vistaAtual() === 'pedidos' && redeDesenhada && largura && Math.abs(largura - redeDesenhada.larguraPx) > 8) renderPedidos();
+  }, 200);
+});
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') setTimeout(verificarPendente, 400);
 });
@@ -1772,7 +1780,7 @@ function renderEmpresas() {
   document.getElementById('service-total').textContent = `${filtradas.length} de ${lista.length}${estado.demo ? ' · exemplo' : ''}`;
 
   if (!filtradas.length) {
-    container.innerHTML = '<p class="py-8 text-center text-sm text-mist">Nenhuma empresa encontrada.</p>';
+    container.innerHTML = '<p class="py-8 text-center text-sm text-mist lg:col-span-full">Nenhuma empresa encontrada.</p>';
   } else if (filtroSetor === 'todos' && !query && filtroTipo === 'todas') {
     // Sem filtros: agrupar por área, sensíveis primeiro.
     const grupos = SECTOR_ORDER
@@ -1780,7 +1788,7 @@ function renderEmpresas() {
       .filter((grupo) => grupo.empresas.length)
       .sort((a, b) => (SECTORS[b.chave].sensitive - SECTORS[a.chave].sensitive) || (b.empresas.length - a.empresas.length));
     container.innerHTML = grupos.map((grupo) => `
-      <h3 class="mt-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] ${SECTORS[grupo.chave].sensitive ? 'text-rose-200' : 'text-slate-400'}">
+      <h3 class="mt-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] lg:col-span-full lg:mt-4 ${SECTORS[grupo.chave].sensitive ? 'text-rose-200' : 'text-slate-400'}">
         ${icone(grupo.chave, 'h-4 w-4')}${esc(SECTORS[grupo.chave].label)} · ${grupo.empresas.length}
       </h3>
       ${grupo.empresas.map(criarCard).join('')}`).join('');
@@ -2069,6 +2077,15 @@ function desenharRede(rede) {
     g.raio = c * Math.sqrt(g.nos.length - 1 + i0) + 6;
   });
 
+  // O espaço disponível: largura real do mapa e, no computador, a altura do ecrã
+  const caixa = document.getElementById('dot-map');
+  const computador = window.matchMedia('(min-width: 1024px)').matches;
+  const larguraPx = caixa?.clientWidth || 330;
+  const proporcaoMax = computador ? Math.min(1.2, Math.max(0.5, (window.innerHeight - 230) / larguraPx)) : 1.3;
+  const proporcaoMin = computador ? 0.45 : 0.8;
+  const pesoX = Math.min(1.05, Math.max(0.6, proporcaoMax * 0.85));
+  const letra = computador ? 12 : REDE.LETRA;
+
   // 2. As áreas arrumam-se lado a lado, as mais sensíveis primeiro (ao centro).
   //    Cada nova área encosta-se às que já estão, no sítio livre mais perto do centro.
   const ordem = [...grupos].sort((a, b) => SEVERITY_ORDER.indexOf(SECTORS[a.chave].gravidade) - SEVERITY_ORDER.indexOf(SECTORS[b.chave].gravidade)
@@ -2088,7 +2105,7 @@ function desenharRede(rede) {
         const x = p.x + d * Math.cos(angulo);
         const y = p.y + d * Math.sin(angulo);
         if (colocados.some((q) => Math.hypot(x - q.x, y - q.y) < q.raio + g.raio + REDE.FOLGA - 0.5)) continue;
-        const custo = Math.hypot(x * 1.05, y); // um pouco mais alto do que largo, como o ecrã do telemóvel
+        const custo = Math.hypot(x * pesoX, y); // no telemóvel, mais alto do que largo; no computador, mais largo
         if (!melhor || custo < melhor.custo) melhor = { x, y, custo };
       }
     });
@@ -2103,13 +2120,14 @@ function desenharRede(rede) {
   }), { x1: Infinity, x2: -Infinity, y1: Infinity, y2: -Infinity });
   const cx = (limites.x1 + limites.x2) / 2;
   const cy = (limites.y1 + limites.y2) / 2;
-  let W = Math.max(220, limites.x2 - limites.x1 + 16);
+  // Com poucas empresas, os pontos não crescem demasiado num ecrã grande
+  let W = Math.max(220, larguraPx * (computador ? 0.3 : 0.6), limites.x2 - limites.x1 + 16);
   let H = limites.y2 - limites.y1 + 16;
-  if (H < W * 0.8) H = W * 0.8;
-  if (H > W * 1.3) W = H / 1.3;
-  // "u" converte píxeis em unidades do desenho (o mapa tem ~330 px de largura):
-  // os nomes e as linhas ficam sempre do mesmo tamanho no ecrã, com 5 ou 500 empresas
-  const u = W / 330;
+  if (H < W * proporcaoMin) H = W * proporcaoMin;
+  if (H > W * proporcaoMax) W = H / proporcaoMax;
+  // "u" converte píxeis em unidades do desenho: os nomes e as linhas ficam sempre
+  // do mesmo tamanho no ecrã, com 5 ou 500 empresas, no telemóvel ou no computador
+  const u = W / larguraPx;
   grupos.forEach((g) => {
     pos.set(`s:${g.chave}`, { x: g.x - cx, y: g.y - cy });
     raios.set(`s:${g.chave}`, 2.6);
@@ -2228,11 +2246,11 @@ function desenharRede(rede) {
     }))
   ].map((et) => ({ ...et, texto: et.texto.length > 20 ? `${et.texto.slice(0, 19)}…` : et.texto }))
     .sort((a, b) => ordemClasse[a.classe] - ordemClasse[b.classe] || a.peso - b.peso);
-  const textos = etiquetas.map((et, i) => `<text data-et="${i}" display="none" font-size="${r1(REDE.LETRA * u)}" font-weight="600" fill="${et.cor}"${et.esbatido ? ' opacity="0.3"' : ''}
+  const textos = etiquetas.map((et, i) => `<text data-et="${i}" display="none" font-size="${r1(letra * u)}" font-weight="600" fill="${et.cor}"${et.esbatido ? ' opacity="0.3"' : ''}
     stroke="#19131b" stroke-width="${r1(3 * u)}" stroke-linejoin="round" paint-order="stroke"
     ${et.setor ? `pointer-events="auto" data-action="mapa-setor" data-sector="${et.setor}" class="cursor-pointer"` : 'pointer-events="none"'}>${esc(et.texto)}</text>`).join('');
 
-  redeDesenhada = { pos, raios, W, H, u, etiquetas, zoomMax, zoomNomes, grupos: new Map(grupos.map((g) => [g.chave, g.raio])) };
+  redeDesenhada = { pos, raios, W, H, u, letra, larguraPx, etiquetas, zoomMax, zoomNomes, grupos: new Map(grupos.map((g) => [g.chave, g.raio])) };
 
   const gradiente = (id, cor) => `<radialGradient id="${id}"><stop offset="0" stop-color="${cor}" stop-opacity="0.45"/><stop offset="0.45" stop-color="${cor}" stop-opacity="0.14"/><stop offset="1" stop-color="${cor}" stop-opacity="0"/></radialGradient>`;
   const botao = (zoom, rotulo, conteudo) => `<button data-action="mapa-zoom" data-zoom="${zoom}" type="button" aria-label="${rotulo}" title="${rotulo}"
@@ -2259,7 +2277,7 @@ function aplicarZoom() {
   const caixa = document.getElementById('dot-map');
   const svg = caixa?.querySelector('svg[data-rede]');
   if (!svg || !redeDesenhada) return;
-  const { pos, raios, W, H, u, etiquetas, zoomMax, zoomNomes, grupos } = redeDesenhada;
+  const { pos, raios, W, H, u, letra: letraPx, etiquetas, zoomMax, zoomNomes, grupos } = redeDesenhada;
   const { k, x: tx, y: ty } = zoomMapa;
   const mx = W / 2;
   const my = H / 2;
@@ -2296,7 +2314,7 @@ function aplicarZoom() {
   });
 
   // Nomes: os mais importantes primeiro; um nome que tape outro (ou um ponto) fica escondido
-  const letra = REDE.LETRA * u;
+  const letra = letraPx * u;
   const comNomes = k >= zoomNomes;
   const toca = (a, b) => a.x1 < b.x2 && a.x2 > b.x1 && a.y1 < b.y2 && a.y2 > b.y1;
   const naMoldura = (p) => Math.abs(p.x) <= mx && Math.abs(p.y) <= my;
@@ -2551,7 +2569,7 @@ function detalheDoMapa(nos, rede) {
   // Nada escolhido: uma frase e as três empresas mais graves
   if (!sel) {
     const primeiras = ordenar(nos).slice(0, 3);
-    return `<p class="text-sm text-slate-300">Toca num ponto para veres o que podes fazer.</p>
+    return `<p class="text-sm text-slate-300"><span class="lg:hidden">Toca</span><span class="hidden lg:inline">Clica</span> num ponto para veres o que podes fazer.</p>
       ${primeiras.length ? `<p class="mt-3 text-xs font-semibold text-slate-400">Começa pelas mais graves</p>${linhas(primeiras, true)}` : ''}`;
   }
 

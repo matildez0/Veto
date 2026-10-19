@@ -2250,7 +2250,7 @@ function desenharRede(rede) {
       <circle data-action="mapa-setor" data-sector="${g.chave}" r="${r1(Math.max(6, 8 * u))}" fill="transparent" class="cursor-pointer"><title>${esc(SECTORS[g.chave].label)}</title></circle>
     </g>`).join('');
   const pontosEmpresas = grupos.flatMap((g) => g.nos).map((no) => ponto({
-    id: no.id, r: RAIO_EMPRESA[no.gravidade] || 3.5, cor: REDE.EMPRESA, brilho: 'brilho-empresa',
+    id: no.id, r: RAIO_EMPRESA[no.gravidade] || 3.5, cor: SEVERITY[no.gravidade].hex, brilho: `brilho-${no.gravidade}`,
     acao: `data-action="mapa-empresa" data-id="${esc(no.id)}"`, titulo: `${no.name}: gravidade ${SEVERITY[no.gravidade].label.toLowerCase()}`,
     anel: no.balde !== 'sempedido'
   })).join('');
@@ -2287,7 +2287,7 @@ function desenharRede(rede) {
     class="flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 text-slate-200 transition hover:border-slate-500 disabled:opacity-30">${conteudo}</button>`;
   const traco = (d) => `<svg viewBox="0 0 16 16" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
   return `<svg data-rede viewBox="${r1(-W / 2)} ${r1(-H / 2)} ${r1(W)} ${r1(H)}" class="block h-auto w-full select-none" role="group" aria-label="Mapa das empresas que têm os teus dados, por área">
-      <defs>${gradiente('brilho-empresa', REDE.EMPRESA)}${gradiente('brilho-terceiro', REDE.TERCEIRO)}${gradiente('brilho-incidente', REDE.INCIDENTE)}</defs>
+      <defs>${SEVERITY_ORDER.map((chave) => gradiente(`brilho-${chave}`, SEVERITY[chave].hex)).join('')}${gradiente('brilho-empresa', REDE.EMPRESA)}${gradiente('brilho-terceiro', REDE.TERCEIRO)}${gradiente('brilho-incidente', REDE.INCIDENTE)}</defs>
       <rect data-action="mapa-limpar" x="${r1(-W / 2)}" y="${r1(-H / 2)}" width="${r1(W)}" height="${r1(H)}" fill="transparent"/>
       ${fundos}${raiosAreas}${linhasRel}${nucleos}${pontosEmpresas}${pontosSatelites}
       <g>${textos}</g>
@@ -2543,11 +2543,10 @@ function ligarZoomDoMapa() {
 function legendaDaRede(rede) {
   const areas = new Set(rede.empresas.map((no) => no.sector)).size;
   return `<p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-      <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full" style="background:${REDE.EMPRESA};box-shadow:0 0 8px ${REDE.EMPRESA}"></span>
-      <span class="text-slate-300">Empresas</span><span class="font-semibold text-white">${rede.empresas.length}</span></span>
-      <span class="text-slate-300">em <span class="font-semibold text-white">${areas}</span> ${plural(areas, 'área', 'áreas')}</span>
+      <span class="text-slate-300"><span class="font-semibold text-white">${rede.empresas.length}</span> ${plural(rede.empresas.length, 'empresa', 'empresas')} em <span class="font-semibold text-white">${areas}</span> ${plural(areas, 'área', 'áreas')}</span>
+      ${SEVERITY_ORDER.map((chave) => `<span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full" style="background:${SEVERITY[chave].hex};box-shadow:0 0 8px ${SEVERITY[chave].hex}"></span><span class="text-slate-300">${SEVERITY[chave].label}</span></span>`).join('')}
     </p>
-    <p class="mt-2 text-[11px] leading-4 text-mist">Quanto maior o ponto, mais grave seria uma fuga. O anel verde marca um pedido enviado.</p>`;
+    <p class="mt-2 text-[11px] leading-4 text-mist">A cor e o tamanho mostram a gravidade de uma fuga. O anel verde marca um pedido enviado.</p>`;
 }
 
 // Todas as empresas da análise, mais as que têm pedidos mas já não estão na lista.

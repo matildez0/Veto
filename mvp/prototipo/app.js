@@ -280,7 +280,7 @@ const VERSAO = 'prototipo-0.7';
 /* ==========================================================================
    Configuração
    ========================================================================== */
-const GMAIL_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
+const GMAIL_READ_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
 // Os emails mais recentes da caixa, sem spam, lixo, enviados nem rascunhos
 // (os enviados são teus, não de empresas).
 const GMAIL_QUERY = '-in:spam -in:trash -in:sent -in:drafts -in:chats';
@@ -520,7 +520,8 @@ function guardarEstado() {
     const empresas = estado.empresas.map((empresa) => ({
       ...empresa,
       evidence: empresa.evidence ? {
-        count: empresa.evidence.count, lastDate: empresa.evidence.lastDate, reason: empresa.evidence.reason,
+        count: empresa.evidence.count, recentCount: empresa.evidence.recentCount,
+        firstDate: empresa.evidence.firstDate, lastDate: empresa.evidence.lastDate, reason: empresa.evidence.reason,
         totalRecebidos: empresa.evidence.totalRecebidos, enviados: empresa.evidence.enviados
       } : null
     }));
@@ -595,7 +596,7 @@ function ligarGmail() {
   button.innerHTML = 'A preparar ligação <span class="animate-pulse">•••</span>';
   const tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: clientId,
-    scope: GMAIL_SCOPE,
+    scope: GMAIL_READ_SCOPE,
     error_callback: (erro) => erroNaJanelaGoogle(erro, button),
     callback: (response) => {
       if (response.error) {
@@ -605,7 +606,7 @@ function ligarGmail() {
         return;
       }
       // O Google deixa desmarcar a permissão no ecrã de consentimento: sem ela, o Gmail responde 403.
-      if (google.accounts.oauth2.hasGrantedAllScopes?.(response, GMAIL_SCOPE) === false) {
+      if (google.accounts.oauth2.hasGrantedAllScopes?.(response, GMAIL_READ_SCOPE) === false) {
         repor(button);
         atualizarStatus('Não foi dada permissão para ler os emails. Tenta outra vez e, no ecrã do Google, marca a caixa "Ver as suas mensagens de email".', true);
         google.accounts.oauth2.revoke(response.access_token, () => {});
@@ -809,6 +810,29 @@ async function gmailFetch(path, accessToken, custo = GMAIL_QUOTA.CUSTO_GET, tent
   throw new Error(explicarErroGmail(response.status, motivos, detalhe?.error?.message));
 }
 
+function apagarEmailsEmpresa(empresaId) {
+  const empresa = obterEmpresa(empresaId);
+  if (!empresa || estado.demo) return;
+  const dominios = empresa.domains?.length ? empresa.domains : [empresa.domain];
+  const pesquisa = `{${dominios.map((domain) => `from:${domain}`).join(' ')}} -in:spam -in:trash -in:sent -in:drafts -in:chats`;
+  const url = `https://mail.google.com/mail/u/0/#search/${encodeURIComponent(pesquisa)}`;
+  abrirFolha({
+    titulo: `Apagar emails da ${empresa.name}`,
+    texto: 'O Veto não tem permissão para alterar a tua caixa. O Gmail vai abrir uma pesquisa com os emails desta empresa; confirma a seleção e move-os manualmente para o Lixo.',
+    nota: 'A pesquisa exclui spam, Lixo, enviados, rascunhos e chats. Confirma cada email antes de o apagar.',
+    opcoes: [
+      {
+        label: 'Abrir pesquisa no Gmail', estilo: 'primary', acao: () => {
+          const janela = window.open(url, '_blank');
+          if (janela) janela.opener = null;
+          else window.location.href = url;
+        }
+      },
+      { label: 'Cancelar', estilo: 'ghost', acao: () => {} }
+    ]
+  });
+}
+
 // Janela deslizante: soma das unidades gastas no último minuto
 const gastosGmail = [];
 async function esperarQuota(unidades) {
@@ -921,7 +945,7 @@ function criarEmpresaLocal(agregado) {
   if (knownCompanies.has(agregado.domain)) {
     const conhecida = knownCompanies.get(agregado.domain);
     return {
-      ...conhecida, id: agregado.domain, kind: agregado.kind, evidence, unsubscribe, sectorEstimated: false,
+      ...conhecida, id: agregado.domain, domains: agregado.domains ? [...agregado.domains] : [agregado.domain], kind: agregado.kind, evidence, unsubscribe, sectorEstimated: false,
       dpo_email: conhecida.dpo_email || contactoDeExemplo(agregado.domain), contactExample: true
     };
   }
@@ -929,7 +953,7 @@ function criarEmpresaLocal(agregado) {
   const nomeDominio = label.replace(/\b\w/g, (letter) => letter.toUpperCase());
   const name = agregado.senderName || nomeDominio;
   return {
-    id: agregado.domain, name, domain: agregado.domain, sector: estimarSetor(agregado.domain, name), sectorEstimated: true,
+    id: agregado.domain, name, domain: agregado.domain, domains: agregado.domains ? [...agregado.domains] : [agregado.domain], sector: estimarSetor(agregado.domain, name), sectorEstimated: true,
     kind: agregado.kind, icon: (name[0] || '?').toUpperCase(), dpo_email: contactoDeExemplo(agregado.domain), contactExample: true, evidence, unsubscribe
   };
 }
@@ -1551,6 +1575,7 @@ function criarCard(empresa) {
       <button data-action="gerir" data-id="${esc(empresa.id)}" type="button" class="flex-1 rounded-lg bg-white py-2.5 text-xs font-bold text-ink">Gerir os meus dados →</button>
       ${empresa.unsubscribe && !empresa.unsubscribedAt ? `<button data-action="cancelar-subscricao" data-id="${esc(empresa.id)}" type="button" class="rounded-lg bg-slate-800 px-3 py-2.5 text-xs font-bold text-slate-200">Cancelar subscrição</button>` : ''}
     </div>
+    ${!estado.demo ? `<button data-action="apagar-emails" data-id="${esc(empresa.id)}" type="button" class="mt-2 w-full rounded-lg border border-rose-400/30 px-3 py-2.5 text-xs font-bold text-rose-200">Apagar emails desta empresa no Gmail</button>` : ''}
     <button data-action="descartar" data-id="${esc(empresa.id)}" type="button" class="mt-2 text-[11px] font-semibold text-slate-500 underline decoration-slate-700 underline-offset-4">Não é minha</button>
   </article>`;
 }
@@ -2219,6 +2244,7 @@ function tratarClique(evento) {
     case 'filtro-noticias': filtroNoticias = alvo.dataset.filter; renderNoticias(); break;
     case 'abrir-fonte': registarEvento('noticia_aberta', { noticia: id }); break; // o link abre normalmente
     case 'cancelar-subscricao': cancelarSubscricao(id); break;
+    case 'apagar-emails': apagarEmailsEmpresa(id); break;
     case 'plus': abrirPlus(alvo.dataset.onde); break;
     case 'descartar': definirDescartada(id, true); break;
     case 'repor-descartadas': estado.empresas.forEach((empresa) => { empresa.dismissed = false; }); guardarEstado(); renderTudo(); break;

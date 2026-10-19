@@ -590,19 +590,18 @@ const STATUS_LABELS = {
 let estado = { empresas: [], pedidos: [], analisadoEm: null, demo: false };
 let filtroSetor = 'todos';
 let filtroTipo = 'todas';
-let selecaoMapa = null; // { tipo: 'empresa' | 'terceiro' | 'incidente' | 'setor', chave }
+let selecaoMapa = null; // { tipo: 'empresa' | 'terceiro' | 'setor', chave }
 
 // Cores e medidas do mapa de exposição (a rede)
 const REDE = {
   EMPRESA: '#c2ea5d',   // verde do logo
   TERCEIRO: '#b9a2f5',  // lilás, a condizer com o fundo
-  INCIDENTE: '#ff7a6b', // coral
   PORMENOR: '#719b08',
   NUCLEO: '#807785',    // centro de cada área
   PASSO: 11,            // distância entre empresas vizinhas (unidades do desenho)
   FOLGA: 22,            // espaço entre áreas, onde cabe o nome da área
   LETRA: 10.5,          // tamanho dos nomes em píxeis, igual com qualquer zoom
-  SATELITE: 44          // distância, em píxeis, da empresa escolhida aos seus terceiros e fugas
+  SATELITE: 44          // distância, em píxeis, da empresa escolhida aos seus terceiros
 };
 // Zoom do mapa (k = escala; x, y = deslocação, em unidades do desenho). Mantém-se ao escolher pontos.
 let zoomMapa = { k: 1, x: 0, y: 0, assinatura: '' };
@@ -2173,8 +2172,9 @@ function desenharRede(rede) {
   const assinatura = `${rede.empresas.length}:${grupos.length}:${Math.round(W)}`;
   if (zoomMapa.assinatura !== assinatura) zoomMapa = { k: 1, x: 0, y: 0, assinatura };
 
-  // 4. O que se escolhe: uma empresa mostra os seus terceiros e fugas à volta dela;
-  //    um terceiro ou uma fuga mostra todas as empresas ligadas. O resto esbate-se.
+  // 4. O que se escolhe: uma empresa mostra os seus terceiros à volta dela;
+  //    um terceiro mostra todas as empresas que o usam. O resto esbate-se.
+  //    As fugas e burlas não entram no mapa: aparecem só no bloco da empresa.
   let acesos = null;
   const satelites = [];
   const relacoes = [];
@@ -2185,15 +2185,15 @@ function desenharRede(rede) {
   };
   if (sel.tipo === 'empresa' && pos.has(sel.chave)) {
     acesos = new Set([sel.chave]);
-    const ligadas = rede.ligacoes.filter((l) => l.de === sel.chave);
+    const ligadas = rede.ligacoes.filter((l) => l.de === sel.chave && l.tipo === 'terceiro');
     const base = direcao(sel.chave);
     ligadas.forEach((l, i) => {
       satelites.push({ id: l.para, tipo: l.tipo, rel: { de: sel.chave, angulo: base + (i - (ligadas.length - 1) / 2) * 0.95 } });
       relacoes.push(l);
       acesos.add(l.para);
     });
-  } else if (sel.tipo === 'terceiro' || sel.tipo === 'incidente') {
-    const item = (sel.tipo === 'terceiro' ? rede.terceiros : rede.incidentes).find((x) => x.id === sel.chave);
+  } else if (sel.tipo === 'terceiro') {
+    const item = rede.terceiros.find((x) => x.id === sel.chave);
     if (item) {
       acesos = new Set([item.id, ...item.ligados.map((no) => no.id)]);
       if (item.ligados.length === 1) {
@@ -2229,9 +2229,7 @@ function desenharRede(rede) {
   const linha = (de, para, cor, largura, opacidade, tracejado) => `<line data-de="${esc(de)}" data-para="${esc(para)}" stroke="${cor}" stroke-width="${r1(largura * u)}" stroke-opacity="${opacidade}" stroke-linecap="round"${tracejado ? ` stroke-dasharray="${r1(2.5 * u)} ${r1(3 * u)}"` : ''}/>`;
   const fundos = grupos.map((g) => `<circle data-grupo="${g.chave}" data-raio="${r1(g.raio)}" fill="#2c2330" fill-opacity="${aceso(`s:${g.chave}`) || (acesos && g.nos.some((no) => acesos.has(no.id))) ? 0.45 : 0.2}" pointer-events="none"/>`).join('');
   const raiosAreas = rede.empresas.map((no) => linha(`s:${no.sector}`, no.id, REDE.EMPRESA, 0.5, aceso(no.id) ? (acesos ? 0.45 : 0.18) : 0.04)).join('');
-  const linhasRel = relacoes.map((l) => (l.tipo === 'terceiro'
-    ? linha(l.de, l.para, REDE.TERCEIRO, 1, 0.9, true)
-    : linha(l.de, l.para, REDE.INCIDENTE, 1.2, 0.95, false))).join('');
+  const linhasRel = relacoes.map((l) => linha(l.de, l.para, REDE.TERCEIRO, 1, 0.9, true)).join('');
 
   let ordem2 = 0;
   const ponto = ({ id, r, cor, brilho, acao, titulo, anel, pulsar }) => {
@@ -2254,21 +2252,17 @@ function desenharRede(rede) {
     acao: `data-action="mapa-empresa" data-id="${esc(no.id)}"`, titulo: `${no.name}: gravidade ${SEVERITY[no.gravidade].label.toLowerCase()}`,
     anel: no.balde !== 'sempedido'
   })).join('');
-  const nomeDe = (s) => (s.tipo === 'terceiro' ? rede.terceiros : rede.incidentes).find((x) => x.id === s.id);
-  const pontosSatelites = satelites.map((s) => {
-    const item = nomeDe(s);
-    return ponto({
-      id: s.id, r: 4.6, cor: s.tipo === 'terceiro' ? REDE.TERCEIRO : REDE.INCIDENTE, brilho: s.tipo === 'terceiro' ? 'brilho-terceiro' : 'brilho-incidente',
-      acao: `data-action="${s.tipo === 'terceiro' ? 'mapa-terceiro' : 'mapa-incidente'}" data-id="${esc(s.id)}"`,
-      titulo: s.tipo === 'terceiro' ? `${item.nome}: terceiro` : item.noticia.titulo, pulsar: s.tipo === 'incidente'
-    });
-  }).join('');
+  const nomeDe = (s) => rede.terceiros.find((x) => x.id === s.id);
+  const pontosSatelites = satelites.map((s) => ponto({
+    id: s.id, r: 4.6, cor: REDE.TERCEIRO, brilho: 'brilho-terceiro',
+    acao: `data-action="mapa-terceiro" data-id="${esc(s.id)}"`, titulo: `${nomeDe(s).nome}: terceiro`
+  })).join('');
 
   // 6. Nomes. Os das áreas veem-se sempre; os das empresas só com zoom (ou ligadas ao que escolheste),
-  //    por ordem de importância e sem taparem nada. O escolhido e os seus terceiros e fugas, sempre.
+  //    por ordem de importância e sem taparem nada. O escolhido e os seus terceiros, sempre.
   const ordemClasse = { fixa: 0, setor: 1, ligada: 2, normal: 3 };
   const etiquetas = [
-    ...satelites.map((s) => ({ id: s.id, texto: nomeDe(s).nome, cor: s.tipo === 'terceiro' ? '#d9cdfb' : '#ffb4ab', classe: 'fixa', peso: 0 })),
+    ...satelites.map((s) => ({ id: s.id, texto: nomeDe(s).nome, cor: '#d9cdfb', classe: 'fixa', peso: 0 })),
     ...grupos.map((g) => ({ id: `s:${g.chave}`, texto: `${SECTORS[g.chave].short} · ${g.nos.length}`, cor: sel.tipo === 'setor' && sel.chave === g.chave ? '#ffffff' : '#a39ca7', classe: 'setor', setor: g.chave, peso: 0 })),
     ...grupos.flatMap((g) => g.nos).map((no, i) => ({
       id: no.id, texto: no.name, cor: '#e4e0e6', peso: i, esbatido: !aceso(no.id),
@@ -2287,7 +2281,7 @@ function desenharRede(rede) {
     class="flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 text-slate-200 transition hover:border-slate-500 disabled:opacity-30">${conteudo}</button>`;
   const traco = (d) => `<svg viewBox="0 0 16 16" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
   return `<svg data-rede viewBox="${r1(-W / 2)} ${r1(-H / 2)} ${r1(W)} ${r1(H)}" class="block h-auto w-full select-none" role="group" aria-label="Mapa das empresas que têm os teus dados, por área">
-      <defs>${SEVERITY_ORDER.map((chave) => gradiente(`brilho-${chave}`, SEVERITY[chave].hex)).join('')}${gradiente('brilho-empresa', REDE.EMPRESA)}${gradiente('brilho-terceiro', REDE.TERCEIRO)}${gradiente('brilho-incidente', REDE.INCIDENTE)}</defs>
+      <defs>${SEVERITY_ORDER.map((chave) => gradiente(`brilho-${chave}`, SEVERITY[chave].hex)).join('')}${gradiente('brilho-empresa', REDE.EMPRESA)}${gradiente('brilho-terceiro', REDE.TERCEIRO)}</defs>
       <rect data-action="mapa-limpar" x="${r1(-W / 2)}" y="${r1(-H / 2)}" width="${r1(W)}" height="${r1(H)}" fill="transparent"/>
       ${fundos}${raiosAreas}${linhasRel}${nucleos}${pontosEmpresas}${pontosSatelites}
       <g>${textos}</g>
@@ -2314,7 +2308,7 @@ function aplicarZoom() {
   const r1 = (n) => Math.round(n * 10) / 10;
   // Os pontos crescem um pouco com o zoom, mas muito menos do que as distâncias
   const s = Math.min(1 + (k - 1) * 0.3, 2.2);
-  // Terceiros e fugas de uma empresa ficam a uma distância fixa dela, no ecrã
+  // Os terceiros de uma empresa ficam a uma distância fixa dela, no ecrã
   const ecra = (id) => {
     const p = pos.get(id);
     if (p.rel) {
@@ -2611,15 +2605,6 @@ function detalheDoMapa(nos, rede) {
       ${linhas(t.ligados, true)}`;
   }
 
-  if (sel.tipo === 'incidente') {
-    const inc = rede.incidentes.find((item) => item.id === sel.chave);
-    const n = inc.noticia;
-    return `${cabecalho(bola(REDE.INCIDENTE), esc(n.titulo), `${esc(n.empresa)} · ${formatarData(n.data)}${n.estado === 'por_confirmar' ? ' · por confirmar' : ''}`)}
-      <p class="mt-3 text-sm leading-5 text-slate-300">${esc(n.importa)}</p>
-      <a href="${esc(n.fonte.url)}" target="_blank" rel="noopener noreferrer" data-action="abrir-fonte" data-id="${esc(n.id)}" class="mt-2 inline-block text-xs font-semibold text-lime underline decoration-lime/40 underline-offset-4">Ler a notícia (${esc(n.fonte.nome)})</a>
-      ${linhas(inc.ligados, true)}`;
-  }
-
   if (sel.tipo === 'setor') {
     const setor = SECTORS[sel.chave];
     const daArea = nos.filter((no) => no.sector === sel.chave);
@@ -2645,10 +2630,10 @@ function detalheDoMapa(nos, rede) {
   const terceiro = no.empresa ? terceiroDe(no.empresa) : null;
   const incidentes = incidentesDe(no.empresa);
   const ligacoes = terceiro || incidentes.length ? `
-    <p class="mt-4 text-xs font-semibold text-slate-400">Terceiros e fugas</p>
+    <p class="mt-4 text-xs font-semibold text-slate-400">${terceiro && incidentes.length ? 'Terceiros e fugas' : terceiro ? 'Terceiros' : 'Fugas conhecidas'}</p>
     <div class="mt-2 flex flex-col gap-1.5">
       ${terceiro ? `<button data-action="mapa-terceiro" data-id="${esc(terceiro.id)}" type="button" class="flex items-center gap-2 text-left text-xs text-slate-300">${bola(REDE.TERCEIRO)}Usa o ${esc(terceiro.nome)} para te enviar emails</button>` : ''}
-      ${incidentes.map((n) => `<button data-action="mapa-incidente" data-id="i:${esc(n.id)}" type="button" class="flex items-center gap-2 text-left text-xs text-slate-300">${bola(REDE.INCIDENTE)}${n.tipo === 'fuga' ? 'Fuga de dados' : 'Burla com dados de clientes'} em ${n.data.slice(0, 4)}</button>`).join('')}
+      ${incidentes.map((n) => `<p class="flex items-center gap-2 text-xs text-slate-300"><span class="text-slate-400">${icone('alerta', 'h-3.5 w-3.5')}</span>${n.tipo === 'fuga' ? 'Teve uma fuga de dados' : 'Foi usada numa burla'} em ${n.data.slice(0, 4)} · <a href="${esc(n.fonte.url)}" target="_blank" rel="noopener noreferrer" data-action="abrir-fonte" data-id="${esc(n.id)}" class="text-slate-400 underline underline-offset-2">notícia</a></p>`).join('')}
     </div>` : '';
   // Os quatro direitos: cada um mostra se já há um pedido aberto
   const direitos = no.empresa ? `
@@ -2664,7 +2649,7 @@ function detalheDoMapa(nos, rede) {
         </button>`;
       }).join('')}
     </div>` : '';
-  return `${cabecalho(bola(REDE.EMPRESA), esc(no.name), `${esc(setor.label)}${ev ? ` · ≈ ${ev.totalRecebidos ?? ev.count} emails` : ''}`)}
+  return `${cabecalho(bola((SEVERITY[no.gravidade] || SEVERITY.media).hex), esc(no.name), `${esc(setor.label)}${ev ? ` · ≈ ${ev.totalRecebidos ?? ev.count} emails` : ''}`)}
     ${porque(no.gravidade, no.motivo)}
     ${ligacoes}
     ${direitos}
@@ -2948,7 +2933,6 @@ function tratarClique(evento) {
     case 'mapa-setor': alternarSelecao('setor', sector); break;
     case 'mapa-empresa': alternarSelecao('empresa', id); break;
     case 'mapa-terceiro': alternarSelecao('terceiro', id); break;
-    case 'mapa-incidente': alternarSelecao('incidente', id); break;
     case 'mapa-limpar': selecaoMapa = null; renderPedidos(); break;
     case 'ver-pedido': mostrarPedido(id); break;
     case 'ver-no-mapa': selecaoMapa = { tipo: 'empresa', chave: id }; break; // o link muda a página

@@ -91,9 +91,9 @@ function iconeNoMapa(nome, x, y, tamanho, cor) {
    Catálogo de demonstração
    - sector: área da empresa
    - kind: o que os emails indicam (conta, compra, newsletter, desconhecido)
-   Os contactos de privacidade são todos de exemplo. As empresas que não têm um
-   contacto aqui recebem um endereço gerado (privacy@dominio), também de exemplo.
-   Na versão final, os contactos vêm de um catálogo verificado.
+   Só para o modo de exemplo: os contactos de privacidade aqui são de exemplo.
+   Nas análises reais, os contactos vêm do catálogo (mvp/catalogo/catalogo.json),
+   carregado mais abaixo; fora do catálogo, o utilizador confirma o contacto.
    ========================================================================== */
 // Números de exemplo: emails recebidos na caixa toda e emails que escreveste à empresa
 const DEMO_EXTRA = {
@@ -145,6 +145,107 @@ const empresasConhecidas = [
   { id: 'anthropic.com', name: 'Anthropic', domain: 'anthropic.com', sector: 'outros', icon: 'A', dpo_email: '' }
 ];
 const knownCompanies = new Map(empresasConhecidas.map((company) => [company.domain, company]));
+
+// Catálogo de empresas (mvp/catalogo/catalogo.json): contactos de privacidade publicados pelas empresas,
+// do Datenanfragen.de (CC0) e verificados pela equipa. Vem do mesmo site: nenhum dado sai para terceiros.
+// Primeiro procura a pasta do catálogo no repositório; se não existir, uma cópia ao lado desta página.
+const CATALOGO_URLS = ['../catalogo/catalogo.json', 'catalogo.json'];
+// Chave pública do grupo (ECDSA P-256). Só quem tem a chave privada consegue assinar um catálogo
+// que a app aceite. É preenchida por "node mvp/catalogo/assinar.mjs chaves"; enquanto for null,
+// o catálogo é usado sem verificação (e o registo da análise diz isso).
+const CATALOGO_CHAVE_PUBLICA = {"kty":"EC","crv":"P-256","x":"red7YO3oegvtCnSOa-tZ4BNnQvzvq6P9F7sdCJtJG6g","y":"nFUfvdfyrWoyAd4ut-Qbpw_VD6uDptfPaUEvo8wBGyw"};
+const catalogo = { carregado: false, empresas: 0, assinatura: 'sem_chave' }; // assinatura: valida | invalida | sem_chave
+let catalogoPronto = Promise.resolve(false);
+
+// Confirma que o texto do catálogo foi assinado com a chave privada do grupo.
+// Os fins de linha são normalizados (\r\n → \n), como no script que assina, para o Windows não estragar a assinatura.
+async function assinaturaValida(texto, url) {
+  try {
+    const resposta = await fetch(`${url}.sig`, { cache: 'no-cache' });
+    if (!resposta.ok) return false;
+    const assinatura = Uint8Array.from(atob((await resposta.text()).trim()), (c) => c.charCodeAt(0));
+    const chave = await crypto.subtle.importKey('jwk', CATALOGO_CHAVE_PUBLICA, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+    const dados = new TextEncoder().encode(texto.replace(/\r\n/g, '\n'));
+    return await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, chave, assinatura, dados);
+  } catch (erro) {
+    return false;
+  }
+}
+
+// Só links https: vindos do catálogo (nunca javascript: ou outros)
+function linkSeguro(valor) {
+  return /^https:\/\//i.test(valor || '') ? valor : '';
+}
+
+async function carregarCatalogo() {
+  for (const url of CATALOGO_URLS) {
+    try {
+      const resposta = await fetch(url, { cache: 'no-cache' });
+      if (!resposta.ok) continue;
+      const texto = await resposta.text();
+      if (CATALOGO_CHAVE_PUBLICA) {
+        if (!(await assinaturaValida(texto, url))) {
+          // Um catálogo alterado por quem não tem a chave do grupo nunca é usado
+          catalogo.assinatura = 'invalida';
+          continue;
+        }
+        catalogo.assinatura = 'valida';
+      }
+      const dados = JSON.parse(texto);
+      let total = 0;
+      (dados.companies || []).forEach((registo) => {
+        if (!registo.id || !Array.isArray(registo.domains) || (!registo.privacyEmail && !linkSeguro(registo.webFormUrl))) return;
+        const empresa = {
+          id: registo.id, name: registo.name, legalName: registo.legalName || '', domain: registo.id,
+          sector: SECTORS[registo.sector] ? registo.sector : 'outros', icon: (registo.name[0] || '?').toUpperCase(),
+          dpo_email: registo.privacyEmail || '', privacyForm: linkSeguro(registo.webFormUrl),
+          contactVerifiedAt: registo.verifiedAt || '', contactSource: linkSeguro(registo.privacyUrl), contactNotes: registo.notes || '',
+          contactOrigin: registo.origin || ''
+        };
+        registo.domains.forEach((dominio) => knownCompanies.set(dominio.toLowerCase(), empresa));
+        total += 1;
+      });
+      catalogo.carregado = true;
+      catalogo.empresas = total;
+      aplicarCatalogo();
+      return true;
+    } catch (erro) {
+      // Tenta o próximo endereço; sem catálogo, a app pede o contacto ao utilizador
+    }
+  }
+  return false;
+}
+
+// Contacto de uma empresa do catálogo (ou nada, se não estiver lá)
+function contactoDoCatalogo(dominio) {
+  const conhecida = knownCompanies.get(dominio);
+  return conhecida?.contactVerifiedAt ? conhecida : null;
+}
+
+// Resultados guardados de análises anteriores ficam com os contactos atuais do catálogo.
+// Fora do catálogo, um contacto adivinhado (privacy@...) deixa de ser usado: o utilizador confirma-o.
+function aplicarCatalogo() {
+  if (estado.demo) return;
+  let mudou = false;
+  estado.empresas.forEach((empresa) => {
+    const registo = contactoDoCatalogo(empresa.domain);
+    if (registo) {
+      Object.assign(empresa, {
+        dpo_email: registo.dpo_email, privacyForm: registo.privacyForm, legalName: registo.legalName,
+        contactVerifiedAt: registo.contactVerifiedAt, contactSource: registo.contactSource, contactNotes: registo.contactNotes,
+        contactOrigin: registo.contactOrigin, contactExample: false, contactUser: false
+      });
+      mudou = true;
+    } else if (empresa.contactExample) {
+      Object.assign(empresa, { dpo_email: '', contactExample: false });
+      mudou = true;
+    }
+  });
+  if (mudou) {
+    guardarEstado();
+    renderTudo();
+  }
+}
 
 // Alguns grupos usam um domínio diferente em cada país. Só juntamos aliases
 // confirmados, para não fundir empresas diferentes apenas por terem o mesmo nome.
@@ -338,6 +439,86 @@ const GUIA = [
   }
 ];
 
+// Perguntas frequentes sobre o Veto (página Notícias). O guia acima fala dos direitos; isto fala da app.
+// "link" acrescenta uma ligação no fim; "acao" um botão da app.
+const FAQ = [
+  {
+    id: 'le', pergunta: 'O Veto lê os meus emails?',
+    blocos: [
+      'Na análise, o Veto lê o remetente, o assunto e a data dos teus últimos 500 emails, para saber que empresas te escrevem. Nesta versão de teste, não abre o texto nem os anexos.',
+      'Os emails descarregados pela app são analisados no dispositivo. O Veto não recebe nem guarda os teus emails nos seus servidores.'
+    ]
+  },
+  {
+    id: 'guarda', pergunta: 'O que fica guardado, e onde?',
+    blocos: [
+      'Só neste browser: as empresas encontradas (nome, domínio, área e quantos emails te enviaram) e os teus pedidos. Os assuntos dos emails não ficam guardados.',
+      'Para apagar tudo, usa «Apagar tudo deste dispositivo», no fim da página do mapa.'
+    ]
+  },
+  {
+    id: 'autorizacoes', pergunta: 'Que autorizações pede o Veto ao Google?',
+    blocos: [
+      'Cada uma só no momento em que é precisa. O Veto cancela-a logo a seguir:',
+      [
+        'Ler os emails: na análise.',
+        'Enviar emails em teu nome: quando envias o mesmo pedido a várias empresas.',
+        'Gerir os emails: quando mandas o Veto mover para o Lixo os emails de uma empresa. O Google descreve-a como «ler, escrever e enviar», porque não há uma autorização mais pequena para mover emails.'
+      ],
+      'Podes ver e retirar as autorizações a qualquer momento na tua conta Google.'
+    ],
+    link: ['Ver as autorizações da conta Google', 'https://myaccount.google.com/permissions']
+  },
+  {
+    id: 'envia', pergunta: 'O Veto envia emails por mim?',
+    blocos: [
+      'Só quando lhe pedes. Num pedido a uma empresa, o Veto abre o email já escrito na tua app de email e és tu que o envias.',
+      'Num pedido a várias empresas, vês antes exatamente o que sai, de que conta e para quem. Só depois de aceitares é que o Veto o envia pelo teu Gmail. As cópias ficam na tua pasta Enviados.'
+    ]
+  },
+  {
+    id: 'contactos', pergunta: 'Como sabe o Veto para onde enviar cada pedido?',
+    blocos: [
+      'Do nosso catálogo: endereços publicados pelas próprias empresas, verificados pela equipa do Veto ou registados na base de dados aberta Datenanfragen.de. Em cada empresa, mostramos a fonte e a data.',
+      'Se a empresa não estiver no catálogo, pedimos-te que confirmes o email na política de privacidade dela. Nunca adivinhamos endereços.'
+    ]
+  },
+  {
+    id: 'prazo', pergunta: 'A empresa é obrigada a responder? Em quanto tempo?',
+    blocos: [
+      'Sim. Tem um mês para te responder (artigo 12.º do RGPD). Em pedidos complexos, pode prolongar o prazo por mais dois meses, mas tem de te avisar dentro do primeiro mês.',
+      'O Veto conta 30 dias desde o envio e avisa-te quando o prazo passa. Aí podes enviar uma insistência e, se continuar sem resposta, apresentar queixa à CNPD.'
+    ],
+    link: ['Apresentar queixa na CNPD', 'https://www.cnpd.pt']
+  },
+  {
+    id: 'emails_dados', pergunta: 'Apagar os emails de uma empresa apaga os meus dados?',
+    blocos: [
+      'Não. Apagar os emails limpa a tua caixa, mas a empresa continua com os teus dados. Para que ela os apague, envia-lhe um pedido de apagamento (artigo 17.º).',
+      'Os emails que o Veto move para o Lixo ficam lá 30 dias. Até lá, podes recuperá-los no Gmail.'
+    ]
+  },
+  {
+    id: 'subscricao', pergunta: 'Cancelar a subscrição não chega?',
+    blocos: ['Deixas de receber publicidade, mas a empresa continua com os teus dados e pode usá-los para traçar o teu perfil. Um pedido de oposição obriga-a a parar o marketing e os perfis de publicidade (artigo 21.º).']
+  },
+  {
+    id: 'custo', pergunta: 'Quanto custa?',
+    blocos: [
+      'Durante o teste, nada. As funções marcadas Veto+, como pedir a várias empresas de uma vez e apagar os emails de uma empresa, estão abertas a todos.',
+      'O Veto+ ainda não existe: escolher um plano não cobra nada e só nos diz quantas pessoas o querem.'
+    ]
+  },
+  {
+    id: 'equipa', pergunta: 'O que fica a equipa do Veto a saber sobre mim?',
+    blocos: [
+      'Só o que aceitares nas estatísticas anónimas: contagens, como quantas empresas encontrámos por área ou que tipo de pedido enviaste, com um código aleatório deste dispositivo.',
+      'Nunca o teu endereço de email, os nomes das empresas, os assuntos nem o conteúdo dos emails.'
+    ],
+    acao: ['saber-mais-teste', 'Ver o que é enviado']
+  }
+];
+
 /* ==========================================================================
    Programa de teste (validação de mercado)
    Cada testador recebe um código de convite pessoal. Com o consentimento dele,
@@ -369,7 +550,9 @@ const PLUS = {
     ['Pedidos acompanhados', 'Segue cada pedido ao DPO, avisa quando o prazo passa e prepara a insistência.']
   ]
 };
-const VERSAO = 'prototipo-0.7';
+// Funções do Veto+ que, durante o teste, estão abertas a todos (pedir a várias empresas, apagar emails)
+const SELO_PLUS = '<span class="shrink-0 self-center rounded-full bg-lime/10 px-1.5 py-0.5 font-sans text-[9px] font-bold leading-3 text-lime">Veto+</span>';
+const VERSAO = 'prototipo-0.8';
 
 /* ==========================================================================
    Configuração
@@ -382,7 +565,15 @@ const GMAIL_MAX_EMAILS = 500;
 const GMAIL_PARALELO = 10; // pedidos ao mesmo tempo
 // Limite do Gmail por conta: 6.000 unidades por minuto. Ler um email (messages.get) custa 20
 // e listar (messages.list) custa 5, ou seja, cerca de 300 emails por minuto. Ficamos a 90 %.
-const GMAIL_QUOTA = { UNIDADES: 6000, JANELA_MS: 60000, MARGEM: 0.9, CUSTO_GET: 20, CUSTO_LIST: 5 };
+// Enviar um email custa 100, mover um para o Lixo custa 5 e mudar até 1000 de uma vez custa 50.
+const GMAIL_QUOTA = { UNIDADES: 6000, JANELA_MS: 60000, MARGEM: 0.9, CUSTO_GET: 20, CUSTO_LIST: 5, CUSTO_SEND: 100, CUSTO_TRASH: 5, CUSTO_BATCH: 50 };
+// Autorizações pedidas só no momento da ação (Veto+), e canceladas logo a seguir:
+// enviar os pedidos a várias empresas e mover para o Lixo os emails de uma empresa.
+// Têm de estar também no ecrã de consentimento do projeto Google Cloud (Acesso aos dados).
+const GMAIL_SEND_SCOPE = 'https://www.googleapis.com/auth/gmail.send';
+const GMAIL_MODIFY_SCOPE = 'https://www.googleapis.com/auth/gmail.modify';
+const EMAIL_SCOPE = 'https://www.googleapis.com/auth/userinfo.email'; // para confirmar de que conta saem os pedidos
+const LIMPEZA_MAX = 5000; // emails de uma empresa movidos para o Lixo de cada vez
 const RESPONSE_BUFFER_DAYS = 3;
 const STORAGE_KEY = 'veto.prototipo.v2';
 
@@ -631,18 +822,21 @@ let filtroNoticias = 'todas';
 let animarMapa = true;
 let folhaAberta = false;
 let opcoesFolha = [];
+let lote = null; // pedir a várias empresas: { passo: 'escolher' | 'rever' | 'enviar' | 'fim', right, selecionadas, envios, erro, onde }
 
 function carregarEstado() {
   try {
     const guardado = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
     if (guardado && Array.isArray(guardado.empresas) && Array.isArray(guardado.pedidos)) {
       estado = { ...estado, ...guardado };
-      estado.empresas.forEach((empresa) => {
-        if (!empresa.dpo_email) {
-          empresa.dpo_email = contactoDeExemplo(empresa.domain);
-          empresa.contactExample = true;
-        }
-      });
+      if (estado.demo) {
+        estado.empresas.forEach((empresa) => {
+          if (!empresa.dpo_email) {
+            empresa.dpo_email = contactoDeExemplo(empresa.domain);
+            empresa.contactExample = true;
+          }
+        });
+      }
     }
   } catch (erro) {
     // Sem acesso ao armazenamento: a app funciona só em memória.
@@ -672,6 +866,7 @@ function guardarEstado() {
 const status = document.getElementById('analysis-status');
 
 carregarEstado();
+catalogoPronto = carregarCatalogo();
 if (GOOGLE_CLIENT_ID) {
   document.getElementById('google-client-id').value = GOOGLE_CLIENT_ID;
   document.getElementById('client-id-box').classList.add('hidden');
@@ -686,12 +881,15 @@ document.getElementById('search-input').addEventListener('input', renderEmpresas
 document.addEventListener('click', tratarClique);
 // Que perguntas do guia são abertas, uma vez por pergunta em cada visita
 // (o evento "toggle" não sobe, por isso apanha-se na descida)
+// O mesmo para as perguntas frequentes (evento faq_aberta)
 const perguntasAbertas = new Set();
 document.addEventListener('toggle', (evento) => {
-  const pergunta = evento.target.matches?.('details[data-guia]') && evento.target.open && evento.target.dataset.guia;
-  if (!pergunta || perguntasAbertas.has(pergunta)) return;
-  perguntasAbertas.add(pergunta);
-  registarEvento('guia_aberto', { pergunta });
+  if (!evento.target.open) return;
+  const { guia, faq } = evento.target.dataset || {};
+  const pergunta = guia || faq;
+  if (!pergunta || perguntasAbertas.has(`${guia ? 'g' : 'f'}:${pergunta}`)) return;
+  perguntasAbertas.add(`${guia ? 'g' : 'f'}:${pergunta}`);
+  registarEvento(guia ? 'guia_aberto' : 'faq_aberta', { pergunta });
 }, true);
 ligarZoomDoMapa();
 // As áreas do mapa são elementos SVG: Enter e Espaço também as abrem.
@@ -706,6 +904,26 @@ document.getElementById('sheet').addEventListener('click', (evento) => {
   const continuar = abrirFolha.aoFecharFora;
   fecharFolha();
   if (continuar) continuar();
+});
+// Pedir a várias empresas: escolher empresas, fechar ao clicar fora ou com Esc (exceto a meio do envio)
+const caixaLote = document.getElementById('lote');
+caixaLote.addEventListener('change', (evento) => {
+  const id = evento.target.dataset?.loteEmpresa;
+  if (!id || !lote) return;
+  if (evento.target.checked) lote.selecionadas.add(id);
+  else lote.selecionadas.delete(id);
+  // Só o rodapé e o "Selecionar todas" mudam: redesenhar tudo faria saltar a lista
+  const rolagem = caixaLote.querySelector('.overflow-y-auto')?.scrollTop || 0;
+  renderLote();
+  const lista = caixaLote.querySelector('.overflow-y-auto');
+  if (lista) lista.scrollTop = rolagem;
+  caixaLote.querySelector(`[data-lote-empresa="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+});
+caixaLote.addEventListener('click', (evento) => {
+  if (evento.target.id === 'lote') fecharLote();
+});
+document.addEventListener('keydown', (evento) => {
+  if (evento.key === 'Escape' && lote) fecharLote();
 });
 window.addEventListener('hashchange', renderTudo);
 let esperaRedimensionar = 0;
@@ -764,7 +982,8 @@ function ligarGmail() {
       if (response.error) {
         repor(button);
         registo.erro(response.error === 'access_denied' ? 'O Google não deixou ligar esta conta.' : `O Google recusou a ligação (${response.error}).`);
-        if (response.error === 'access_denied') mostrarTesteFechado();
+        if (response.error === 'access_denied') mostrarTesteFechado('acesso_negado');
+        else registarEvento('login_google_interrompido', { motivo: 'outro' });
         return;
       }
       // O Google deixa desmarcar a permissão no ecrã de consentimento: sem ela, o Gmail responde 403.
@@ -780,6 +999,7 @@ function ligarGmail() {
         .catch((error) => {
           mostrarProgresso(null);
           registo.erro(`Não foi possível ler o Gmail: ${error.message}`);
+          registarEvento('analise_falhou', { motivo: motivoDoErro(error) });
         })
         .finally(() => {
           repor(button);
@@ -801,11 +1021,12 @@ function erroNaJanelaGoogle(erro, button) {
     popup_closed: 'A janela do Google fechou antes de terminares.'
   };
   registo.erro(mensagens[erro?.type] || `Não foi possível abrir o login do Google (${erro?.type || 'erro desconhecido'}).`);
-  if (erro?.type === 'popup_closed') mostrarTesteFechado();
+  if (erro?.type === 'popup_closed') mostrarTesteFechado('janela_fechada');
+  else registarEvento('login_google_interrompido', { motivo: erro?.type === 'popup_failed_to_open' ? 'janela_bloqueada' : 'outro' });
 }
 
 // A janela do Google fechou sem ligação: explica o que pode ter acontecido e o que fazer.
-function mostrarTesteFechado() {
+function mostrarTesteFechado(motivo = 'outro') {
   const caixa = document.getElementById('closed-test');
   const pedir = document.getElementById('closed-test-request');
   document.getElementById('closed-test-text').textContent = 'Se fechaste a janela do Google sem querer, carrega outra vez em «Ligar Gmail e começar». '
@@ -825,7 +1046,7 @@ function mostrarTesteFechado() {
     dev.textContent = `Em desenvolvimento: se o Google mostrou «origin_mismatch», acrescenta ${location.origin} às «Origens JavaScript autorizadas» do teu cliente OAuth e espera uns minutos.`;
   }
   caixa.classList.remove('hidden');
-  registarEvento('login_google_interrompido', {});
+  registarEvento('login_google_interrompido', { motivo });
 }
 
 function repor(button) {
@@ -834,9 +1055,19 @@ function repor(button) {
 }
 
 async function analisarCabecalhos(accessToken) {
+  const inicio = Date.now();
   mostrarProgresso(0);
   gastosGmail.length = 0;
   // O endereço da conta serve para abrir o Gmail na conta certa ao enviar pedidos (fica só neste dispositivo).
+  registo.passo('catalogo', 'A carregar o catálogo de contactos de privacidade');
+  await catalogoPronto;
+  if (catalogo.carregado) {
+    registo.feito('catalogo', catalogo.assinatura === 'valida' ? 'Catálogo de contactos verificados (assinatura do grupo confirmada)' : 'Catálogo de contactos verificados', `${catalogo.empresas}`);
+  } else if (catalogo.assinatura === 'invalida') {
+    registo.aviso('catalogo', 'O catálogo foi alterado sem a assinatura do grupo e não foi usado: vais confirmar os contactos antes de cada pedido');
+  } else {
+    registo.aviso('catalogo', 'Catálogo indisponível: vais confirmar os contactos antes de cada pedido');
+  }
   registo.passo('conta', 'A identificar a conta');
   const perfil = await gmailFetch('/profile', accessToken, GMAIL_QUOTA.CUSTO_LIST).catch(() => null);
   if (perfil?.emailAddress) estado.contaEmail = perfil.emailAddress;
@@ -929,7 +1160,7 @@ async function analisarCabecalhos(accessToken) {
   mostrarProgresso(null);
   const areas = new Set(encontradas.map((empresa) => empresa.sector)).size;
   registo.feito('fim', `Análise concluída: ${encontradas.length} ${plural(encontradas.length, 'empresa', 'empresas')} em ${areas} ${plural(areas, 'área', 'áreas')}`);
-  registarEvento('analise_concluida', { demo: false, emails: messages.length, ...resumoParaEventos(encontradas) });
+  registarEvento('analise_concluida', { demo: false, emails: messages.length, duracaoS: Math.round((Date.now() - inicio) / 1000), ...resumoParaEventos(encontradas) });
   location.hash = '#resultados';
 }
 
@@ -985,49 +1216,35 @@ async function listarMensagens(accessToken) {
 // Cada pedido ao Gmail espera pela sua vez para nunca passar do limite por minuto.
 // Se mesmo assim o Gmail disser que passou (por exemplo, por tentativas anteriores),
 // a app espera que a janela de um minuto esvazie e continua.
-async function gmailFetch(path, accessToken, custo = GMAIL_QUOTA.CUSTO_GET, tentativa = 0) {
+// "corpo" (opcional) faz um POST com JSON. "repetirSeFalhar: false" evita repetir um envio que o
+// Gmail pode já ter feito (um erro 5xx não garante que o email não saiu).
+async function gmailFetch(path, accessToken, custo = GMAIL_QUOTA.CUSTO_GET, tentativa = 0, { corpo, repetirSeFalhar = true } = {}) {
   await esperarQuota(custo);
-  const response = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me${path}`, {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  });
-  if (response.ok) return response.json();
+  const response = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me${path}`, corpo === undefined
+    ? { headers: { Authorization: `Bearer ${accessToken}` } }
+    : { method: 'POST', headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
+  if (response.ok) {
+    // Algumas respostas (por exemplo, batchModify) vêm vazias
+    const texto = await response.text();
+    return texto ? JSON.parse(texto) : {};
+  }
   const detalhe = await response.json().catch(() => null);
   const motivos = [...(detalhe?.error?.errors || []), ...(detalhe?.error?.details || [])].map((item) => item.reason).filter(Boolean);
   const semQuota = response.status === 429
     || motivos.some((motivo) => /rate_?limit_?exceeded|quota_?exceeded/i.test(motivo))
     || /quota exceeded/i.test(detalhe?.error?.message || '');
+  const opcoes = { corpo, repetirSeFalhar };
   if (semQuota && tentativa < 3) {
     gastosGmail.push({ t: Date.now(), unidades: GMAIL_QUOTA.UNIDADES }); // bloqueia até a janela esvaziar
-    return gmailFetch(path, accessToken, custo, tentativa + 1);
+    return gmailFetch(path, accessToken, custo, tentativa + 1, opcoes);
   }
-  if (response.status >= 500 && tentativa < 3) {
+  if (response.status >= 500 && repetirSeFalhar && tentativa < 3) {
     await dormir(800 * 2 ** tentativa);
-    return gmailFetch(path, accessToken, custo, tentativa + 1);
+    return gmailFetch(path, accessToken, custo, tentativa + 1, opcoes);
   }
-  throw new Error(explicarErroGmail(response.status, motivos, detalhe?.error?.message));
-}
-
-function apagarEmailsEmpresa(empresaId) {
-  const empresa = obterEmpresa(empresaId);
-  if (!empresa || estado.demo) return;
-  const dominios = empresa.domains?.length ? empresa.domains : [empresa.domain];
-  const pesquisa = `{${dominios.map((domain) => `from:${domain}`).join(' ')}} -in:spam -in:trash -in:sent -in:drafts -in:chats`;
-  const url = `https://mail.google.com/mail/u/0/#search/${encodeURIComponent(pesquisa)}`;
-  abrirFolha({
-    titulo: `Apagar os emails da ${empresa.name}`,
-    texto: 'O Gmail abre com os emails desta empresa. Seleciona-os e move-os para o Lixo.',
-    nota: 'O Veto não apaga emails por ti.',
-    opcoes: [
-      {
-        label: 'Abrir no Gmail', estilo: 'primary', acao: () => {
-          const janela = window.open(url, '_blank');
-          if (janela) janela.opener = null;
-          else window.location.href = url;
-        }
-      },
-      { label: 'Cancelar', estilo: 'ghost', acao: () => {} }
-    ]
-  });
+  const erro = new Error(explicarErroGmail(response.status, motivos, detalhe?.error?.message));
+  erro.estado = response.status;
+  throw erro;
 }
 
 // Janela deslizante: soma das unidades gastas no último minuto
@@ -1211,10 +1428,12 @@ function isProviderDomain(domain) {
 function obterDominioEmpresa(domain) {
   const alias = COMPANY_DOMAIN_ALIASES.get(domain);
   if (alias) return alias;
-  const conhecido = [...knownCompanies.keys()].find((companyDomain) => (
-    domain === companyDomain || domain.endsWith(`.${companyDomain}`)
-  ));
-  if (conhecido) return conhecido;
+  // Do mais específico ao mais geral: info.edp.pt, depois edp.pt
+  const partesDominio = domain.split('.');
+  for (let i = 0; i < partesDominio.length - 1; i += 1) {
+    const conhecida = knownCompanies.get(partesDominio.slice(i).join('.'));
+    if (conhecida) return conhecida.domain;
+  }
 
   const partes = domain.split('.');
   const suffixSize = multiPartPublicSuffixes.has(partes.slice(-2).join('.')) ? 2 : 1;
@@ -1229,9 +1448,11 @@ function criarEmpresaLocal(agregado) {
   const unsubscribe = agregado.unsubscribe || '';
   if (knownCompanies.has(agregado.domain)) {
     const conhecida = knownCompanies.get(agregado.domain);
+    const verificado = Boolean(conhecida.contactVerifiedAt);
     return {
       ...conhecida, id: agregado.domain, domains: agregado.domains ? [...agregado.domains] : [agregado.domain], kind: agregado.kind, evidence, unsubscribe, sectorEstimated: false,
-      dpo_email: conhecida.dpo_email || contactoDeExemplo(agregado.domain), contactExample: true
+      // Empresas da lista de exemplo antiga, sem contacto verificado, ficam por confirmar como as outras
+      dpo_email: verificado ? conhecida.dpo_email : '', contactExample: false
     };
   }
   const label = agregado.domain.split('.')[0].replace(/[-_]/g, ' ');
@@ -1239,7 +1460,7 @@ function criarEmpresaLocal(agregado) {
   const name = agregado.senderName || nomeDominio;
   return {
     id: agregado.domain, name, domain: agregado.domain, domains: agregado.domains ? [...agregado.domains] : [agregado.domain], sector: estimarSetor(agregado.domain, name), sectorEstimated: true,
-    kind: agregado.kind, icon: (name[0] || '?').toUpperCase(), dpo_email: contactoDeExemplo(agregado.domain), contactExample: true, evidence, unsubscribe
+    kind: agregado.kind, icon: (name[0] || '?').toUpperCase(), dpo_email: '', contactExample: false, evidence, unsubscribe
   };
 }
 
@@ -1267,8 +1488,8 @@ function substituirEmpresas(novas, demoAtivo) {
 function prepararPedido(empresaId, right) {
   const empresa = obterEmpresa(empresaId);
   if (!empresa) return;
-  if (!empresa.dpo_email) {
-    mostrarToast('Ainda não temos um contacto de privacidade verificado para esta empresa.');
+  if (!empresa.dpo_email && !empresa.privacyForm) {
+    pedirContacto(empresa, () => prepararPedido(empresaId, right));
     return;
   }
   // Se há um pedido por confirmar, pergunta uma vez; clicar fora da janela segue com o pedido novo
@@ -1286,17 +1507,29 @@ function prepararPedido(empresaId, right) {
 
   const agora = new Date().toISOString();
   const pedido = {
-    id: gerarId(), companyId: empresa.id, companyName: empresa.name, companySector: empresa.sector, domain: empresa.domain, email: empresa.dpo_email,
+    id: gerarId(), companyId: empresa.id, companyName: empresa.name, companySector: empresa.sector, domain: empresa.domain,
+    // Por email quando a empresa o publica; senão, no formulário oficial
+    channel: empresa.dpo_email ? 'email' : 'formulario', email: empresa.dpo_email || empresa.privacyForm,
     right, status: 'awaiting_confirmation', createdAt: agora, sentAt: null, dueDate: null,
     replyAt: null, closedAt: null, closeReason: null, outcome: null, holdsData: null, followUpAt: null,
     demo: estado.demo, timeline: [{ to: 'awaiting_confirmation', at: agora }]
   };
   estado.pedidos.push(pedido);
-  registarEvento('pedido_preparado', { demo: pedido.demo, direito: right, area: empresa.sector, gravidade: gravidadeDe(empresa).chave });
+  registarEvento('pedido_preparado', {
+    demo: pedido.demo, direito: right, area: empresa.sector, gravidade: gravidadeDe(empresa).chave,
+    canal: pedido.channel, contacto: origemDoContacto(empresa), vista: vistaAtual()
+  });
   // Guardado ANTES de abrir a app de email, para a pergunta "Enviaste?" sobreviver se o browser fechar a página.
   guardarEstado();
-  abrirEmail(pedido.email, RIGHTS[right].subject, RIGHTS[right].body(empresa.name), () => marcarNaoEnviado(pedido.id));
+  enviarPedido(pedido, RIGHTS[right].subject, RIGHTS[right].body(empresa.name), () => marcarNaoEnviado(pedido.id));
   renderTudo();
+}
+
+// De onde veio o contacto usado: catálogo da equipa, Datenanfragen.de ou escrito pela pessoa
+function origemDoContacto(empresa) {
+  if (empresa.contactUser) return 'utilizador';
+  if (empresa.contactVerifiedAt) return empresa.contactOrigin === 'datenanfragen' ? 'datenanfragen' : 'veto';
+  return 'exemplo';
 }
 
 function reabrirRascunho(pedidoId) {
@@ -1308,7 +1541,7 @@ function reabrirRascunho(pedidoId) {
     return;
   }
   mudarEstado(pedido, 'awaiting_confirmation');
-  abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id));
+  enviarPedido(pedido, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id));
 }
 
 /* ==========================================================================
@@ -1330,6 +1563,79 @@ const APPS_EMAIL = {
     url: (para, assunto, corpo) => `mailto:${para}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`
   }
 };
+
+// Abre o pedido no canal certo: a app de email ou o formulário oficial da empresa
+function enviarPedido(pedido, assunto, corpo, aoCancelar = () => {}) {
+  if (pedido.channel === 'formulario') abrirFormulario(pedido.email, assunto, corpo, pedido.companyName);
+  else abrirEmail(pedido.email, assunto, corpo, aoCancelar);
+}
+
+// Formulário oficial: o texto do pedido vai para a área de transferência, para colar no formulário
+function abrirFormulario(url, assunto, corpo, empresa) {
+  if (!/^https:\/\//i.test(url)) return;
+  copiarTexto(`${assunto}\n\n${corpo}`);
+  mostrarToast(`Copiámos o texto do pedido. Cola-o no formulário da ${empresa}.`);
+  const janela = window.open(url, '_blank');
+  if (janela) janela.opener = null;
+  else window.location.href = url;
+  setTimeout(() => {
+    if (document.visibilityState === 'visible') verificarPendente();
+  }, 2500);
+}
+
+function copiarTexto(texto) {
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(texto).catch(() => copiarTextoAntigo(texto));
+  } else {
+    copiarTextoAntigo(texto);
+  }
+}
+
+function copiarTextoAntigo(texto) {
+  const area = document.createElement('textarea');
+  area.value = texto;
+  area.setAttribute('readonly', '');
+  area.style.position = 'fixed';
+  area.style.opacity = '0';
+  document.body.appendChild(area);
+  area.select();
+  try { document.execCommand('copy'); } catch (erro) { /* sem área de transferência */ }
+  area.remove();
+}
+
+// Fora do catálogo não adivinhamos endereços: o utilizador confirma o contacto na política de privacidade
+function pedirContacto(empresa, depois) {
+  const pesquisa = `https://duckduckgo.com/?q=${encodeURIComponent(`${empresa.name} ${empresa.domain} política de privacidade proteção de dados`)}`;
+  abrirFolha({
+    titulo: `Confirma o contacto da ${empresa.name}`,
+    texto: 'Esta empresa ainda não está no nosso catálogo de contactos verificados. Procura na política de privacidade dela o email do Encarregado de Proteção de Dados (ou o indicado para exercer direitos).',
+    nota: 'Não adivinhamos endereços: um pedido para o endereço errado nunca chega.',
+    opcoes: [
+      {
+        label: 'Procurar a política de privacidade', estilo: 'secondary', acao: () => {
+          const janela = window.open(pesquisa, '_blank');
+          if (janela) janela.opener = null;
+        }
+      },
+      {
+        label: 'Já tenho o email', estilo: 'primary', acao: () => {
+          const email = (window.prompt(`Email de privacidade da ${empresa.name}:`) || '').trim();
+          if (!email) return;
+          if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) {
+            mostrarToast('Esse email não parece válido.');
+            return;
+          }
+          empresa.dpo_email = email;
+          empresa.contactUser = true;
+          guardarEstado();
+          registarEvento('contacto_indicado', { area: empresa.sector });
+          depois();
+        }
+      },
+      { label: 'Cancelar', estilo: 'ghost', acao: () => {} }
+    ]
+  });
+}
 
 function abrirEmail(destinatario, assunto, corpo, aoCancelar = () => {}) {
   if (!APPS_EMAIL[estado.appEmail]) {
@@ -1377,7 +1683,7 @@ function escolherAppEmail(depois, aoCancelar) {
 }
 
 function verificarPendente() {
-  if (folhaAberta) return;
+  if (folhaAberta || lote) return;
   const pendente = estado.pedidos.find((pedido) => pedido.status === 'awaiting_confirmation');
   if (pendente) perguntarSeEnviou(pendente);
 }
@@ -1390,12 +1696,16 @@ function perguntarSeEnviou(pedido, aoFecharFora = null) {
     opcoes: [
       { label: 'Sim, enviei', estilo: 'primary', acao: () => confirmarEnvio(pedido.id) },
       { label: 'Ainda não', estilo: 'secondary', acao: () => marcarNaoEnviado(pedido.id) },
-      {
+      pedido.channel === 'formulario' ? {
+        label: 'Abrir o formulário outra vez',
+        estilo: 'ghost',
+        acao: () => enviarPedido(pedido, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName))
+      } : {
         label: estado.appEmail ? `Abrir noutra app (agora: ${APPS_EMAIL[estado.appEmail]?.label || 'nenhuma'})` : 'Abrir noutra app de email',
         estilo: 'ghost',
         acao: () => {
           estado.appEmail = null;
-          abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id));
+          enviarPedido(pedido, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id));
         }
       }
     ]
@@ -1408,7 +1718,11 @@ function confirmarEnvio(pedidoId) {
   pedido.sentAt = new Date().toISOString();
   pedido.dueDate = estimarPrazo(pedido.sentAt);
   mudarEstado(pedido, 'sent');
-  registarEvento('pedido_enviado', { demo: pedido.demo, direito: pedido.right, area: pedido.companySector, app: estado.appEmail || '' });
+  registarEvento('pedido_enviado', {
+    demo: pedido.demo, direito: pedido.right, area: pedido.companySector, canal: pedido.channel,
+    app: pedido.channel === 'formulario' ? '' : (estado.appEmail || ''),
+    minutos: Math.max(0, Math.round((Date.now() - new Date(pedido.createdAt).getTime()) / 60000))
+  });
   // Depois de enviar, o próximo sítio natural é a página de pedidos.
   abrirFolha({
     titulo: 'Pedido enviado',
@@ -1451,7 +1765,10 @@ function aplicarResultado(pedidoId, chave) {
   const agora = new Date().toISOString();
   pedido.outcome = chave;
   pedido.holdsData = resultado.holdsData;
-  registarEvento('resposta_registada', { demo: pedido.demo, direito: pedido.right, area: pedido.companySector, resultado: chave });
+  registarEvento('resposta_registada', {
+    demo: pedido.demo, direito: pedido.right, area: pedido.companySector, resultado: chave,
+    dias: pedido.sentAt ? Math.max(0, Math.round((Date.now() - new Date(pedido.sentAt).getTime()) / 86400000)) : undefined
+  });
   if (!pedido.replyAt && chave !== 'no_reply') pedido.replyAt = agora;
   if (resultado.closeReason) {
     pedido.closedAt = agora;
@@ -1476,7 +1793,7 @@ Com os melhores cumprimentos.`;
   pedido.followUpAt = new Date().toISOString();
   pedido.timeline.push({ to: 'follow_up', at: pedido.followUpAt });
   guardarEstado();
-  abrirEmail(pedido.email, `Insistência: ${direito.subject}`, corpo);
+  enviarPedido(pedido, `Insistência: ${direito.subject}`, corpo);
   renderTudo();
 }
 
@@ -1567,6 +1884,7 @@ function renderTudo() {
     link.classList.toggle('text-slate-500', !ativo);
   });
   if (renderTudo.ultimaVista !== vista) {
+    if (renderTudo.ultimaVista) registarPaginaVista(vista);
     window.scrollTo(0, 0);
     if (vista === 'pedidos') animarMapa = true;
   }
@@ -1610,6 +1928,23 @@ function renderNoticias() {
           : `<p>${esc(bloco)}</p>`)).join('')}
         ${item.acao ? `<p class="font-semibold text-lime">${esc(item.acao)}</p>` : ''}
         ${item.filtro ? `<button data-action="ver-casos" data-filter="${item.filtro[0]}" type="button" class="self-start text-xs font-semibold text-slate-200 underline decoration-slate-600 underline-offset-4">${esc(item.filtro[1])}</button>` : ''}
+      </div>
+    </details>`).join('');
+
+  // Perguntas frequentes sobre a app (as abertas continuam abertas)
+  const faqAbertas = new Set([...document.querySelectorAll('#faq-list details[open]')].map((d) => d.dataset.faq));
+  document.getElementById('faq-list').innerHTML = FAQ.map((item) => `
+    <details data-faq="${item.id}" class="guia rounded-2xl border border-slate-800 bg-slate-900/60"${faqAbertas.has(item.id) ? ' open' : ''}>
+      <summary class="flex cursor-pointer items-center gap-3 px-4 py-3.5">
+        <span class="flex-1 text-sm font-semibold leading-5">${esc(item.pergunta)}</span>
+        <svg viewBox="0 0 16 16" class="guia-seta h-4 w-4 shrink-0 text-slate-500 transition" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+      </summary>
+      <div class="flex flex-col gap-2.5 px-4 pb-4 text-[13px] leading-5 text-slate-300">
+        ${item.blocos.map((bloco) => (Array.isArray(bloco)
+          ? `<ul class="flex flex-col gap-1.5">${bloco.map((linha) => `<li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-500"></span><span>${esc(linha)}</span></li>`).join('')}</ul>`
+          : `<p>${esc(bloco)}</p>`)).join('')}
+        ${item.link ? `<a href="${esc(item.link[1])}" target="_blank" rel="noopener noreferrer" class="self-start text-xs font-semibold text-lime underline decoration-lime/40 underline-offset-4">${esc(item.link[0])} ↗</a>` : ''}
+        ${item.acao ? `<button data-action="${item.acao[0]}" type="button" class="self-start text-xs font-semibold text-lime underline decoration-lime/40 underline-offset-4">${esc(item.acao[1])}</button>` : ''}
       </div>
     </details>`).join('');
 
@@ -1856,7 +2191,8 @@ function criarCard(empresa) {
       <button data-action="gerir" data-id="${esc(empresa.id)}" type="button" class="flex-1 rounded-lg bg-white py-2.5 text-xs font-bold text-ink">Gerir os meus dados</button>
       ${empresa.unsubscribe && !empresa.unsubscribedAt ? `<button data-action="cancelar-subscricao" data-id="${esc(empresa.id)}" type="button" class="rounded-lg bg-slate-800 px-3 py-2.5 text-xs font-bold text-slate-200">Cancelar subscrição</button>` : ''}
     </div>
-    ${!estado.demo ? `<button data-action="apagar-emails" data-id="${esc(empresa.id)}" type="button" class="mt-3 block text-[11px] font-semibold text-rose-200/90 underline decoration-rose-300/30 underline-offset-4">Apagar os emails desta empresa no Gmail</button>` : ''}
+    ${empresa.limpeza ? `<p class="mt-3 text-[11px] leading-4 text-mist">Moveste ${empresa.limpeza.quantos} ${plural(empresa.limpeza.quantos, 'email', 'emails')} para o Lixo do Gmail a ${formatarData(empresa.limpeza.em)}.</p>` : ''}
+    ${!estado.demo ? `<div class="mt-3 flex items-center gap-2"><button data-action="apagar-emails" data-id="${esc(empresa.id)}" type="button" class="text-[11px] font-semibold text-rose-200/90 underline decoration-rose-300/30 underline-offset-4">${empresa.limpeza ? 'Apagar os que chegaram depois' : 'Apagar os emails desta empresa'}</button>${SELO_PLUS}</div>` : ''}
     <details class="mt-2 text-xs leading-5 text-mist">
       <summary class="cursor-pointer font-semibold text-slate-500">Porquê esta empresa?</summary>
       ${porqueEstaEmpresa(empresa)}
@@ -1937,7 +2273,7 @@ function abrirCancelamento(empresa) {
   empresa.unsubscribedAt = new Date().toISOString();
   guardarEstado();
   renderTudo();
-  registarEvento('subscricao_cancelada', { area: empresa.sector, demo: estado.demo });
+  registarEvento('subscricao_cancelada', { area: empresa.sector, gravidade: gravidadeDe(empresa).chave, demo: estado.demo });
   if (porEmail) return; // a escolha da app de email já está no ecrã
   abrirFolha({
     titulo: 'Subscrição cancelada',
@@ -1949,15 +2285,30 @@ function abrirCancelamento(empresa) {
   });
 }
 
+// De onde vem o contacto de privacidade, em texto simples
+function descreverContacto(empresa) {
+  const formulario = empresa.privacyForm ? empresa.privacyForm.replace(/^https?:\/\/(www\.)?/, '').split(/[/?#]/)[0] : '';
+  if (empresa.contactExample) return `Contacto de exemplo: ${empresa.dpo_email}.`;
+  if (empresa.contactVerifiedAt) {
+    const quando = formatarData(empresa.contactVerifiedAt.slice(0, 10));
+    const canal = empresa.dpo_email
+      ? `${empresa.dpo_email}${formulario ? ` (ou o formulário em ${formulario})` : ''}`
+      : `formulário oficial em ${formulario}`;
+    const fonte = empresa.contactOrigin === 'datenanfragen'
+      ? `registado na base de dados Datenanfragen.de, atualizada a ${quando}`
+      : `verificado pela equipa do Veto a ${quando}`;
+    return `Contacto publicado pela empresa, ${fonte}: ${canal}.${empresa.contactNotes ? ` ${empresa.contactNotes}` : ''}`;
+  }
+  if (empresa.contactUser && empresa.dpo_email) return `Contacto indicado por ti: ${empresa.dpo_email}.`;
+  return 'Ainda não temos um contacto verificado para esta empresa. Antes do pedido, confirmas o email na política de privacidade dela.';
+}
+
 function mostrarMaisOpcoes(empresaId) {
   const empresa = obterEmpresa(empresaId);
   if (!empresa) return;
   abrirFolha({
     titulo: empresa.name,
-    texto: (!empresa.dpo_email ? 'Ainda não temos um contacto de privacidade para esta empresa.'
-      : empresa.contactExample ? `Contacto de exemplo: ${empresa.dpo_email}. Na versão final, o contacto vem de um catálogo verificado.`
-      : `Contacto de privacidade: ${empresa.dpo_email}`)
-      + (empresa.privacyForm ? ` Esta empresa recebe pedidos no formulário oficial: ${empresa.privacyForm.replace(/^https?:\/\/(www\.)?/, '')}` : ''),
+    texto: descreverContacto(empresa),
     opcoes: [
       { label: RIGHTS.erasure.label, estilo: 'secondary', acao: () => prepararPedido(empresa.id, 'erasure') },
       { label: RIGHTS.objection.label, estilo: 'secondary', acao: () => prepararPedido(empresa.id, 'objection') },
@@ -1971,6 +2322,9 @@ function renderPedidos() {
   const nos = nosDoMapa();
   const temPedidos = estado.pedidos.length > 0;
   const temMapa = nos.length > 0;
+  const entradaLote = document.getElementById('lote-entrada');
+  entradaLote.classList.toggle('hidden', visiveis().length < 2);
+  entradaLote.classList.toggle('inline-flex', visiveis().length >= 2);
   document.getElementById('map-empty').classList.toggle('hidden', temMapa || temPedidos);
   document.getElementById('map-content').classList.toggle('hidden', !temMapa && !temPedidos);
   if (!temMapa && !temPedidos) return;
@@ -2625,7 +2979,6 @@ function detalheDoMapa(nos, rede) {
       <span class="text-xs text-slate-300">${esc(RIGHTS[pedido.right].short)}: ${esc(descreverPedido(pedido))}</span>
       <button data-action="ver-pedido" data-id="${esc(pedido.id)}" type="button" class="shrink-0 text-[11px] font-bold text-lime">Ver pedido</button>
     </div>`).join('');
-  const semContacto = !no.empresa?.dpo_email;
   // Com quem partilha e onde já houve problemas, só se houver
   const terceiro = no.empresa ? terceiroDe(no.empresa) : null;
   const incidentes = incidentesDe(no.empresa);
@@ -2641,32 +2994,45 @@ function detalheDoMapa(nos, rede) {
     <div class="mt-2 grid grid-cols-2 gap-2">
       ${DIREITOS_NO_MAPA.map(({ right, titulo, frase }) => {
         const aberto = pedidosDaEmpresa.find((pedido) => pedido.right === right && pedido.status !== 'closed');
-        return `<button data-action="pedido" data-id="${esc(no.id)}" data-right="${right}" type="button" ${semContacto ? 'disabled' : ''}
-          class="flex flex-col rounded-xl border p-3 text-left transition ${aberto ? 'border-lime/40 bg-lime/5' : 'border-slate-800 bg-ink/60 hover:border-slate-600'} ${semContacto ? 'opacity-40' : ''}">
+        return `<button data-action="pedido" data-id="${esc(no.id)}" data-right="${right}" type="button"
+          class="flex flex-col rounded-xl border p-3 text-left transition ${aberto ? 'border-lime/40 bg-lime/5' : 'border-slate-800 bg-ink/60 hover:border-slate-600'}">
           <span class="text-sm font-semibold">${titulo}</span>
           <span class="mt-1 text-[11px] leading-4 text-mist">${frase}</span>
           ${aberto ? `<span class="mt-2 text-[10px] font-bold text-lime">${esc(descreverPedido(aberto))}</span>` : ''}
         </button>`;
       }).join('')}
     </div>` : '';
+  // Limpar a caixa: os emails desta empresa vão para o Lixo do Gmail (Veto+, aberto no teste)
+  const limpeza = no.empresa && !estado.demo ? `
+    <button data-action="apagar-emails" data-id="${esc(no.id)}" type="button" class="mt-2 flex w-full items-center gap-3 rounded-xl border border-slate-800 bg-ink/60 p-3 text-left transition hover:border-slate-600">
+      <span class="text-slate-400">${icone('lixo', 'h-4 w-4')}</span>
+      <span class="min-w-0 flex-1">
+        <span class="block text-sm font-semibold">Apagar os emails desta empresa</span>
+        <span class="mt-0.5 block text-[11px] leading-4 text-mist">${no.empresa.limpeza
+          ? `Moveste ${no.empresa.limpeza.quantos} para o Lixo a ${formatarData(no.empresa.limpeza.em)}`
+          : 'Vão para o Lixo do Gmail. A empresa continua com os dados'}</span>
+      </span>
+      ${SELO_PLUS}
+    </button>` : '';
   return `${cabecalho(bola((SEVERITY[no.gravidade] || SEVERITY.media).hex), esc(no.name), `${esc(setor.label)}${ev ? ` · ≈ ${ev.totalRecebidos ?? ev.count} emails` : ''}`)}
     ${porque(no.gravidade, no.motivo)}
     ${ligacoes}
     ${direitos}
-    ${no.empresa?.dpo_email ? `<p class="mt-2 truncate text-[11px] text-slate-500">Contacto${no.empresa.contactExample ? ' por verificar' : ''}: ${esc(no.empresa.dpo_email)}</p>` : ''}
+    ${limpeza}
+    ${no.empresa ? `<p class="mt-2 text-[11px] leading-4 text-slate-500">${esc(descreverContacto(no.empresa))}${no.empresa.contactSource ? ` <a href="${esc(no.empresa.contactSource)}" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">Fonte</a>` : ''}</p>` : ''}
     ${historico ? `<p class="mt-4 text-xs font-semibold text-slate-400">Os teus pedidos</p><div class="mt-1">${historico}</div>` : ''}`;
 }
 
 function linhaDoMapa(no, mostrarArea) {
   const setor = SECTORS[no.sector] || SECTORS.outros;
-  const semContacto = !no.empresa?.dpo_email;
+  const semContacto = !no.empresa?.dpo_email && !no.empresa?.privacyForm;
   const texto = no.ultimo
     ? `${RIGHTS[no.ultimo.right].short}: ${descreverPedido(no.ultimo)}`
-    : semContacto ? 'Ainda sem pedido · contacto por verificar' : 'Ainda sem pedido';
+    : semContacto ? 'Ainda sem pedido · contacto por confirmar' : 'Ainda sem pedido';
   let acao = '';
   if (no.ultimo) {
     acao = `<button data-action="ver-pedido" data-id="${esc(no.ultimo.id)}" type="button" class="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-[11px] font-bold text-slate-200">Ver pedido</button>`;
-  } else if (no.empresa && !semContacto) {
+  } else if (no.empresa) {
     acao = `<button data-action="mapa-empresa" data-id="${esc(no.id)}" type="button" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-[11px] font-bold text-ink">Ver opções</button>`;
   }
   const cor = SEVERITY[no.gravidade].hex;
@@ -2739,8 +3105,8 @@ function criarCartaoPedido(pedido) {
       ${resultado || (['sent', 'awaiting_confirmation'].includes(pedido.status) && pedido.email ? `<button data-action="enviar-novamente" data-id="${esc(pedido.id)}" type="button" class="shrink-0 rounded-lg border border-slate-700 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 hover:border-slate-500">Enviar novamente</button>` : '')}
     </div>
     <div class="mt-3 flex flex-col gap-1 text-[11px] text-mist">
-      <span>${esc(STATUS_LABELS[pedido.status])}</span>
-      ${pedido.sentAt ? `<span>Enviado a ${formatarData(pedido.sentAt)}${pedido.followUpAt ? ` · insistência a ${formatarData(pedido.followUpAt)}` : ''}</span>` : ''}
+      <span>${esc(pedido.via === 'veto' && pedido.status === 'sent' ? 'Enviado pelo Veto, do teu Gmail' : STATUS_LABELS[pedido.status])}</span>
+      ${pedido.sentAt ? `<span>Enviado a ${formatarData(pedido.sentAt)}${pedido.email ? ` para ${esc(pedido.email.replace(/^https?:\/\/(www\.)?/, '').split(/[/?#]/)[0])}` : ''}${pedido.followUpAt ? ` · insistência a ${formatarData(pedido.followUpAt)}` : ''}</span>` : ''}
       ${linhaPrazo}
       ${pedido.replyAt && pedido.outcome !== 'no_reply' ? `<span>Resposta a ${formatarData(pedido.replyAt)}</span>` : ''}
     </div>
@@ -2765,6 +3131,527 @@ function descreverPedido(pedido) {
   }
   if (pedido.outcome) return OUTCOMES[pedido.outcome].badge.toLowerCase();
   return STATUS_LABELS[pedido.status].toLowerCase();
+}
+
+/* ==========================================================================
+   Ações no Gmail (Veto+, abertas a todos durante o teste)
+   - Pedir a várias empresas: o mesmo direito, um email a cada empresa, enviado
+     pelo Gmail só depois de a pessoa ver exatamente o que sai e aceitar.
+   - Apagar os emails de uma empresa: o Veto move-os para o Lixo do Gmail.
+   Cada ação pede ao Google só a autorização de que precisa, no próprio clique,
+   e cancela-a logo a seguir, como na análise.
+   ========================================================================== */
+// Tem de correr no próprio clique: senão, o browser bloqueia a janela do Google.
+function autorizarGmail(scopes, aoAutorizar, aoFalhar) {
+  const clientId = document.getElementById('google-client-id').value.trim() || GOOGLE_CLIENT_ID;
+  if (!clientId || !window.google?.accounts?.oauth2 || location.protocol === 'file:') {
+    aoFalhar('A autorização do Google não está disponível. Recarrega a página e tenta outra vez.');
+    return;
+  }
+  const cliente = google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: scopes.join(' '),
+    include_granted_scopes: false,
+    // Sugere ao Google a conta que foi analisada
+    ...(estado.contaEmail ? { login_hint: estado.contaEmail } : {}),
+    error_callback: (erro) => aoFalhar(erro?.type === 'popup_failed_to_open'
+      ? 'O browser bloqueou a janela do Google. Permite pop-ups para este site e tenta outra vez.'
+      : 'A janela do Google fechou antes de terminares.'),
+    callback: (resposta) => {
+      if (resposta.error) {
+        aoFalhar(resposta.error === 'access_denied' ? 'Não deste autorização no Google.' : `O Google recusou a autorização (${resposta.error}).`);
+        return;
+      }
+      if (google.accounts.oauth2.hasGrantedAllScopes?.(resposta, ...scopes) === false) {
+        revogarAcesso(resposta.access_token);
+        aoFalhar('No ecrã do Google, a permissão ficou por marcar. Tenta outra vez e marca a caixa.');
+        return;
+      }
+      aoAutorizar(resposta.access_token);
+    }
+  });
+  cliente.requestAccessToken();
+}
+
+function revogarAcesso(token) {
+  try { google.accounts.oauth2.revoke(token, () => {}); } catch (erro) { /* o acesso já expirou */ }
+}
+
+// Tudo acontece na conta que foi analisada: é a esse endereço que as empresas associam os dados.
+async function confirmarConta(token, comGmail) {
+  let conta = '';
+  if (comGmail) {
+    conta = (await gmailFetch('/profile', token, GMAIL_QUOTA.CUSTO_LIST).catch(() => null))?.emailAddress || '';
+  } else {
+    const resposta = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null);
+    conta = resposta?.ok ? ((await resposta.json().catch(() => ({}))).email || '') : '';
+  }
+  if (!conta) throw new Error('Não conseguimos confirmar a tua conta Google. Tenta outra vez.');
+  if (estado.contaEmail && conta.toLowerCase() !== estado.contaEmail.toLowerCase()) {
+    throw new Error(`Escolheste ${conta} no Google, mas analisaste ${estado.contaEmail}. Tenta outra vez com ${estado.contaEmail}.`);
+  }
+  if (!estado.contaEmail) {
+    estado.contaEmail = conta;
+    guardarEstado();
+  }
+  return conta;
+}
+
+function abrirSeparador(url) {
+  const janela = window.open(url, '_blank');
+  if (janela) janela.opener = null;
+  else window.location.href = url;
+}
+
+function urlPesquisaGmail(pesquisa) {
+  return `https://mail.google.com/mail/${estado.contaEmail ? `?authuser=${encodeURIComponent(estado.contaEmail)}` : 'u/0/'}#search/${encodeURIComponent(pesquisa)}`;
+}
+
+// Email em texto simples, no formato que o Gmail espera (RFC 2822, em base64url).
+// O assunto e o texto vão em UTF-8 (base64), para os acentos chegarem certos.
+function base64Utf8(texto) {
+  const bytes = new TextEncoder().encode(texto);
+  let binario = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) binario += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(binario);
+}
+
+function cabecalhoUtf8(texto) {
+  // Palavras codificadas com até 75 caracteres cada (RFC 2047)
+  const partes = [];
+  let atual = '';
+  for (const letra of texto) {
+    if (new TextEncoder().encode(atual + letra).length > 45) {
+      partes.push(atual);
+      atual = '';
+    }
+    atual += letra;
+  }
+  if (atual) partes.push(atual);
+  return partes.map((parte) => `=?UTF-8?B?${base64Utf8(parte)}?=`).join('\r\n ');
+}
+
+const EMAIL_SEGURO = /^[^\s@<>,;:"()[\]\\]+@[^\s@<>,;:"()[\]\\]+\.[a-z]{2,}$/i;
+function mensagemRaw(para, assunto, corpo) {
+  if (!EMAIL_SEGURO.test(para)) throw new Error('o endereço da empresa não é válido');
+  const mensagem = [
+    `To: ${para}`,
+    `Subject: ${cabecalhoUtf8(assunto)}`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/plain; charset="UTF-8"',
+    'Content-Transfer-Encoding: base64',
+    '',
+    base64Utf8(corpo.replace(/\r?\n/g, '\r\n')).replace(/.{76}/g, '$&\r\n')
+  ].join('\r\n');
+  return base64Utf8(mensagem).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/* --- Pedir a várias empresas ---------------------------------------------- */
+
+// Todas as empresas, com o motivo por que algumas ficam fora deste envio
+function empresasParaLote(right) {
+  return visiveis().map((empresa) => {
+    const aberto = estado.pedidos.some((pedido) => pedido.companyId === empresa.id && pedido.right === right && !['closed', 'draft'].includes(pedido.status));
+    let fora = '';
+    if (aberto) fora = 'aberto';
+    else if (!empresa.dpo_email) fora = empresa.privacyForm ? 'formulario' : 'sem_contacto';
+    return { empresa, fora, gravidade: gravidadeDe(empresa).chave };
+  }).sort((a, b) => SEVERITY_ORDER.indexOf(a.gravidade) - SEVERITY_ORDER.indexOf(b.gravidade) || a.empresa.name.localeCompare(b.empresa.name));
+}
+
+function abrirLote(onde = 'mapa', right = 'access') {
+  lote = { passo: 'escolher', right, selecionadas: new Set(), envios: [], erro: '', onde };
+  registarEvento('lote_aberto', { onde });
+  const caixa = document.getElementById('lote');
+  caixa.classList.remove('hidden');
+  caixa.classList.add('flex');
+  renderLote();
+  document.getElementById('lote-painel').focus();
+}
+
+function fecharLote() {
+  if (!lote || lote.passo === 'enviar') return; // a meio do envio, a janela fica aberta
+  const acabou = lote.passo === 'fim';
+  lote = null;
+  const caixa = document.getElementById('lote');
+  caixa.classList.add('hidden');
+  caixa.classList.remove('flex');
+  document.getElementById('lote-painel').innerHTML = '';
+  if (acabou) renderTudo();
+}
+
+function renderLote() {
+  if (!lote) return;
+  const painel = document.getElementById('lote-painel');
+  const direito = RIGHTS[lote.right];
+  const conta = estado.contaEmail;
+  const contar = (n, um, varios) => `${n} ${plural(n, um, varios)}`;
+  const fechar = lote.passo === 'enviar' ? '' : `<button data-action="lote-fechar" type="button" aria-label="Fechar" class="-mr-1 -mt-1 shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"><svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`;
+  const topo = (titulo, texto) => `
+    <div class="flex items-start justify-between gap-3 px-5 pt-5 lg:px-7 lg:pt-7">
+      <div class="min-w-0">
+        <h2 id="lote-titulo" class="flex items-center gap-2 font-display text-lg font-semibold">${titulo}</h2>
+        ${texto ? `<p class="mt-1 text-sm leading-5 text-mist">${texto}</p>` : ''}
+      </div>
+      ${fechar}
+    </div>`;
+  const rodape = (botoes) => `<div class="flex flex-col-reverse gap-2 border-t border-slate-800 px-5 py-4 lg:flex-row lg:justify-end lg:px-7">${botoes}</div>`;
+  const botaoLote = (acao, texto, estilo, extra = '') => `<button data-action="${acao}" type="button" ${extra} class="rounded-xl px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40 ${estilo === 'primary' ? 'bg-white text-ink' : estilo === 'secondary' ? 'bg-slate-800 text-slate-100' : 'text-slate-400'}">${texto}</button>`;
+  const erro = lote.erro ? `<p role="alert" class="mt-4 rounded-xl border border-rose-400/30 bg-rose-400/10 px-3 py-2.5 text-xs leading-5 text-rose-100">${esc(lote.erro)}</p>` : '';
+
+  if (lote.passo === 'escolher') {
+    const todas = empresasParaLote(lote.right);
+    const prontas = todas.filter((item) => !item.fora);
+    const fora = todas.filter((item) => item.fora);
+    // Sai da seleção quem deixou de poder ir (por exemplo, ao mudar de direito)
+    lote.selecionadas.forEach((id) => { if (!prontas.some((item) => item.empresa.id === id)) lote.selecionadas.delete(id); });
+    const n = lote.selecionadas.size;
+    // "Fora deste envio" fica como estava (aberto por quem o abriu, ou aberto se não houver mais nada)
+    const detalhesFora = painel.querySelector('details[data-lote-fora]');
+    const foraAberto = detalhesFora ? detalhesFora.open : !prontas.length;
+    const linha = ({ empresa, gravidade }) => `
+      <label class="flex cursor-pointer items-center gap-3 border-b border-slate-800 py-2.5 last:border-b-0">
+        <input type="checkbox" data-lote-empresa="${esc(empresa.id)}" class="h-4 w-4 shrink-0 accent-lime"${lote.selecionadas.has(empresa.id) ? ' checked' : ''}>
+        <span class="min-w-0 flex-1">
+          <span class="flex items-center gap-1.5 text-sm font-semibold"><span class="truncate">${esc(empresa.name)}</span><span class="text-slate-500" title="${esc((SECTORS[empresa.sector] || SECTORS.outros).label)}">${icone(empresa.sector || 'outros', 'h-3.5 w-3.5')}</span></span>
+          <span class="mt-0.5 flex items-center gap-1.5 text-[11px] text-mist">${iconeGravidade(gravidade, 8)}<span class="truncate">${esc(empresa.dpo_email)}</span></span>
+        </span>
+      </label>`;
+    const motivos = {
+      aberto: `Já tens um pedido de ${direito.short.toLowerCase()} aberto`,
+      formulario: 'Só aceita o formulário dela: pede no mapa',
+      sem_contacto: 'Contacto por confirmar'
+    };
+    const linhaFora = ({ empresa, fora: motivo }) => `
+      <div class="flex items-center gap-3 border-b border-slate-800 py-2.5 last:border-b-0">
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-300">${esc(empresa.name)}</span>
+          <span class="mt-0.5 block text-[11px] text-mist">${motivos[motivo]}</span>
+        </span>
+        ${motivo === 'sem_contacto' ? `<button data-action="lote-indicar" data-id="${esc(empresa.id)}" type="button" class="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-[11px] font-bold text-slate-200">Indicar email</button>` : ''}
+      </div>`;
+    painel.innerHTML = `
+      ${topo(`Pedir a várias empresas ${SELO_PLUS}`, `O mesmo pedido, um email a cada empresa, enviado do teu Gmail${conta ? ` (${esc(conta)})` : ''}. Antes de sair, vês tudo o que vai ser enviado.`)}
+      <div class="min-h-0 flex-1 overflow-y-auto px-5 pb-5 lg:px-7">
+        <p class="mt-5 text-xs font-semibold text-slate-400">O que pedes</p>
+        <div class="mt-2 grid grid-cols-2 gap-2">
+          ${DIREITOS_NO_MAPA.map(({ right, titulo, frase }) => `
+            <button data-action="lote-direito" data-right="${right}" type="button" aria-pressed="${right === lote.right}"
+              class="flex flex-col rounded-xl border p-3 text-left transition ${right === lote.right ? 'border-lime bg-lime/10' : 'border-slate-800 bg-ink/60 hover:border-slate-600'}">
+              <span class="text-sm font-semibold">${titulo}</span>
+              <span class="mt-1 text-[11px] leading-4 text-mist">${frase}</span>
+            </button>`).join('')}
+        </div>
+        <div class="mt-6 flex items-end justify-between gap-3">
+          <p class="text-xs font-semibold text-slate-400">A quem · ${contar(prontas.length, 'empresa com email', 'empresas com email')}</p>
+          ${prontas.length ? `<button data-action="lote-todas" type="button" class="shrink-0 text-xs font-semibold text-lime">${n === prontas.length ? 'Limpar a seleção' : 'Selecionar todas'}</button>` : ''}
+        </div>
+        <div class="mt-1">${prontas.length ? prontas.map(linha).join('') : '<p class="py-4 text-center text-xs text-mist">Nenhuma empresa com email para este pedido.</p>'}</div>
+        ${fora.length ? `
+          <details data-lote-fora class="mt-5 rounded-xl border border-slate-800 px-3"${foraAberto ? ' open' : ''}>
+            <summary class="cursor-pointer py-2.5 text-xs font-semibold text-slate-400">Fora deste envio · ${fora.length}</summary>
+            <div class="pb-1">${fora.map(linhaFora).join('')}</div>
+          </details>` : ''}
+      </div>
+      ${rodape(botaoLote('lote-rever', n ? `Rever ${contar(n, 'pedido', 'pedidos')}` : 'Escolhe as empresas', 'primary', n ? '' : 'disabled'))}`;
+    return;
+  }
+
+  if (lote.passo === 'rever') {
+    const envios = lote.envios;
+    const primeira = envios[0];
+    painel.innerHTML = `
+      ${topo('Confirma o que vai ser enviado', `Depois de aceitares, o Veto envia ${envios.length === 1 ? 'este email' : `estes ${envios.length} emails`} pelo teu Gmail, sem mais perguntas.`)}
+      <div class="min-h-0 flex-1 overflow-y-auto px-5 pb-5 lg:px-7">
+        ${erro}
+        <dl class="mt-4 grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-3 gap-y-2.5 text-sm">
+          <dt class="text-mist">De</dt><dd class="truncate font-semibold">${conta ? esc(conta) : 'A conta que escolheres no Google (usa a que analisaste)'}</dd>
+          <dt class="text-mist">Para</dt>
+          <dd>
+            <ul class="max-h-40 overflow-y-auto rounded-xl border border-slate-800 px-3">
+              ${envios.map((envio) => `<li class="flex items-baseline justify-between gap-3 border-b border-slate-800 py-2 last:border-b-0"><span class="truncate font-semibold">${esc(envio.nome)}</span><span class="truncate text-[11px] text-mist">${esc(envio.email)}</span></li>`).join('')}
+            </ul>
+          </dd>
+          <dt class="text-mist">Assunto</dt><dd class="font-semibold leading-5">${esc(direito.subject)}</dd>
+        </dl>
+        ${lote.right === 'erasure' ? '<p class="mt-4 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2.5 text-xs leading-5 text-amber-100">Se ainda usas alguma destas contas, volta atrás e tira-a da lista: o apagamento pode fechá-la.</p>' : ''}
+        <p class="mt-4 flex gap-2.5 rounded-xl bg-ink/70 px-3 py-2.5 text-xs leading-5 text-slate-300"><span class="mt-0.5 text-lime">${icone('cadeado', 'h-4 w-4')}</span><span>O Google vai pedir-te autorização para enviar emails em teu nome. O Veto usa-a só para ${envios.length === 1 ? 'este email' : `estes ${envios.length} emails`} e cancela-a logo a seguir. As cópias ficam na tua pasta Enviados e as respostas chegam à tua caixa de entrada.</span></p>
+        <p class="mt-5 text-xs font-semibold text-slate-400">Texto do email${envios.length > 1 ? ` à ${esc(primeira.nome)}` : ''}</p>
+        <div class="mt-2 max-h-64 overflow-y-auto whitespace-pre-wrap rounded-xl bg-ink/70 p-3.5 text-xs leading-5 text-slate-200">${esc(direito.body(primeira.nome))}</div>
+        ${envios.length > 1 ? '<p class="mt-2 text-[11px] leading-4 text-mist">Em cada email muda só o nome da empresa.</p>' : ''}
+      </div>
+      ${rodape(`${botaoLote('lote-voltar', 'Voltar', 'ghost')}${botaoLote('lote-enviar', `Aceitar e enviar ${contar(envios.length, 'pedido', 'pedidos')}`, 'primary')}`)}`;
+    return;
+  }
+
+  // A enviar e no fim: uma linha por empresa, com o que aconteceu
+  const enviados = lote.envios.filter((envio) => envio.estado === 'enviado').length;
+  const falhados = lote.envios.filter((envio) => envio.estado === 'falhou');
+  const estadoDoEnvio = {
+    espera: '<span class="text-[11px] text-slate-500">Na fila</span>',
+    a_enviar: '<span class="text-[11px] font-semibold text-slate-200"><span class="animate-pulse">A enviar</span></span>',
+    enviado: '<span class="flex items-center gap-1 text-[11px] font-semibold text-lime"><svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Enviado</span>',
+    falhou: '<span class="text-[11px] font-semibold text-rose-200">Não enviado</span>'
+  };
+  const lista = `<ul class="mt-4 rounded-xl border border-slate-800 px-3" aria-live="polite">
+    ${lote.envios.map((envio) => `<li class="border-b border-slate-800 py-2.5 last:border-b-0">
+      <div class="flex items-center justify-between gap-3"><span class="truncate text-sm font-semibold">${esc(envio.nome)}</span>${estadoDoEnvio[envio.estado]}</div>
+      ${envio.motivo ? `<p class="mt-1 text-[11px] leading-4 text-rose-100/80">${esc(envio.motivo)}</p>` : ''}
+    </li>`).join('')}
+  </ul>`;
+
+  if (lote.passo === 'enviar') {
+    const feitos = lote.envios.filter((envio) => ['enviado', 'falhou'].includes(envio.estado)).length;
+    painel.innerHTML = `
+      ${topo('A enviar os pedidos', `${feitos} de ${lote.envios.length}. Não feches esta página até terminar.`)}
+      <div class="min-h-0 flex-1 overflow-y-auto px-5 pb-6 lg:px-7">${lista}</div>`;
+    return;
+  }
+
+  const prazo = estado.pedidos.find((pedido) => pedido.lote === lote.id)?.dueDate;
+  painel.innerHTML = `
+    ${topo(enviados === lote.envios.length ? `${contar(enviados, 'pedido enviado', 'pedidos enviados')}` : `${enviados} de ${lote.envios.length} pedidos enviados`,
+      enviados ? `As empresas têm até ${formatarData(prazo)} para responder. Acompanha os pedidos no mapa de exposição.` : 'Nenhum pedido saiu. Vê o motivo abaixo.')}
+    <div class="min-h-0 flex-1 overflow-y-auto px-5 pb-5 lg:px-7">${lista}</div>
+    ${rodape(`${falhados.length ? botaoLote('lote-repetir', `Tentar de novo ${falhados.length === 1 ? 'o que falhou' : `os ${falhados.length} que falharam`}`, 'ghost') : ''}${enviados ? botaoLote('lote-gmail', 'Ver no Gmail', 'secondary') : ''}${botaoLote(enviados ? 'lote-mapa' : 'lote-fechar', enviados ? 'Ver no mapa' : 'Fechar', 'primary')}`)}`;
+}
+
+function reverLote(empresasIds = [...lote.selecionadas]) {
+  lote.envios = empresasIds.map(obterEmpresa).filter((empresa) => empresa?.dpo_email)
+    .map((empresa) => ({ id: empresa.id, nome: empresa.name, email: empresa.dpo_email, estado: 'espera', motivo: '' }));
+  if (!lote.envios.length) return;
+  lote.passo = 'rever';
+  lote.erro = '';
+  registarEvento('lote_revisto', { direito: lote.right, pedidos: lote.envios.length });
+  renderLote();
+}
+
+// Chamado no clique em "Aceitar e enviar"
+function aceitarLote() {
+  if (!lote || lote.passo !== 'rever') return;
+  lote.erro = '';
+  autorizarGmail([GMAIL_SEND_SCOPE, EMAIL_SCOPE], (token) => enviarLote(token), (mensagem) => {
+    if (!lote) return;
+    lote.erro = `${mensagem} Nenhum pedido foi enviado.`;
+    registarEvento('lote_interrompido', { motivo: 'autorizacao' });
+    renderLote();
+  });
+}
+
+async function enviarLote(token) {
+  try {
+    await confirmarConta(token, false);
+  } catch (erro) {
+    revogarAcesso(token);
+    lote.erro = `${erro.message} Nenhum pedido foi enviado.`;
+    registarEvento('lote_interrompido', { motivo: 'conta' });
+    renderLote();
+    return;
+  }
+  const direito = RIGHTS[lote.right];
+  lote.id = gerarId();
+  lote.passo = 'enviar';
+  renderLote();
+  // Um de cada vez: cada email só sai depois de o anterior estar confirmado
+  for (const envio of lote.envios) {
+    envio.estado = 'a_enviar';
+    envio.motivo = '';
+    renderLote();
+    const empresa = obterEmpresa(envio.id);
+    try {
+      const resposta = await gmailFetch('/messages/send', token, GMAIL_QUOTA.CUSTO_SEND, 0, {
+        corpo: { raw: mensagemRaw(envio.email, direito.subject, direito.body(envio.nome)) },
+        repetirSeFalhar: false
+      });
+      criarPedidoEnviado(empresa || { id: envio.id, name: envio.nome, sector: 'outros', domain: envio.id }, lote.right, envio.email, { lote: lote.id, gmailThreadId: resposta.threadId || '' });
+      envio.estado = 'enviado';
+    } catch (erro) {
+      envio.estado = 'falhou';
+      envio.motivo = `Não foi enviado: ${erro.message}.`;
+    }
+  }
+  revogarAcesso(token);
+  const enviados = lote.envios.filter((envio) => envio.estado === 'enviado').length;
+  registarEvento('lote_enviado', { direito: lote.right, pedidos: enviados, falhados: lote.envios.length - enviados, onde: lote.onde });
+  lote.passo = 'fim';
+  renderLote();
+}
+
+// Um pedido que saiu pelo Gmail: já está enviado e o prazo começa a contar
+function criarPedidoEnviado(empresa, right, email, extra = {}) {
+  const agora = new Date().toISOString();
+  const pedido = {
+    id: gerarId(), companyId: empresa.id, companyName: empresa.name, companySector: empresa.sector, domain: empresa.domain,
+    channel: 'email', email, right, status: 'sent', createdAt: agora, sentAt: agora, dueDate: estimarPrazo(agora),
+    replyAt: null, closedAt: null, closeReason: null, outcome: null, holdsData: null, followUpAt: null,
+    demo: false, via: 'veto', ...extra, timeline: [{ to: 'sent', at: agora }]
+  };
+  estado.pedidos.push(pedido);
+  guardarEstado(); // guardado logo, para não se perder se a página fechar a meio
+  registarEvento('pedido_enviado', { demo: false, direito: right, area: empresa.sector, canal: 'email', app: 'veto_lote', contacto: origemDoContacto(empresa) });
+  return pedido;
+}
+
+// O mesmo que em "Confirma o contacto": o email vem da política de privacidade, indicado pela pessoa
+function indicarContactoNoLote(empresaId) {
+  const empresa = obterEmpresa(empresaId);
+  if (!empresa || !lote) return;
+  const email = (window.prompt(`Email de privacidade da ${empresa.name} (está na política de privacidade dela):`) || '').trim();
+  if (!email) return;
+  if (!EMAIL_SEGURO.test(email)) {
+    mostrarToast('Esse email não parece válido.');
+    return;
+  }
+  empresa.dpo_email = email;
+  empresa.contactUser = true;
+  guardarEstado();
+  registarEvento('contacto_indicado', { area: empresa.sector, onde: 'lote' });
+  if (!empresasParaLote(lote.right).find((item) => item.empresa.id === empresaId)?.fora) lote.selecionadas.add(empresaId);
+  renderLote();
+}
+
+function tratarCliqueLote(acao, alvo) {
+  if (!lote) return;
+  switch (acao) {
+    case 'lote-fechar': fecharLote(); break;
+    case 'lote-direito': lote.right = alvo.dataset.right; renderLote(); break;
+    case 'lote-todas': {
+      const prontas = empresasParaLote(lote.right).filter((item) => !item.fora).map((item) => item.empresa.id);
+      lote.selecionadas = lote.selecionadas.size === prontas.length ? new Set() : new Set(prontas);
+      renderLote();
+      break;
+    }
+    case 'lote-indicar': indicarContactoNoLote(alvo.dataset.id); break;
+    case 'lote-rever': reverLote(); break;
+    case 'lote-voltar': lote.passo = 'escolher'; lote.erro = ''; renderLote(); break;
+    case 'lote-enviar': aceitarLote(); break;
+    case 'lote-repetir': {
+      const falhados = lote.envios.filter((envio) => envio.estado === 'falhou').map((envio) => envio.id);
+      lote.selecionadas = new Set(falhados);
+      reverLote(falhados);
+      break;
+    }
+    case 'lote-gmail': abrirSeparador(urlPesquisaGmail(`in:sent subject:"${RIGHTS[lote.right].subject}"`)); break;
+    case 'lote-mapa': fecharLote(); selecaoMapa = null; location.hash = '#pedidos'; renderTudo(); break;
+    default: break;
+  }
+}
+
+/* --- Apagar os emails de uma empresa ------------------------------------- */
+function pesquisaDaEmpresa(empresa) {
+  const dominios = empresa.domains?.length ? empresa.domains : [empresa.domain];
+  return `{${dominios.map((domain) => `from:${domain}`).join(' ')}}`;
+}
+
+function apagarEmailsEmpresa(empresaId) {
+  const empresa = obterEmpresa(empresaId);
+  if (!empresa) return;
+  const ev = empresa.evidence || {};
+  // Depois de uma limpeza, a contagem da análise já não vale
+  const quantos = empresa.limpeza ? 0 : (ev.totalRecebidos ?? ev.count ?? 0);
+  const pesquisa = `${pesquisaDaEmpresa(empresa)} -in:trash -in:spam -in:drafts -in:chats`;
+  registarEvento('apagar_aberto', { area: empresa.sector });
+  abrirFolha({
+    titulo: `Apagar os emails da ${empresa.name}?`,
+    texto: empresa.limpeza
+      ? `Já moveste ${empresa.limpeza.quantos} emails para o Lixo a ${formatarData(empresa.limpeza.em)}. O Veto procura os que chegaram depois e move-os também.`
+      : `O Veto move para o Lixo do Gmail os ${quantos ? `≈ ${quantos} ` : ''}emails que a ${empresa.name} te enviou. Ficam lá 30 dias: até lá, podes recuperá-los.`,
+    lista: [
+      ['Só os emails desta empresa', `Os que recebeste de ${(empresa.domains?.length ? empresa.domains : [empresa.domain]).join(', ')}. Os que tu lhe escreveste ficam onde estão.`],
+      ['Uma autorização só para isto', 'O Google vai dizer que o Veto pode ler, escrever e enviar emails: é a autorização mais pequena que o Gmail tem para mover emails para o Lixo. O Veto usa-a só nesta limpeza e cancela-a logo a seguir.']
+    ],
+    nota: 'Função do Veto+, aberta a todos durante o teste.',
+    opcoes: [
+      { label: quantos ? `Mover ${quantos} emails para o Lixo` : 'Mover os emails para o Lixo', estilo: 'primary', acao: () => moverParaLixo(empresa.id) },
+      { label: 'Prefiro fazer eu no Gmail', estilo: 'secondary', acao: () => { registarEvento('apagar_no_gmail', { area: empresa.sector }); abrirSeparador(urlPesquisaGmail(pesquisa)); } },
+      { label: 'Cancelar', estilo: 'ghost', acao: () => {} }
+    ]
+  });
+}
+
+// Chamado no clique em "Mover para o Lixo"
+function moverParaLixo(empresaId) {
+  const empresa = obterEmpresa(empresaId);
+  if (!empresa) return;
+  autorizarGmail([GMAIL_MODIFY_SCOPE], (token) => limparEmpresa(empresa, token), (mensagem) => abrirFolha({
+    titulo: 'Os emails não foram apagados',
+    texto: mensagem,
+    opcoes: [
+      { label: 'Tentar outra vez', estilo: 'primary', acao: () => apagarEmailsEmpresa(empresa.id) },
+      { label: 'Fechar', estilo: 'ghost', acao: () => {} }
+    ]
+  }));
+}
+
+async function limparEmpresa(empresa, token) {
+  const titulo = `A limpar os emails da ${empresa.name}`;
+  // A janela de progresso pode ser fechada: a limpeza continua e o resultado aparece no fim
+  const progresso = (texto, primeira = false) => {
+    if (primeira) abrirFolha({ titulo, texto, nota: 'Podes fechar esta janela: avisamos quando terminar.', opcoes: [] });
+    else if (folhaAberta && document.getElementById('sheet-title').textContent === titulo) document.getElementById('sheet-text').textContent = texto;
+  };
+  progresso('A confirmar a conta…', true);
+  let metodo = 'lote';
+  try {
+    await confirmarConta(token, true);
+    progresso('A procurar os emails desta empresa…');
+    const ids = [];
+    let pagina = '';
+    do {
+      const resposta = await gmailFetch(`/messages?maxResults=500&fields=messages/id,nextPageToken&q=${encodeURIComponent(`${pesquisaDaEmpresa(empresa)} -in:trash -in:spam -in:drafts -in:chats`)}${pagina ? `&pageToken=${encodeURIComponent(pagina)}` : ''}`, token, GMAIL_QUOTA.CUSTO_LIST);
+      ids.push(...(resposta.messages || []).map((mensagem) => mensagem.id));
+      pagina = resposta.nextPageToken || '';
+    } while (pagina && ids.length < LIMPEZA_MAX);
+    const todos = ids.slice(0, LIMPEZA_MAX);
+    if (!todos.length) {
+      revogarAcesso(token);
+      abrirFolha({ titulo: 'Não há emails para apagar', texto: `Não encontrámos emails da ${empresa.name} na tua caixa (fora do Lixo e do spam).`, opcoes: [{ label: 'OK', estilo: 'primary', acao: () => {} }] });
+      return;
+    }
+    let movidos = 0;
+    progresso(`A mover ${todos.length} emails para o Lixo…`);
+    try {
+      // Até 1000 de cada vez (pôr a etiqueta Lixo é o mesmo que mover para o Lixo)
+      for (let i = 0; i < todos.length; i += 1000) {
+        await gmailFetch('/messages/batchModify', token, GMAIL_QUOTA.CUSTO_BATCH, 0, { corpo: { ids: todos.slice(i, i + 1000), addLabelIds: ['TRASH'] } });
+        movidos = Math.min(i + 1000, todos.length);
+        progresso(`${movidos} de ${todos.length} emails movidos para o Lixo…`);
+      }
+    } catch (erro) {
+      // Se o Gmail não aceitar em bloco, um a um
+      metodo = 'um_a_um';
+      await emLotes(todos.slice(movidos), GMAIL_PARALELO, (id) => gmailFetch(`/messages/${id}/trash`, token, GMAIL_QUOTA.CUSTO_TRASH, 0, { corpo: {} }), (feitos) => {
+        progresso(`${movidos + feitos} de ${todos.length} emails movidos para o Lixo…`);
+      });
+    }
+    revogarAcesso(token);
+    empresa.limpeza = { em: new Date().toISOString(), quantos: todos.length };
+    guardarEstado();
+    registarEvento('emails_apagados', { area: empresa.sector, quantos: todos.length, metodo });
+    renderTudo();
+    const apagamentoAberto = estado.pedidos.some((pedido) => pedido.companyId === empresa.id && pedido.right === 'erasure' && !['closed', 'draft'].includes(pedido.status));
+    abrirFolha({
+      titulo: `${todos.length} ${plural(todos.length, 'email movido', 'emails movidos')} para o Lixo`,
+      texto: `Os emails da ${empresa.name} estão no Lixo do Gmail, onde ficam 30 dias. Até lá, podes recuperá-los.`,
+      nota: apagamentoAberto ? '' : `A ${empresa.name} continua com os teus dados. Para que os apague, envia-lhe um pedido de apagamento.`,
+      opcoes: [
+        ...(apagamentoAberto ? [] : [{ label: 'Pedir que apaguem os meus dados', estilo: 'primary', acao: () => prepararPedido(empresa.id, 'erasure') }]),
+        { label: 'Ver o Lixo no Gmail', estilo: 'secondary', acao: () => abrirSeparador(urlPesquisaGmail(`in:trash ${pesquisaDaEmpresa(empresa)}`)) },
+        { label: 'Fechar', estilo: apagamentoAberto ? 'primary' : 'ghost', acao: () => {} }
+      ]
+    });
+  } catch (erro) {
+    revogarAcesso(token);
+    registarEvento('apagar_interrompido', { area: empresa.sector });
+    abrirFolha({
+      titulo: 'Os emails não foram todos apagados',
+      texto: `${erro.message.replace(/^o Gmail/, 'O Gmail')} Os que já foram para o Lixo ficam lá: podes tentar outra vez para mover os restantes.`,
+      opcoes: [
+        { label: 'Tentar outra vez', estilo: 'primary', acao: () => apagarEmailsEmpresa(empresa.id) },
+        { label: 'Fechar', estilo: 'ghost', acao: () => {} }
+      ]
+    });
+  }
 }
 
 /* ==========================================================================
@@ -2907,6 +3794,8 @@ function tratarClique(evento) {
     case 'abrir-fonte': registarEvento('noticia_aberta', { noticia: id }); break; // o link abre normalmente
     case 'cancelar-subscricao': cancelarSubscricao(id); break;
     case 'apagar-emails': apagarEmailsEmpresa(id); break;
+    case 'lote': abrirLote(alvo.dataset.onde, right); break;
+    case 'ir-faq': document.getElementById('news-faq').scrollIntoView({ behavior: 'smooth', block: 'start' }); break;
     case 'mapa-zoom': botaoDeZoom(alvo.dataset.zoom); break;
     case 'plus': abrirPlus(alvo.dataset.onde); break;
     case 'descartar': definirDescartada(id, true); break;
@@ -2924,7 +3813,7 @@ function tratarClique(evento) {
       const pedido = obterPedido(id);
       if (pedido) {
         registarEvento('pedido_reenviado', { direito: pedido.right, area: pedido.companySector });
-        abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => {});
+        enviarPedido(pedido, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName));
       }
       break;
     }
@@ -2942,7 +3831,9 @@ function tratarClique(evento) {
       if (opcao) opcao.acao();
       break;
     }
-    default: break;
+    default:
+      if (action.startsWith('lote-')) tratarCliqueLote(action, alvo);
+      break;
   }
 }
 
@@ -2998,13 +3889,44 @@ function resumoParaEventos(empresas) {
     empresas: empresas.length,
     porGravidade: contar(SEVERITY_ORDER, (empresa) => gravidadeDe(empresa).chave),
     porArea: contar(SECTOR_ORDER, (empresa) => empresa.sector),
-    comCancelamento: empresas.filter((empresa) => empresa.unsubscribe).length
+    comCancelamento: empresas.filter((empresa) => empresa.unsubscribe).length,
+    // Quantas ficaram sem tipo claro e quantas têm contacto verificado no catálogo
+    porTipo: contar(KIND_ORDER, (empresa) => (tiposDe(empresa).includes(empresa.kind) ? empresa.kind : tiposDe(empresa)[0])),
+    semTipo: empresas.filter((empresa) => tiposDe(empresa).every((tipo) => tipo === 'unknown')).length,
+    noCatalogo: empresas.filter((empresa) => empresa.contactVerifiedAt).length,
+    comTerceiro: empresas.filter((empresa) => terceiroDe(empresa)).length
   };
 }
 
 function registarEvento(evento, detalhes = {}) {
   if (!estado.teste?.consentimento) return;
-  porNaFila({ codigo: estado.teste.codigo, dispositivo: estado.teste.dispositivo, evento, detalhes: { ...detalhes, origem: estado.teste.origem || undefined } });
+  porNaFila({ codigo: estado.teste.codigo, dispositivo: estado.teste.dispositivo, evento, detalhes: { ...detalhes, origem: estado.teste.origem || undefined, ecra: tipoDeEcra() } });
+}
+
+// Telemóvel ou tablet (ecrã tátil) ou computador: só para saber onde o Veto é usado
+function tipoDeEcra() {
+  return window.matchMedia?.('(pointer: coarse)').matches ? 'telemovel' : 'computador';
+}
+
+// Que páginas são abertas: uma vez por página e por dia (a primeira já conta como "app_aberta")
+function registarPaginaVista(vista) {
+  if (!estado.teste?.consentimento) return;
+  const hoje = dataLocalISO(new Date());
+  const vistas = estado.teste.paginasHoje?.dia === hoje ? estado.teste.paginasHoje.vistas : [];
+  if (vistas.includes(vista)) return;
+  estado.teste.paginasHoje = { dia: hoje, vistas: [...vistas, vista] };
+  registarEvento('pagina_vista', { vista });
+}
+
+// O motivo de uma falha, numa categoria fixa (nunca a mensagem de erro, que pode ter dados)
+function motivoDoErro(erro) {
+  const texto = String(erro?.message || '');
+  if (/API não está ativada/i.test(texto)) return 'api_desativada';
+  if (/permissão para ler/i.test(texto)) return 'sem_permissao';
+  if (/quota|429/i.test(texto)) return 'quota';
+  if (/failed to fetch|network|load failed/i.test(texto)) return 'rede';
+  if (/respondeu com 401/.test(texto)) return 'sessao_expirada';
+  return 'outro';
 }
 
 function porNaFila(registo) {
@@ -3087,7 +4009,7 @@ function registarAbertura() {
   const hoje = dataLocalISO(new Date());
   if (estado.teste?.consentimento && estado.teste.ultimoDia !== hoje) {
     estado.teste.ultimoDia = hoje;
-    registarEvento('app_aberta', { vista: vistaAtual() });
+    registarEvento('app_aberta', { vista: vistaAtual(), diasDesdeAdesao: estado.teste.desde ? Math.round((Date.now() - new Date(estado.teste.desde).getTime()) / 86400000) : undefined });
   } else {
     enviarFila();
   }
@@ -3178,10 +4100,10 @@ function mostrarOQueEEnviado() {
     titulo: 'Estatísticas anónimas',
     texto: 'Para sabermos se o Veto é útil, contamos de forma anónima o que fazes na app. Podes mudar de ideias quando quiseres, no fim do Início.',
     lista: [
-      ['Um identificador aleatório', 'Um código deste dispositivo, que não te identifica, e de onde vieste (por exemplo, LinkedIn).'],
-      ['A análise', 'Quantos emails e quantas empresas encontrámos, por área e por gravidade.'],
-      ['Os pedidos', 'O tipo de pedido que preparas, envias ou registas, e a área da empresa.'],
-      ['Outras ações', 'Quando abres a app, cancelas uma subscrição, abres uma notícia ou uma pergunta do guia, ou vês o Veto+.']
+      ['Um identificador aleatório', 'Um código deste dispositivo, que não te identifica, de onde vieste (por exemplo, LinkedIn) e se usas telemóvel ou computador.'],
+      ['A análise', 'Quantos emails e quantas empresas encontrámos, por área e por gravidade, e quanto tempo demorou. Se falhar, o tipo de falha.'],
+      ['Os pedidos', 'O tipo de pedido, a área da empresa, se foi por email ou formulário, quanto tempo levaste a enviá-lo e quantos dias a empresa demorou a responder. Num envio a várias empresas, quantos pedidos saíram.'],
+      ['Outras ações', 'Quando abres a app ou uma página, cancelas uma subscrição, apagas os emails de uma empresa (só quantos), abres uma notícia ou uma pergunta, ou vês o Veto+.']
     ],
     nota: 'Nunca enviamos o teu endereço de email, os nomes das empresas, os assuntos nem o conteúdo dos emails.',
     opcoes: ligadas

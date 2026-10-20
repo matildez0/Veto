@@ -12,7 +12,8 @@
  * nunca endereços de email, nomes de empresas, assuntos ou conteúdo de emails.
  * A exceção são os pedidos de acesso ao teste: o email que a pessoa escreve fica na folha
  * "Testers", para a equipa o acrescentar em Google Cloud > Público-alvo > Utilizadores de teste.
- * Depois de alterar este ficheiro: Implementar > Gerir implementações > editar > Nova versão.
+ * Depois de alterar este ficheiro, guarda-o. Só é preciso uma nova versão da implementação
+ * (Implementar > Gerir implementações > editar > Nova versão) quando o doPost muda.
  */
 function doPost(e) {
   const livro = SpreadsheetApp.getActiveSpreadsheet();
@@ -47,136 +48,484 @@ function doPost(e) {
 }
 
 // ---------------------------------------------------------------------------
-// Resumo: transforma as linhas da folha "Eventos" nos números do teste.
-// Na folha de cálculo aparece o menu Veto > Atualizar resumo.
+// As folhas para ler os resultados. São refeitas de raiz sempre que se atualizam,
+// a partir da folha "Eventos" (os dados em bruto, que nunca são alterados):
+// - "Resumo": as respostas às perguntas do teste, com uma explicação em cada linha
+// - "Pessoas": uma linha por pessoa, com até onde chegou e o que fez
+// - "Histórico": tudo o que aconteceu, uma ação por linha, da mais recente para a mais antiga
+// Na folha de cálculo: menu Veto > Atualizar as folhas.
 // Para atualizar sozinho: Apps Script > Acionadores > Adicionar acionador >
 // função atualizarResumo > Baseado no tempo > De hora a hora.
-// Isto não precisa de nova implementação: só o doPost é que precisa.
+// Nada disto precisa de nova implementação: só o doPost é que precisa.
 // ---------------------------------------------------------------------------
 function onOpen() {
-  SpreadsheetApp.getUi().createMenu('Veto').addItem('Atualizar resumo', 'atualizarResumo').addToUi();
+  SpreadsheetApp.getUi().createMenu('Veto').addItem('Atualizar as folhas', 'atualizarResumo').addToUi();
 }
 
+// Nomes legíveis dos códigos que a app envia
+const NOMES = {
+  eventos: {
+    adesao: 'Aceitou as estatísticas', app_aberta: 'Abriu a app', pagina_vista: 'Abriu uma página', saida: 'Deixou de participar',
+    login_google_interrompido: 'O login do Google não terminou', analise_concluida: 'Concluiu a análise do Gmail', analise_falhou: 'A análise falhou',
+    pedido_preparado: 'Preparou um pedido', pedido_enviado: 'Enviou um pedido', pedido_reenviado: 'Abriu um pedido para enviar outra vez',
+    resposta_registada: 'Registou a resposta de uma empresa', contacto_indicado: 'Escreveu o contacto de uma empresa',
+    subscricao_cancelada: 'Cancelou uma subscrição', guia_aberto: 'Abriu uma pergunta do guia', faq_aberta: 'Abriu uma pergunta frequente',
+    noticia_aberta: 'Abriu uma notícia', plus_visto: 'Viu o cartão Veto+', plus_aberto: 'Abriu o Veto+', plus_quero: 'Escolheu um plano Veto+',
+    plus_agora_nao: 'Disse «agora não» ao Veto+', lote_aberto: 'Abriu «Pedir a várias empresas»', lote_revisto: 'Reviu o envio a várias empresas',
+    lote_enviado: 'Enviou pedidos a várias empresas', lote_interrompido: 'Parou o envio a várias empresas',
+    apagar_aberto: 'Abriu «Apagar os emails» de uma empresa', apagar_no_gmail: 'Preferiu apagar os emails à mão no Gmail',
+    emails_apagados: 'Moveu emails para o Lixo', apagar_interrompido: 'A limpeza de emails não terminou', opiniao: 'Deixou uma opinião'
+  },
+  areas: {
+    saude: 'Saúde', financas: 'Finanças e seguros', encontros: 'Encontros', comida: 'Comida e entregas', viagens: 'Transportes e viagens',
+    lazer: 'Streaming e lazer', social: 'Redes sociais', servicos: 'Casa e telecomunicações', educacao: 'Educação e trabalho',
+    publico: 'Serviços públicos', compras: 'Compras', outros: 'Outros'
+  },
+  direitos: { access: 'Acesso', erasure: 'Apagamento', objection: 'Oposição', portability: 'Portabilidade' },
+  gravidade: { critica: 'crítica', alta: 'alta', media: 'média', baixa: 'baixa' },
+  resultados: {
+    data_received: 'enviou os dados', data_erased: 'apagou os dados', objection_accepted: 'deixou de usar para marketing',
+    no_data: 'diz que não tem dados', company_refused: 'recusou o pedido', partial: 'respondeu, sem resultado', no_reply: 'não respondeu no prazo'
+  },
+  tipos: { likely_account: 'com conta', purchase: 'com compras', newsletter: 'só publicidade', unknown: 'sem tipo claro' },
+  contacto: { veto: 'contacto verificado pela equipa', datenanfragen: 'contacto do Datenanfragen.de', utilizador: 'contacto escrito pela pessoa', exemplo: 'contacto de exemplo' },
+  canal: { email: 'por email', formulario: 'pelo formulário da empresa' },
+  app: { gmail: 'no Gmail', outlook: 'no Outlook', sistema: 'na app de email do dispositivo', veto_lote: 'enviado pelo Veto, a várias empresas' },
+  vistas: { inicio: 'Início', resultados: 'Resultados', pedidos: 'Mapa', noticias: 'Notícias' },
+  vistasEm: { inicio: 'no Início', resultados: 'nos Resultados', pedidos: 'no Mapa', noticias: 'nas Notícias' },
+  ondePlus: { inicio: 'no cartão do Início', topo: 'no botão do topo' },
+  ondeLote: { mapa: 'no topo do mapa', sem_pedidos: 'no mapa, ainda sem pedidos' },
+  ecra: { telemovel: 'Telemóvel ou tablet', computador: 'Computador' },
+  motivoLogin: {
+    janela_fechada: 'fechou a janela do Google', janela_bloqueada: 'o browser bloqueou a janela do Google',
+    acesso_negado: 'o Google recusou a conta (não está nos utilizadores de teste?)', outro: 'outro motivo',
+    sem_motivo: 'motivo não registado (versão anterior da app)'
+  },
+  motivoAnalise: {
+    api_desativada: 'a Gmail API não está ativada', sem_permissao: 'não deu permissão para ler os emails', quota: 'limite do Gmail',
+    rede: 'sem rede', sessao_expirada: 'a sessão do Google expirou', outro: 'outro motivo',
+    sem_motivo: 'motivo não registado (versão anterior da app)'
+  },
+  motivoLote: { autorizacao: 'não deu autorização no Google', conta: 'escolheu outra conta Google' },
+  planos: { mensal: 'Mensal', anual: 'Anual' },
+  guia: {
+    porque: 'Porque importa saber quem tem os teus dados?', consequencias: 'O que pode acontecer se os teus dados fugirem?',
+    venda: 'Uma empresa pode vender ou passar os teus dados?', apagar_cadeia: 'Se pedires para apagar, as outras também apagam?',
+    recusar: 'A empresa pode recusar apagar?', fuga: 'O que tem de fazer uma empresa quando há uma fuga?',
+    tempo: 'Quanto tempo podem guardar os dados?', publicidade: 'Usam os dados para publicidade?',
+    fora_europa: 'Os dados podem sair da Europa?', proteger: 'Como te podes proteger?'
+  },
+  faq: {
+    le: 'O Veto lê os meus emails?', guarda: 'O que fica guardado, e onde?', autorizacoes: 'Que autorizações pede o Veto ao Google?',
+    envia: 'O Veto envia emails por mim?', contactos: 'Como sabe o Veto para onde enviar cada pedido?', prazo: 'A empresa é obrigada a responder?',
+    emails_dados: 'Apagar os emails apaga os meus dados?', subscricao: 'Cancelar a subscrição não chega?', custo: 'Quanto custa?',
+    equipa: 'O que fica a equipa do Veto a saber?'
+  },
+  noticias: {
+    'edp-2026': 'EDP: burla com dados de clientes (2026)', 'ctt-2026': 'CTT: alegado ataque aos cacifos (2026)',
+    'netflix-2024': 'Netflix: multa (2024)', 'linkedin-2024': 'LinkedIn: multa (2024)', 'vinted-2024': 'Vinted: multa (2024)',
+    'grindr-2024': 'Grindr: multa (2024)', 'spotify-2023': 'Spotify: multa (2023)', 'tap-2022': 'TAP: fuga de dados (2022)',
+    'revolut-2022': 'Revolut: fuga de dados (2022)', 'edp-2020': 'EDP: fuga de dados (2020)'
+  }
+};
+const nome = (grupo, chave) => (chave === undefined || chave === null || chave === '' ? '' : (NOMES[grupo][chave] || String(chave)));
+
+// Lê a folha "Eventos", do mais antigo para o mais recente. Pedidos do antigo modo de exemplo não contam.
+function lerEventos(livro) {
+  const folha = livro.getSheetByName('Eventos');
+  const linhas = folha && folha.getLastRow() > 1 ? folha.getRange(2, 1, folha.getLastRow() - 1, 7).getValues() : [];
+  return linhas.map(([recebido, codigo, dispositivo, evento, texto, , versao]) => {
+    let d = {};
+    try { d = JSON.parse(texto || '{}'); } catch (erro) { d = {}; }
+    return { recebido: recebido instanceof Date ? recebido : new Date(recebido), codigo: String(codigo || ''), dispositivo: String(dispositivo || ''), evento: String(evento || ''), d, versao: String(versao || '') };
+  }).filter((ev) => !(ev.d.demo === true && /^(pedido_|resposta_)/.test(ev.evento)))
+    .sort((a, b) => a.recebido - b.recebido);
+}
+
+// "Pessoa 1", "Pessoa 2"… pela ordem em que apareceram pela primeira vez
+function nomesDasPessoas(eventos) {
+  const pessoas = {};
+  eventos.forEach((ev) => {
+    if (ev.dispositivo && !pessoas[ev.dispositivo]) pessoas[ev.dispositivo] = `Pessoa ${Object.keys(pessoas).length + 1}`;
+  });
+  return pessoas;
+}
+
+function duracao(segundos) {
+  const s = Math.round(Number(segundos) || 0);
+  return s >= 60 ? `${Math.floor(s / 60)} min ${s % 60} s` : `${s} s`;
+}
+
+// O que aconteceu, numa frase
+function pormenores(ev) {
+  const d = ev.d;
+  const juntar = (...partes) => partes.filter((p) => p !== '' && p !== undefined && p !== null && p !== false).join(' · ');
+  const quantos = (n, um, varios) => `${Number(n) || 0} ${Number(n) === 1 ? um : varios}`;
+  const pedido = () => juntar(nome('direitos', d.direito), nome('areas', d.area), d.gravidade ? `gravidade ${nome('gravidade', d.gravidade)}` : '');
+  switch (ev.evento) {
+    case 'adesao': return juntar(d.origem ? `veio de «${d.origem}»` : 'link sem origem');
+    case 'app_aberta': return juntar(d.vista ? `abriu ${nome('vistasEm', d.vista)}` : '', d.diasDesdeAdesao ? `${quantos(d.diasDesdeAdesao, 'dia', 'dias')} depois de aderir` : '');
+    case 'pagina_vista': return '';
+    case 'login_google_interrompido': return nome('motivoLogin', d.motivo || 'sem_motivo');
+    case 'analise_falhou': return nome('motivoAnalise', d.motivo || 'sem_motivo');
+    case 'analise_concluida': {
+      const areas = d.porArea ? Object.keys(d.porArea).length : 0;
+      return juntar(
+        `${quantos(d.emails, 'email', 'emails')}, ${quantos(d.empresas, 'empresa', 'empresas')}${areas ? ` em ${quantos(areas, 'área', 'áreas')}` : ''}`,
+        d.porGravidade ? `gravidade: ${['critica', 'alta', 'media', 'baixa'].filter((g) => d.porGravidade[g]).map((g) => `${d.porGravidade[g]} ${nome('gravidade', g)}${d.porGravidade[g] === 1 ? '' : 's'}`).join(', ')}` : '',
+        d.porTipo ? Object.keys(d.porTipo).map((t) => `${d.porTipo[t]} ${nome('tipos', t)}`).join(', ') : '',
+        d.noCatalogo !== undefined ? `${d.noCatalogo} com contacto no catálogo` : '',
+        d.comCancelamento !== undefined ? `${d.comCancelamento} com link de cancelamento` : '',
+        d.comTerceiro !== undefined ? `${d.comTerceiro} com terceiros` : '',
+        d.duracaoS !== undefined ? `demorou ${duracao(d.duracaoS)}` : ''
+      );
+    }
+    case 'pedido_preparado':
+      return juntar(pedido(), nome('canal', d.canal), nome('contacto', d.contacto), d.vista ? nome('vistasEm', d.vista) : '');
+    case 'pedido_enviado':
+      return juntar(pedido(), d.app === 'veto_lote' ? nome('app', 'veto_lote') : (d.canal === 'formulario' ? nome('canal', 'formulario') : nome('app', d.app)),
+        d.minutos !== undefined ? `${d.minutos} min depois de preparar` : '', d.contacto ? nome('contacto', d.contacto) : '');
+    case 'pedido_reenviado': return pedido();
+    case 'resposta_registada': return juntar(pedido(), nome('resultados', d.resultado), d.dias !== undefined ? `${quantos(d.dias, 'dia', 'dias')} depois do envio` : '');
+    case 'contacto_indicado': return juntar(nome('areas', d.area), d.onde === 'lote' ? 'no envio a várias empresas' : '');
+    case 'subscricao_cancelada': return juntar(nome('areas', d.area), d.gravidade ? `gravidade ${nome('gravidade', d.gravidade)}` : '');
+    case 'guia_aberto': return nome('guia', d.pergunta);
+    case 'faq_aberta': return nome('faq', d.pergunta);
+    case 'noticia_aberta': return nome('noticias', d.noticia);
+    case 'plus_visto': return juntar(nome('ondePlus', d.onde), d.analisou === true ? 'depois de analisar' : d.analisou === false ? 'antes de analisar' : '');
+    case 'plus_aberto':
+    case 'plus_agora_nao': return juntar(nome('ondePlus', d.onde), d.depoisDeAceitar ? 'depois de aceitar as estatísticas' : '');
+    case 'plus_quero': return juntar(`plano ${nome('planos', d.plano).toLowerCase()}`, nome('ondePlus', d.onde), d.depoisDeAceitar ? 'depois de aceitar as estatísticas' : '');
+    case 'lote_aberto': return nome('ondeLote', d.onde);
+    case 'lote_revisto': return juntar(nome('direitos', d.direito), quantos(d.pedidos, 'empresa', 'empresas'));
+    case 'lote_enviado': return juntar(nome('direitos', d.direito), quantos(d.pedidos, 'enviado', 'enviados'), d.falhados ? quantos(d.falhados, 'falhou', 'falharam') : '');
+    case 'lote_interrompido': return nome('motivoLote', d.motivo);
+    case 'apagar_aberto':
+    case 'apagar_no_gmail':
+    case 'apagar_interrompido': return nome('areas', d.area);
+    case 'emails_apagados': return juntar(quantos(d.quantos, 'email', 'emails'), nome('areas', d.area), d.metodo === 'um_a_um' ? 'um a um' : 'de uma vez');
+    case 'opiniao': return juntar(d.nota ? `nota ${d.nota} de 5` : '', d.comentario ? `«${String(d.comentario).slice(0, 300)}»` : '');
+    default: {
+      const resto = Object.keys(d).filter((k) => !['origem', 'ecra', 'demo'].includes(k)).map((k) => `${k}: ${JSON.stringify(d[k])}`);
+      return resto.join(' · ');
+    }
+  }
+}
+
+// Aparece no Resumo, para saber que versão deste ficheiro está a correr
+const VERSAO_SCRIPT = 'v3 (barras de texto)';
+const CORES = { cabecalho: '#e3edc9', secao: '#efecf1', explicacao: '#6f6676', barra: '#719b08' };
+// Nenhuma célula destas folhas é uma fórmula: só texto e números, para funcionar em qualquer língua da folha
+
+// O que vem da app pode começar por "=" e o Sheets lia-o como uma fórmula: fica sempre como texto
+function seguro(valor) {
+  return typeof valor === 'string' && /^[=+\-@]/.test(valor) ? `'${valor}` : valor;
+}
+
+// Escreve uma tabela simples: cabeçalho a verde, primeira linha fixa, texto a quebrar
+function escreverTabela(livro, nomeDaFolha, posicao, cabecalho, linhas, larguras) {
+  const folha = livro.getSheetByName(nomeDaFolha) || livro.insertSheet(nomeDaFolha, posicao);
+  folha.clear();
+  const tudo = [cabecalho, ...linhas.map((l) => l.map(seguro))];
+  const area = folha.getRange(1, 1, tudo.length, cabecalho.length);
+  area.setValues(tudo);
+  area.setWrap(true);
+  area.setVerticalAlignment('top');
+  folha.getRange(1, 1, 1, cabecalho.length).setFontWeight('bold').setBackground(CORES.cabecalho);
+  folha.setFrozenRows(1);
+  larguras.forEach((largura, i) => folha.setColumnWidth(i + 1, largura));
+  return folha;
+}
+
+// Folha "Histórico": cada ação numa linha, da mais recente para a mais antiga
+function escreverHistorico(livro, eventos, pessoas, fuso) {
+  const linhas = eventos.slice().reverse().map((ev) => [
+    Utilities.formatDate(ev.recebido, fuso, 'dd/MM/yyyy HH:mm'),
+    pessoas[ev.dispositivo] || 'Sem estatísticas',
+    ev.evento === 'pagina_vista' ? `Abriu a página ${nome('vistas', ev.d.vista)}` : nome('eventos', ev.evento),
+    pormenores(ev),
+    nome('ecra', ev.d.ecra)
+  ]);
+  escreverTabela(livro, 'Histórico', 2, ['Quando', 'Pessoa', 'O que fez', 'Pormenores', 'Dispositivo'], linhas, [125, 85, 270, 560, 140]);
+}
+
+// Os passos do teste, por ordem: "Até onde chegou" é o último que a pessoa fez
+const PASSOS = [
+  ['adesao', 'Aceitou as estatísticas'],
+  ['analise_concluida', 'Analisou o Gmail'],
+  ['pedido_preparado', 'Preparou um pedido'],
+  ['pedido_enviado', 'Enviou um pedido'],
+  ['resposta_registada', 'Registou uma resposta']
+];
+
+// Folha "Pessoas": uma linha por pessoa, pela ordem em que começaram
+function escreverPessoas(livro, eventos, pessoas, fuso) {
+  const fichas = {};
+  eventos.forEach((ev) => {
+    if (!ev.dispositivo) return;
+    const f = fichas[ev.dispositivo] = fichas[ev.dispositivo] || {
+      inicio: ev.recebido, fim: ev.recebido, dias: {}, origem: '', ecra: '', passo: 0, empresas: '', enviados: 0,
+      respostas: 0, plus: '', opiniao: '', problemas: [], saiu: false
+    };
+    f.fim = ev.recebido;
+    f.dias[Utilities.formatDate(ev.recebido, fuso, 'yyyy-MM-dd')] = true;
+    if (ev.d.origem) f.origem = ev.d.origem;
+    if (ev.d.ecra) f.ecra = nome('ecra', ev.d.ecra);
+    const passo = PASSOS.findIndex(([evento]) => evento === ev.evento);
+    f.passo = Math.max(f.passo, passo + 1, 1);
+    if (ev.evento === 'analise_concluida') f.empresas = ev.d.empresas || 0;
+    if (ev.evento === 'pedido_enviado') f.enviados += 1;
+    if (ev.evento === 'resposta_registada') f.respostas += 1;
+    if (ev.evento === 'plus_quero') f.plus = `Quer o plano ${nome('planos', ev.d.plano).toLowerCase()}`;
+    else if (ev.evento === 'plus_agora_nao' && !/^Quer/.test(f.plus)) f.plus = 'Disse «agora não»';
+    else if (ev.evento === 'plus_aberto' && !f.plus) f.plus = 'Abriu, mas não escolheu';
+    else if (ev.evento === 'plus_visto' && !f.plus) f.plus = 'Só viu o cartão';
+    if (ev.evento === 'opiniao') f.opiniao = pormenores(ev);
+    if (ev.evento === 'login_google_interrompido') f.problemas.push(`Login: ${nome('motivoLogin', ev.d.motivo || 'sem_motivo')}`);
+    if (ev.evento === 'analise_falhou') f.problemas.push(`Análise: ${nome('motivoAnalise', ev.d.motivo || 'sem_motivo')}`);
+    if (ev.evento === 'saida') f.saiu = true;
+    if (ev.evento === 'adesao') f.saiu = false;
+  });
+  const quando = (data) => Utilities.formatDate(data, fuso, 'dd/MM/yyyy HH:mm');
+  const linhas = Object.keys(fichas).map((id) => {
+    const f = fichas[id];
+    return [
+      pessoas[id], quando(f.inicio), f.ecra || '—', f.origem || 'link sem origem',
+      `${f.passo} de ${PASSOS.length}: ${PASSOS[f.passo - 1][1]}`,
+      Object.keys(f.dias).length, quando(f.fim), f.empresas === '' ? '—' : f.empresas, f.enviados, f.respostas,
+      f.plus || '—', [...new Set(f.problemas)].join('; ') || '—', f.opiniao || '—', f.saiu ? 'Não, saiu' : 'Sim'
+    ];
+  });
+  const folha = escreverTabela(livro, 'Pessoas', 1,
+    ['Pessoa', 'Começou', 'Dispositivo', 'Veio de', 'Até onde chegou', 'Dias em que usou', 'Última vez', 'Empresas encontradas',
+      'Pedidos enviados', 'Respostas registadas', 'Veto+', 'Problemas', 'Opinião', 'Ainda participa?'],
+    linhas, [85, 125, 140, 110, 210, 85, 125, 100, 85, 95, 160, 230, 260, 95]);
+  // Quanto mais longe chegou, mais verde
+  const tons = ['#f6f8f0', '#ebf2da', '#dfeac3', '#d2e2ab', '#c4d993'];
+  Object.keys(fichas).forEach((id, i) => folha.getRange(i + 2, 5).setBackground(tons[fichas[id].passo - 1]));
+}
+
+// Atualiza as três folhas. O nome ficou "atualizarResumo" para os acionadores que já existem continuarem a funcionar.
 function atualizarResumo() {
   const livro = SpreadsheetApp.getActiveSpreadsheet();
   const fuso = Session.getScriptTimeZone();
-  const folhaEventos = livro.getSheetByName('Eventos');
-  const linhas = folhaEventos && folhaEventos.getLastRow() > 1
-    ? folhaEventos.getRange(2, 1, folhaEventos.getLastRow() - 1, 7).getValues()
-    : [];
+  const eventos = lerEventos(livro);
+  const pessoas = nomesDasPessoas(eventos);
+  escreverResumo(livro, eventos, fuso);
+  escreverPessoas(livro, eventos, pessoas, fuso);
+  escreverHistorico(livro, eventos, pessoas, fuso);
+  // A folha "Registo" de uma versão anterior passou a chamar-se "Histórico"
+  const antiga = livro.getSheetByName('Registo');
+  if (antiga) livro.deleteSheet(antiga);
+  const bruto = livro.getSheetByName('Eventos');
+  if (bruto) bruto.getRange(1, 1).setNote('Dados em bruto, tal como a app os envia. Não mexer: o Resumo, as Pessoas e o Histórico são feitos a partir daqui.');
+}
 
-  const quem = {};          // evento -> pessoas (dispositivos) diferentes
-  const dias = {};          // dispositivo -> dias com atividade
-  const ultimaAnalise = {}; // dispositivo -> última análise
-  const somar = (mapa, chave) => { mapa[chave] = (mapa[chave] || 0) + 1; };
-  const porDireito = {};
+// Folha "Resumo": as perguntas do teste, cada uma com os números e o que querem dizer
+function escreverResumo(livro, eventos, fuso) {
+  const pessoasCom = {};    // evento -> pessoas diferentes
+  const dias = {};          // pessoa -> dias com atividade
+  const ultimaAnalise = {}; // pessoa -> última análise
+  const ultimoEcra = {};    // pessoa -> telemóvel ou computador
+  const juntarA = (mapa, chave, id) => { (mapa[chave] = mapa[chave] || new Set()).add(id); };
+  const pedidosPorDireito = {};
   const respostas = {};
-  const planos = {};
-  const origens = {};
+  const planos = {};        // plano -> pessoas
+  const origens = {};       // origem -> pessoas
+  const perguntas = {};     // pergunta frequente -> pessoas
+  const paginas = {};       // página -> pessoas
+  const motivosLogin = {};  // motivo -> pessoas
+  const motivosAnalise = {};
+  const minutosAteEnviar = [];
+  const diasAteResposta = [];
   const notas = [];
   const comentarios = [];
+  let opinioes = 0;
+  const totais = { loteEnviados: 0, loteFalhados: 0, emailsLixo: 0 };
+  const somar = (mapa, chave) => { mapa[chave] = (mapa[chave] || 0) + 1; };
 
-  linhas.forEach(([recebido, , dispositivo, evento, texto]) => {
-    let d = {};
-    try { d = JSON.parse(texto || '{}'); } catch (erro) { d = {}; }
-    // Pedidos e respostas feitos no modo de exemplo não contam
-    if (d.demo === true && /^(pedido_|resposta_)/.test(evento)) return;
-    const id = String(dispositivo || '');
+  eventos.forEach(({ recebido, dispositivo: id, evento, d }) => {
     if (id) {
-      (quem[evento] = quem[evento] || new Set()).add(id);
-      if (recebido instanceof Date) (dias[id] = dias[id] || new Set()).add(Utilities.formatDate(recebido, fuso, 'yyyy-MM-dd'));
+      juntarA(pessoasCom, evento, id);
+      juntarA(dias, id, Utilities.formatDate(recebido, fuso, 'yyyy-MM-dd'));
+      if (d.ecra) ultimoEcra[id] = d.ecra;
+      if (['pagina_vista', 'app_aberta', 'adesao'].includes(evento) && d.vista) juntarA(paginas, d.vista, id);
+      if (evento === 'adesao') juntarA(origens, d.origem || 'link sem origem', id);
+      if (evento === 'plus_quero') juntarA(planos, d.plano || '?', id);
+      if (evento === 'faq_aberta') juntarA(perguntas, d.pergunta || '?', id);
+      if (evento === 'login_google_interrompido') juntarA(motivosLogin, d.motivo || 'sem_motivo', id);
+      if (evento === 'analise_falhou') juntarA(motivosAnalise, d.motivo || 'sem_motivo', id);
+      if (evento === 'analise_concluida') ultimaAnalise[id] = d;
     }
-    if (evento === 'analise_concluida' && id) ultimaAnalise[id] = d;
-    if (evento === 'pedido_enviado') somar(porDireito, d.direito || '?');
-    if (evento === 'resposta_registada') somar(respostas, d.resultado || '?');
-    if (evento === 'plus_quero') somar(planos, d.plano || '?');
-    if (evento === 'adesao') somar(origens, d.origem || 'sem origem no link');
+    if (evento === 'pedido_enviado') {
+      somar(pedidosPorDireito, d.direito || '?');
+      if (d.minutos !== undefined) minutosAteEnviar.push(Number(d.minutos));
+    }
+    if (evento === 'resposta_registada') {
+      somar(respostas, d.resultado || '?');
+      if (d.dias !== undefined) diasAteResposta.push(Number(d.dias));
+    }
+    if (evento === 'lote_enviado') {
+      totais.loteEnviados += Number(d.pedidos) || 0;
+      totais.loteFalhados += Number(d.falhados) || 0;
+    }
+    if (evento === 'emails_apagados') totais.emailsLixo += Number(d.quantos) || 0;
     if (evento === 'opiniao') {
+      opinioes += 1;
       if (Number(d.nota)) notas.push(Number(d.nota));
-      if (d.comentario) comentarios.push([recebido instanceof Date ? Utilities.formatDate(recebido, fuso, 'dd/MM HH:mm') : '', String(d.comentario).slice(0, 400)]);
+      if (d.comentario) comentarios.push([String(d.comentario).slice(0, 400), Utilities.formatDate(recebido, fuso, 'dd/MM/yyyy')]);
     }
   });
 
-  const n = (evento) => (quem[evento] ? quem[evento].size : 0);
-  const pct = (parte, base) => (base ? Math.round((parte / base) * 100) + '%' : '');
+  const n = (evento) => (pessoasCom[evento] ? pessoasCom[evento].size : 0);
+  const tamanho = (conjunto) => (conjunto ? conjunto.size : 0);
+  const pct = (parte, base) => (base ? `${Math.round((parte / base) * 100)}%` : '');
   const media = (lista) => (lista.length ? Math.round((lista.reduce((a, b) => a + b, 0) / lista.length) * 10) / 10 : '');
-  const testers = Object.keys(dias).length;
+  const mediana = (lista) => {
+    if (!lista.length) return '';
+    const o = lista.slice().sort((a, b) => a - b);
+    const m = Math.floor(o.length / 2);
+    return o.length % 2 ? o[m] : Math.round(((o[m - 1] + o[m]) / 2) * 10) / 10;
+  };
+  const total = Object.keys(dias).length;
   const voltaram = Object.keys(dias).filter((id) => dias[id].size >= 2).length;
   const analises = Object.values(ultimaAnalise);
   const daAnalise = (ler) => media(analises.map((a) => Number(ler(a)) || 0));
-  const NOMES = {
-    access: 'Acesso', erasure: 'Apagamento', objection: 'Oposição', portability: 'Portabilidade',
-    data_received: 'Enviou os dados', data_erased: 'Apagou os dados', objection_accepted: 'Deixou de usar para marketing',
-    no_data: 'Diz que não tem dados', company_refused: 'Recusou o pedido', partial: 'Respondeu, sem resultado', no_reply: 'Sem resposta no prazo',
-    mensal: 'Mensal', anual: 'Anual'
-  };
-  const lista = (mapa, prefixo) => Object.keys(mapa).sort((a, b) => mapa[b] - mapa[a]).map((chave) => [`${prefixo}${NOMES[chave] || chave}`, mapa[chave], '']);
-
+  const duracoes = analises.filter((a) => a.duracaoS !== undefined).map((a) => Number(a.duracaoS));
+  const ecras = { telemovel: 0, computador: 0 };
+  Object.values(ultimoEcra).forEach((e) => { ecras[e] = (ecras[e] || 0) + 1; });
+  const totalPedidos = Object.values(pedidosPorDireito).reduce((a, b) => a + b, 0);
+  const totalRespostas = Object.values(respostas).reduce((a, b) => a + b, 0);
   const folhaTesters = livro.getSheetByName('Testers');
   const pedidosAcesso = folhaTesters && folhaTesters.getLastRow() > 1 ? folhaTesters.getRange(2, 5, folhaTesters.getLastRow() - 1, 1).getValues().flat() : [];
 
-  const titulos = [];
-  const linhasResumo = [];
-  const titulo = (texto, b = '', c = '') => { titulos.push(linhasResumo.length + 1); linhasResumo.push([texto, b, c]); };
-  const linha = (a, b = '', c = '') => linhasResumo.push([a, b, c]);
+  // Cada linha tem 5 colunas: o quê, o número, a percentagem, uma barra e o que quer dizer
+  const linhas = [];
+  const secoes = [];
+  const explicacoes = [];
+  const vazia = () => linhas.push(['', '', '', '', '']);
+  const secao = (pergunta, numero = 'Pessoas', percentagem = '% do total') => {
+    if (linhas.length) vazia();
+    secoes.push(linhas.length + 1);
+    linhas.push([pergunta, numero, percentagem, '', 'O que quer dizer']);
+  };
+  const linha = (rotulo, valor, base, explicacao = '', barra = false) => {
+    const r = linhas.length + 1;
+    const numero = typeof valor === 'number' && base !== undefined && base !== null;
+    linhas.push([
+      rotulo, valor === null ? '' : (valor === '' || valor === undefined ? '—' : valor), numero ? pct(valor, base) : '',
+      numero && barra && base ? barraDeTexto(valor, base) : '',
+      explicacao
+    ]);
+    if (explicacao) explicacoes.push(r);
+  };
+  // A barra é texto (█ cheio, ░ vazio): as fórmulas mudam de sintaxe com a língua da folha e davam #ERROR!
+  const barraDeTexto = (valor, base) => {
+    const cheios = Math.round((Math.min(valor, base) / base) * 12);
+    return '█'.repeat(cheios) + '░'.repeat(12 - cheios);
+  };
+  const porOrdem = (mapa) => Object.keys(mapa).sort((a, b) => tamanho(mapa[b]) - tamanho(mapa[a]));
 
-  titulo('Resumo do teste do Veto');
-  linha('Atualizado em', Utilities.formatDate(new Date(), fuso, 'dd/MM/yyyy HH:mm'));
-  linha('Só conta quem aceitou as estatísticas. Cada pessoa é um browser ou telemóvel.');
-  linha('');
-  titulo('Funil', 'Pessoas', '% dos testers');
-  linha('Aceitaram as estatísticas', testers, testers ? '100%' : '');
-  linha('O login do Google falhou ou foi cancelado', n('login_google_interrompido'), pct(n('login_google_interrompido'), testers));
-  linha('Concluíram a análise do Gmail', n('analise_concluida'), pct(n('analise_concluida'), testers));
-  linha('Prepararam um pedido', n('pedido_preparado'), pct(n('pedido_preparado'), testers));
-  linha('Confirmaram que enviaram um pedido', n('pedido_enviado'), pct(n('pedido_enviado'), testers));
-  linha('Registaram a resposta de uma empresa', n('resposta_registada'), pct(n('resposta_registada'), testers));
-  linha('Voltaram noutro dia', voltaram, pct(voltaram, testers));
-  linha('Abriram o guia ou uma notícia', new Set([...(quem.guia_aberto || []), ...(quem.noticia_aberta || [])]).size, '');
-  linha('');
-  titulo('Veto+', 'Pessoas', '% dos que viram');
-  linha('Viram o cartão', n('plus_visto'), '');
-  linha('Abriram o plano', n('plus_aberto'), pct(n('plus_aberto'), n('plus_visto')));
-  linha('Disseram que queriam', n('plus_quero'), pct(n('plus_quero'), n('plus_visto')));
-  lista(planos, '   escolhas: ').forEach((l) => linha(...l));
-  linha('Disseram "agora não"', n('plus_agora_nao'), pct(n('plus_agora_nao'), n('plus_visto')));
-  linha('');
-  titulo('Análises (última de cada pessoa)', 'Média', '');
-  linha('Emails analisados', daAnalise((a) => a.emails));
-  linha('Empresas encontradas', daAnalise((a) => a.empresas));
-  linha('   de gravidade crítica', daAnalise((a) => a.porGravidade && a.porGravidade.critica));
-  linha('   de gravidade alta', daAnalise((a) => a.porGravidade && a.porGravidade.alta));
-  linha('   de gravidade média', daAnalise((a) => a.porGravidade && a.porGravidade.media));
-  linha('   de gravidade baixa', daAnalise((a) => a.porGravidade && a.porGravidade.baixa));
-  linha('   sem área conhecida ("Outros")', daAnalise((a) => a.porArea && a.porArea.outros));
-  linha('   com link para cancelar a subscrição', daAnalise((a) => a.comCancelamento));
-  linha('');
-  titulo('Pedidos enviados, por direito', 'Pedidos', '');
-  lista(porDireito, '').forEach((l) => linha(...l));
-  linha('');
-  titulo('Respostas registadas', 'Respostas', '');
-  lista(respostas, '').forEach((l) => linha(...l));
-  linha('');
-  titulo('De onde vieram (?origem= no link)', 'Pessoas', '');
-  lista(origens, '').forEach((l) => linha(...l));
-  linha('');
-  titulo('Opiniões', '', '');
-  linha('Número de opiniões', notas.length);
-  linha('Nota média (1 a 5)', media(notas));
-  linha('');
-  titulo('Pedidos de acesso ao teste', '', '');
-  linha('Recebidos', pedidosAcesso.length);
-  linha('Ainda por acrescentar na Google Cloud', pedidosAcesso.filter((v) => String(v).toLowerCase() !== 'sim').length);
-  linha('');
-  titulo('Últimos comentários', 'Quando', '');
-  comentarios.slice(-15).reverse().forEach(([quando, texto]) => linha(texto, quando));
+  linhas.push(['Resumo do teste do Veto', '', '', '', '']);
+  linhas.push([`Atualizado a ${Utilities.formatDate(new Date(), fuso, 'dd/MM/yyyy HH:mm')} · script ${VERSAO_SCRIPT}`, '', '', '', '']);
+  linhas.push(['Cada pessoa é um telemóvel ou computador onde alguém aceitou as estatísticas anónimas. Quem recusou não aparece.', '', '', '', '']);
+  linhas.push(['Outras folhas: «Pessoas» mostra o que cada pessoa fez; «Histórico», tudo o que aconteceu, por ordem; «Eventos» são os dados em bruto (não mexer).', '', '', '', '']);
 
-  const resumo = livro.getSheetByName('Resumo') || livro.insertSheet('Resumo', 0);
-  resumo.clear();
-  resumo.getRange(1, 1, linhasResumo.length, 3).setValues(linhasResumo);
-  titulos.forEach((l) => resumo.getRange(l, 1, 1, 3).setFontWeight('bold'));
-  resumo.getRange(1, 1).setFontSize(14);
-  resumo.setColumnWidth(1, 380);
-  resumo.setColumnWidths(2, 2, 130);
-  resumo.getRange(1, 1, linhasResumo.length, 1).setWrap(true);
+  secao('Quantas pessoas experimentaram o Veto?');
+  linha('Pessoas no teste', total, total, 'Aceitaram as estatísticas anónimas.');
+  linha('Usaram no telemóvel ou tablet', ecras.telemovel, total, 'O último dispositivo onde usaram o Veto.', true);
+  linha('Usaram no computador', ecras.computador, total, '', true);
+  linha('Voltaram noutro dia', voltaram, total, 'Usaram o Veto em pelo menos dois dias diferentes.', true);
+  linha('Deixaram de participar', n('saida'), total, 'Desligaram as estatísticas no Início.');
+
+  secao('Até onde chegam? (os passos do teste)');
+  linha('1. Aceitaram as estatísticas', total, total, 'O ponto de partida.', true);
+  linha('2. Analisaram o Gmail', n('analise_concluida'), total, 'Ligaram a conta Google e a análise terminou.', true);
+  linha('3. Prepararam um pedido', n('pedido_preparado'), total, 'Escolheram uma empresa e um direito.', true);
+  linha('4. Enviaram um pedido', n('pedido_enviado'), total, 'Disseram que o enviaram, ou o Veto enviou por elas.', true);
+  linha('5. Registaram uma resposta', n('resposta_registada'), total, 'Uma empresa respondeu e a pessoa registou o resultado.', true);
+
+  secao('Onde é que as pessoas encravam?');
+  linha('O login do Google não terminou', n('login_google_interrompido'), total, 'A janela do Google fechou ou recusou a conta.');
+  porOrdem(motivosLogin).forEach((m) => linha(`   motivo: ${nome('motivoLogin', m)}`, tamanho(motivosLogin[m]), total));
+  linha('A análise falhou', n('analise_falhou'), total, 'O Gmail deu um erro a meio da análise.');
+  porOrdem(motivosAnalise).forEach((m) => linha(`   motivo: ${nome('motivoAnalise', m)}`, tamanho(motivosAnalise[m]), total));
+  linha('Tiveram de escrever o contacto de uma empresa', n('contacto_indicado'), total, 'A empresa não estava no catálogo e a pessoa procurou o email.');
+
+  secao('O Veto+ interessa?', 'Pessoas', '% de quem viu');
+  const viram = n('plus_visto');
+  linha('Viram o cartão Veto+', viram, viram, 'O cartão aparece no Início.');
+  linha('Abriram o Veto+', n('plus_aberto'), viram, 'Carregaram no cartão ou no botão do topo.', true);
+  linha('Querem o plano mensal', tamanho(planos.mensal), viram, 'Escolheram o mensal. Não pagaram nada: o plano ainda não existe.', true);
+  linha('Querem o plano anual', tamanho(planos.anual), viram, 'Escolheram o anual.', true);
+  linha('Disseram «agora não»', n('plus_agora_nao'), viram, '', true);
+
+  secao('Usaram as funções Veto+ (abertas durante o teste)?');
+  linha('Abriram «Pedir a várias empresas»', n('lote_aberto'), total, 'O mesmo pedido a várias empresas, enviado pelo Gmail.');
+  linha('Enviaram pedidos a várias empresas', n('lote_enviado'), total, `${totais.loteEnviados} pedidos enviados assim, ${totais.loteFalhados} falharam.`);
+  linha('Pararam na autorização do Google', n('lote_interrompido'), total, 'Não deram autorização ou escolheram outra conta.');
+  linha('Abriram «Apagar os emails»', n('apagar_aberto'), total, 'Mover para o Lixo os emails de uma empresa.');
+  linha('Moveram emails para o Lixo', n('emails_apagados'), total, `${totais.emailsLixo} emails no total.`);
+  linha('Preferiram apagar à mão no Gmail', n('apagar_no_gmail'), total, '');
+
+  secao('O que encontra a análise? (média por pessoa)', 'Média', '');
+  linha('Emails analisados', daAnalise((a) => a.emails), null, 'Os mais recentes, até 500.');
+  linha('Empresas encontradas', daAnalise((a) => a.empresas), null, 'Empresas diferentes que enviaram esses emails.');
+  linha('   de gravidade crítica', daAnalise((a) => a.porGravidade && a.porGravidade.critica), null, 'Saúde, finanças e encontros.');
+  linha('   de gravidade alta', daAnalise((a) => a.porGravidade && a.porGravidade.alta), null);
+  linha('   de gravidade média', daAnalise((a) => a.porGravidade && a.porGravidade.media), null);
+  linha('   de gravidade baixa', daAnalise((a) => a.porGravidade && a.porGravidade.baixa), null);
+  linha('   sem área conhecida («Outros»)', daAnalise((a) => a.porArea && a.porArea.outros), null, 'O nome e o domínio não chegaram para saber a área.');
+  linha('   sem tipo claro («Por confirmar»)', daAnalise((a) => a.semTipo), null, 'Nenhuma regra explicou os emails. É aqui que a IA vai ajudar.');
+  linha('   com contacto no catálogo', daAnalise((a) => a.noCatalogo), null, 'Podem receber um pedido sem a pessoa procurar o contacto.');
+  linha('   com link para cancelar a subscrição', daAnalise((a) => a.comCancelamento), null, 'Enviam marketing.');
+  linha('   com terceiros', daAnalise((a) => a.comTerceiro), null, 'Usam outra empresa para enviar os emails (por exemplo, o Mailchimp).');
+  linha('Quanto tempo demora a análise', duracoes.length ? duracao(media(duracoes)) : '', null, 'Do fim do login até aos resultados.');
+
+  secao('O que pedem às empresas?', 'Pedidos', '% dos pedidos');
+  Object.keys(pedidosPorDireito).sort((a, b) => pedidosPorDireito[b] - pedidosPorDireito[a])
+    .forEach((direito) => linha(nome('direitos', direito), pedidosPorDireito[direito], totalPedidos, '', true));
+  if (!totalPedidos) linha('Ainda nenhum pedido enviado', null, null);
+  linha('Minutos entre preparar e enviar', mediana(minutosAteEnviar), null, 'A meio das pessoas (mediana). Mostra se enviar é fácil.');
+
+  secao('As empresas respondem?', 'Respostas', '% das respostas');
+  Object.keys(respostas).sort((a, b) => respostas[b] - respostas[a])
+    .forEach((r) => { const t = nome('resultados', r); linha(t.charAt(0).toUpperCase() + t.slice(1), respostas[r], totalRespostas, '', true); });
+  if (!totalRespostas) linha('Ainda nenhuma resposta registada', null, null);
+  linha('Dias até a empresa responder', mediana(diasAteResposta), null, 'A meio das respostas (mediana). O RGPD dá um mês.');
+
+  secao('O que leem?');
+  ['inicio', 'resultados', 'pedidos', 'noticias'].forEach((v) => linha(`Abriram a página ${nome('vistas', v)}`, tamanho(paginas[v]), total, '', true));
+  linha('Abriram uma pergunta do guia', n('guia_aberto'), total, 'O guia sobre os direitos, nas Notícias.');
+  linha('Abriram uma notícia', n('noticia_aberta'), total, 'Os casos reais de fugas, multas e burlas.');
+  linha('Abriram uma pergunta frequente', n('faq_aberta'), total, 'As perguntas sobre o Veto, no fim das Notícias.');
+  porOrdem(perguntas).forEach((p) => linha(`   «${nome('faq', p)}»`, tamanho(perguntas[p]), total));
+
+  secao('De onde vieram?', 'Pessoas', '% do total');
+  porOrdem(origens).forEach((o, i) => linha(o, tamanho(origens[o]), total, i === 0 ? 'Vem do ?origem= no fim do link que partilharam.' : '', true));
+
+  secao('O que dizem?', 'Valor', '');
+  linha('Opiniões recebidas', opinioes, null, 'Inclui quem não aceitou as estatísticas.');
+  linha('Nota média', notas.length ? `${media(notas)} de 5` : '', null, 'De 1 (nada útil) a 5 (muito útil).');
+  if (comentarios.length) linha('Últimos comentários (com a data)', null, null);
+  comentarios.slice(-15).reverse().forEach(([texto, quando]) => linha(`   «${texto}»`, quando, null));
+
+  secao('Pedidos de acesso ao teste', 'Pedidos', '');
+  linha('Recebidos', pedidosAcesso.length, null, 'Gmails de quem pediu para entrar, na folha «Testers».');
+  linha('Ainda por acrescentar na Google Cloud', pedidosAcesso.filter((v) => String(v).toLowerCase() !== 'sim').length, null,
+    'Depois de acrescentar, muda a última coluna da folha «Testers» para «sim».');
+
+  const folha = livro.getSheetByName('Resumo') || livro.insertSheet('Resumo', 0);
+  folha.clear();
+  const area = folha.getRange(1, 1, linhas.length, 5);
+  area.setValues(linhas.map((l) => l.map(seguro)));
+  area.setWrap(true);
+  area.setVerticalAlignment('top');
+  folha.getRange(1, 1).setFontSize(16).setFontWeight('bold');
+  folha.getRange(2, 1, 3, 1).setFontColor(CORES.explicacao);
+  secoes.forEach((r) => folha.getRange(r, 1, 1, 5).setFontWeight('bold').setBackground(CORES.secao));
+  explicacoes.forEach((r) => folha.getRange(r, 5).setFontColor(CORES.explicacao));
+  folha.getRange(1, 4, linhas.length, 1).setFontColor(CORES.barra);
+  folha.getRange(1, 2, linhas.length, 2).setHorizontalAlignment('right');
+  [340, 90, 110, 150, 420].forEach((largura, i) => folha.setColumnWidth(i + 1, largura));
 }

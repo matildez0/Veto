@@ -48,14 +48,15 @@
     </header>
 
     <h1>Política de privacidade</h1>
-    <p class="data">Última atualização: 19 de outubro de 2026</p>
+    <p class="data">Última atualização: 20 de outubro de 2026</p>
 
     <div class="resumo">
       <p>Em resumo</p>
       <ul>
         <li>Os emails descarregados pela app são analisados no teu dispositivo. O Veto não recebe nem guarda os teus emails nem o mapa de exposição nos seus servidores.</li>
         <li>Do Gmail só lemos o remetente, o assunto, a data e o link de cancelamento. Nunca o texto nem os anexos.</li>
-        <li>O acesso ao Gmail é cancelado assim que a análise termina.</li>
+        <li>Cada acesso ao Gmail é pedido no momento em que é preciso e cancelado assim que essa ação termina.</li>
+        <li>O Veto só envia pedidos ou move emails para o Lixo quando lho pedes, depois de te mostrar o que vai fazer.</li>
         <li>Só recebemos estatísticas anónimas se as aceitares, e a opinião que decidires enviar.</li>
       </ul>
     </div>
@@ -64,34 +65,41 @@
     <p>O Veto é um protótipo desenvolvido por uma equipa de estudantes do Mestrado em Engenharia Informática da Universidade do Minho, no âmbito de um projeto académico. Para qualquer questão sobre privacidade, escreve-nos para <strong><a href="mailto:vetoadmin@gmail.com">vetoadmin@gmail.com</a></strong>.</p>
 
     <h2>2. O que fazemos com a tua conta Gmail</h2>
-    <p>Quando carregas em «Ligar Gmail e começar», o Google pede-te autorização de leitura do Gmail. Com essa autorização, o Veto:</p>
+    <p>O Veto pede ao Google uma autorização diferente para cada ação, só no momento em que a usas, e cancela-a assim que a ação termina.</p>
+    <p><strong>Análise (autorização de leitura).</strong> Quando carregas em «Ligar Gmail e começar», o Veto:</p>
     <ul>
       <li>lê o <strong>remetente, o assunto, a data e o link de cancelamento</strong> (cabeçalho <code>List-Unsubscribe</code>) dos teus últimos 500 emails, sem spam, lixo, enviados e rascunhos;</li>
       <li>conta quantos emails recebeste de cada empresa encontrada e quantos lhe enviaste, através de pesquisas que devolvem apenas números;</li>
-      <li>lê o endereço da tua conta, para abrir os pedidos na conta certa quando os envias.</li>
+      <li>lê o endereço da tua conta, para os pedidos saírem da conta certa.</li>
     </ul>
-    <p>O Veto <strong>nunca lê o texto nem os anexos</strong> dos teus emails e <strong>não envia emails</strong> por ti. Se escolheres «Apagar emails desta empresa no Gmail», o Veto abre uma pesquisa filtrada e tu selecionas e moves manualmente as mensagens para o <strong>Lixo</strong>. O Veto não tem permissão para alterar ou apagar a tua caixa de correio.</p>
-    <p>A análise acontece no teu browser. Os dados do Gmail não são enviados para servidores do Veto nem para terceiros. O acesso dado pelo Google é usado apenas durante a análise e é cancelado assim que esta termina. Também podes rever ou retirar o acesso a qualquer momento em <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">myaccount.google.com/permissions</a>.</p>
+    <p>O Veto <strong>não lê o texto nem os anexos</strong> dos teus emails.</p>
+    <p><strong>Pedir a várias empresas (autorização para enviar emails).</strong> Se escolheres enviar o mesmo pedido a várias empresas, o Veto mostra-te primeiro, na app, tudo o que vai sair: a conta, os destinatários, o assunto e o texto. Só depois de aceitares é que o Google te pede autorização para enviar emails em teu nome e o Veto envia esses pedidos, um a cada empresa, pelo teu Gmail. O Veto lê também o endereço da conta escolhida, para confirmar que é a que analisaste. As cópias ficam na tua pasta Enviados.</p>
+    <p><strong>Apagar os emails de uma empresa (autorização para gerir emails).</strong> Se escolheres apagar os emails de uma empresa, o Veto procura as mensagens que recebeste dessa empresa e move-as para o <strong>Lixo</strong> do Gmail, onde ficam 30 dias e podem ser recuperadas. Não apaga nada de forma definitiva e não toca nos emails que enviaste. O Google descreve esta autorização como «ler, escrever e enviar emails», porque não existe uma autorização mais pequena para mover mensagens; o Veto usa-a apenas para a pesquisa e para mover essas mensagens. Também podes fazê-lo à mão: o Veto abre a pesquisa no Gmail.</p>
+    <p>Tudo isto acontece no teu browser. Os dados do Gmail não são enviados para servidores do Veto nem para terceiros. Podes rever ou retirar as autorizações a qualquer momento em <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">myaccount.google.com/permissions</a>.</p>
 
     <h2>3. O que fica guardado no teu dispositivo</h2>
     <p>Para não teres de repetir a análise, o Veto guarda no teu browser (armazenamento local):</p>
     <ul>
       <li>a lista de empresas encontradas: nome, domínio, área, número de emails, datas e o serviço que envia os emails por elas (por exemplo, Mailchimp);</li>
       <li>os pedidos que preparas e o estado de cada um;</li>
+      <li>quando moveste emails de uma empresa para o Lixo, e quantos;</li>
       <li>o endereço da conta analisada.</li>
     </ul>
     <p>Os assuntos dos emails não são guardados. Nada disto é enviado para o Veto. Podes apagar tudo em <strong>Mapa › Apagar tudo deste dispositivo</strong>, ou limpando os dados do site no teu browser.</p>
 
     <h2>4. Pedidos às empresas</h2>
-    <p>Os pedidos ao abrigo do RGPD são preparados no Veto e enviados por ti, a partir da tua própria aplicação de email (Gmail, Outlook ou outra). O Veto não envia emails nem guarda cópias das mensagens. Os contactos de privacidade das empresas ainda não estão todos verificados: confirma o endereço antes de enviar.</p>
+    <p>Os pedidos ao abrigo do RGPD são preparados no Veto. Um pedido a uma empresa é enviado por ti, a partir da tua aplicação de email (Gmail, Outlook ou outra). Um pedido a várias empresas é enviado pelo Veto, através do teu Gmail, depois de aceitares o que vai sair (ver a secção 2). Em ambos os casos, o Veto não guarda cópias das mensagens fora do teu dispositivo.</p>
+    <p>Os contactos de privacidade vêm do catálogo do Veto: endereços e formulários publicados pelas próprias empresas, verificados pela equipa ou registados na base de dados aberta <a href="https://www.datenanfragen.de" target="_blank" rel="noopener noreferrer">Datenanfragen.de</a> (licença CC0). A app mostra a fonte e a data de cada contacto. Se uma empresa não estiver no catálogo, pedimos-te que confirmes o email na política de privacidade dela; nunca adivinhamos endereços.</p>
 
     <h2>5. Estatísticas anónimas (só se aceitares)</h2>
     <p>Para sabermos se o Veto é útil, podes aceitar que contemos de forma anónima o que fazes na app. Se aceitares, enviamos:</p>
     <ul>
-      <li>um identificador aleatório deste dispositivo, que não te identifica, e o canal por onde chegaste (por exemplo, LinkedIn);</li>
-      <li>quando abres a app e quando fazes uma análise: quantos emails e quantas empresas, por área e por gravidade;</li>
-      <li>quando preparas, envias ou registas a resposta a um pedido: o tipo de pedido e a área da empresa;</li>
-      <li>quando cancelas uma subscrição, abres uma notícia ou uma pergunta do guia, ou mostras interesse no Veto+.</li>
+      <li>um identificador aleatório deste dispositivo, que não te identifica, o canal por onde chegaste (por exemplo, LinkedIn) e se usas um ecrã tátil (telemóvel ou tablet) ou um computador;</li>
+      <li>quando abres a app ou uma das suas páginas;</li>
+      <li>quando fazes uma análise: quantos emails e quantas empresas, por área, por gravidade e por tipo, e quanto tempo demorou; se falhar, o tipo de falha (por exemplo, sem rede);</li>
+      <li>quando preparas, envias ou registas a resposta a um pedido: o tipo de pedido, a área e a gravidade da empresa, se foi por email ou formulário, de onde veio o contacto (catálogo ou escrito por ti), quantos minutos levaste a enviá-lo e quantos dias a empresa demorou a responder; num envio a várias empresas, também quantos pedidos saíram;</li>
+      <li>quando apagas os emails de uma empresa: a área da empresa e quantos emails foram para o Lixo;</li>
+      <li>quando cancelas uma subscrição, abres uma notícia, uma pergunta do guia ou das perguntas frequentes, ou mostras interesse no Veto+.</li>
     </ul>
     <p><strong>Nunca</strong> enviamos o teu endereço de email, os nomes das empresas, os assuntos ou o conteúdo dos emails.</p>
     <p>Se usares a caixa «O Veto foi útil para ti?», enviamos a nota e o comentário que escreveres, mesmo sem teres aceitado as estatísticas, porque és tu que decides enviá-los. Não escrevas dados pessoais no comentário.</p>

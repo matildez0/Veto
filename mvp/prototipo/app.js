@@ -7,41 +7,41 @@
    A ordem conta: as regras mais específicas vêm primeiro.
    ========================================================================== */
 const SECTORS = {
-  saude: { label: 'Saúde', short: 'Saúde', sensitive: true,
-    gravidade: 'critica', porque: 'Dados de saúde são uma categoria especial no RGPD (artigo 9.º). Uma fuga pode expor doenças, consultas ou medicação.',
+  saude: { get label() { return tt('Saúde'); }, get short() { return tt('Saúde'); }, sensitive: true,
+    gravidade: 'critica', get porque() { return tt('Dados de saúde são uma categoria especial no RGPD (artigo 9.º). Uma fuga pode expor doenças, consultas ou medicação.'); },
     re: /sa[uú]de|clinic|cl[ií]nica|hospital|farm[aá]c|pharm|medic|m[eé]dic|dent(al|ist|[aá]ri)|\bcuf\b|lusiadas|luz ?saude|fisio|[oó]ptica|optic|psic|terapia|an[aá]lises|laborat|unilabs|multicare|medis|wells/i },
-  financas: { label: 'Finanças e seguros', short: 'Finanças', sensitive: true,
-    gravidade: 'critica', porque: 'Dados bancários e de pagamento abrem a porta a fraude e roubo de identidade.',
+  financas: { get label() { return tt('Finanças e seguros'); }, get short() { return tt('Finanças'); }, sensitive: true,
+    gravidade: 'critica', get porque() { return tt('Dados bancários e de pagamento abrem a porta a fraude e roubo de identidade.'); },
     re: /bank|banco|\bcaixa|\bcgd\b|millennium|\bbcp\b|\bbpi\b|santander|novo ?banco|montepio|activobank|revolut|\bn26\b|\bwise\b|paypal|mbway|cetelem|cofidis|unicre|cr[eé]dito|seguro|insurance|fidelidade|ageas|tranquilidade|allianz|generali|zurich|invest|binance|coinbase|trading|klarna|scalapay/i },
-  encontros: { label: 'Encontros', short: 'Encontros', sensitive: true,
-    gravidade: 'critica', porque: 'Pode revelar a tua orientação sexual, fotos e conversas íntimas, que o RGPD protege como categoria especial.',
+  encontros: { get label() { return tt('Encontros'); }, get short() { return tt('Encontros'); }, sensitive: true,
+    gravidade: 'critica', get porque() { return tt('Pode revelar a tua orientação sexual, fotos e conversas íntimas, que o RGPD protege como categoria especial.'); },
     re: /tinder|bumble|hinge|badoo|grindr|happn|meetic|okcupid|lovoo/i },
-  comida: { label: 'Comida e entregas', short: 'Comida', sensitive: false,
-    gravidade: 'media', porque: 'Sabem a tua morada e os teus hábitos do dia a dia.',
+  comida: { get label() { return tt('Comida e entregas'); }, get short() { return tt('Comida'); }, sensitive: false,
+    gravidade: 'media', get porque() { return tt('Sabem a tua morada e os teus hábitos do dia a dia.'); },
     re: /glovo|uber ?eats|ubereats|bolt ?food|just ?eat|telepizza|domino|mcdonald|burger|\bkfc\b|pizza|restaur|too ?good|sushi|nespresso/i },
-  viagens: { label: 'Transportes e viagens', short: 'Viagens', sensitive: false,
-    gravidade: 'alta', porque: 'Sabem onde estiveste e para onde vais, e por vezes guardam o teu documento de identificação.',
+  viagens: { get label() { return tt('Transportes e viagens'); }, get short() { return tt('Viagens'); }, sensitive: false,
+    gravidade: 'alta', get porque() { return tt('Sabem onde estiveste e para onde vais, e por vezes guardam o teu documento de identificação.'); },
     re: /\buber\b|\bbolt\b|cabify|free ?now|ryanair|easyjet|flytap|tap ?air|vueling|booking|airbnb|expedia|hotels|trivago|edreams|skyscanner|flixbus|rede ?expressos|\bcp\.pt|comboios|via ?verde|carris/i },
-  lazer: { label: 'Streaming e lazer', short: 'Lazer', sensitive: false,
-    gravidade: 'baixa', porque: 'Sobretudo gostos e hábitos de consumo.',
+  lazer: { get label() { return tt('Streaming e lazer'); }, get short() { return tt('Lazer'); }, sensitive: false,
+    gravidade: 'baixa', get porque() { return tt('Sobretudo gostos e hábitos de consumo.'); },
     re: /spotify|netflix|disney|\bhbo\b|primevideo|youtube|twitch|steam|playstation|xbox|epicgames|nintendo|ticketline|blueticket|\bbol\.pt|cinema|deezer|audible|crunchyroll/i },
-  social: { label: 'Redes sociais', short: 'Social', sensitive: false,
-    gravidade: 'alta', porque: 'Guardam perfil, fotos, mensagens e contactos, e as contas são um alvo frequente de roubo.',
+  social: { get label() { return tt('Redes sociais'); }, get short() { return tt('Social'); }, sensitive: false,
+    gravidade: 'alta', get porque() { return tt('Guardam perfil, fotos, mensagens e contactos, e as contas são um alvo frequente de roubo.'); },
     re: /linkedin|twitter|\bx\.com|tiktok|pinterest|reddit|discord|snapchat|tumblr|threads|telegram|whatsapp|bereal|quora|medium/i },
-  servicos: { label: 'Casa e telecomunicações', short: 'Casa', sensitive: false,
-    gravidade: 'alta', porque: 'Contratos de casa e telecomunicações têm morada, NIF e IBAN.',
+  servicos: { get label() { return tt('Casa e telecomunicações'); }, get short() { return tt('Casa'); }, sensitive: false,
+    gravidade: 'alta', get porque() { return tt('Contratos de casa e telecomunicações têm morada, NIF e IBAN.'); },
     re: /\bmeo\b|\bnos\.pt|vodafone|nowo|digi\.pt|\bedp\b|galp|endesa|goldenergy|iberdrola|\bepal\b|[aá]guas|\bctt\b/i },
-  educacao: { label: 'Educação e trabalho', short: 'Educação', sensitive: false,
-    gravidade: 'media', porque: 'Percurso académico ou profissional e dados de contacto.',
+  educacao: { get label() { return tt('Educação e trabalho'); }, get short() { return tt('Educação'); }, sensitive: false,
+    gravidade: 'media', get porque() { return tt('Percurso académico ou profissional e dados de contacto.'); },
     re: /uminho|universid|\.edu\b|udemy|coursera|duolingo|\bedx\b|net-?empregos|indeed|glassdoor|itjobs|landing\.jobs/i },
-  publico: { label: 'Serviços públicos', short: 'Público', sensitive: false,
-    gravidade: 'alta', porque: 'Guardam NIF, morada e dados de identificação.',
+  publico: { get label() { return tt('Serviços públicos'); }, get short() { return tt('Público'); }, sensitive: false,
+    gravidade: 'alta', get porque() { return tt('Guardam NIF, morada e dados de identificação.'); },
     re: /gov\.pt|portaldasfinancas|seg-social|autenticacao|\bsns\b|\bimt\b|justica/i },
-  compras: { label: 'Compras', short: 'Compras', sensitive: false,
-    gravidade: 'media', porque: 'Morada de entrega, histórico de compras e, por vezes, o cartão.',
+  compras: { get label() { return tt('Compras'); }, get short() { return tt('Compras'); }, sensitive: false,
+    gravidade: 'media', get porque() { return tt('Morada de entrega, histórico de compras e, por vezes, o cartão.'); },
     re: /shop|store|loja|amazon|shein|temu|aliexpress|zara|inditex|bershka|stradivarius|mango|primark|asos|zalando|worten|fnac|continente|pingo ?doce|lidl|auchan|ikea|decathlon|sport ?zone|vinted|\bolx\b|ebay|wook|bertrand|kuantokusta|leroy/i },
-  outros: { label: 'Outros', short: 'Outros', sensitive: false,
-    gravidade: 'baixa', porque: 'Não sabemos que dados têm: à partida, o teu email e pouco mais.' }
+  outros: { get label() { return tt('Outros'); }, get short() { return tt('Outros'); }, sensitive: false,
+    gravidade: 'baixa', get porque() { return tt('Não sabemos que dados têm: à partida, o teu email e pouco mais.'); } }
 };
 const SECTOR_ORDER = Object.keys(SECTORS);
 
@@ -103,29 +103,29 @@ const DEMO_EXTRA = {
 };
 
 const empresasDemo = [
-  demo('uber.com', 'Uber', 'viagens', 'likely_account', 'dpo@uber.com', 34, 9, 'Bem-vindo à Uber'),
-  demo('shein.com', 'Shein', 'compras', 'purchase', 'data@shein.com', 12, 55, 'A tua encomenda foi enviada'),
-  demo('spotify.com', 'Spotify', 'lazer', 'purchase', 'privacy@spotify.com', 51, 4, 'O teu recibo do Spotify Premium'),
-  demo('glovoapp.com', 'Glovo', 'comida', 'purchase', 'dpo@glovoapp.com', 27, 21, 'O teu pedido está a caminho'),
-  demo('vinted.pt', 'Vinted', 'compras', 'newsletter', 'privacysupport@vinted.pt', 87, 2, 'Novidades da semana na Vinted'),
+  demo('uber.com', 'Uber', 'viagens', 'likely_account', 'dpo@uber.com', 34, 9, tt('Bem-vindo à Uber')),
+  demo('shein.com', 'Shein', 'compras', 'purchase', 'data@shein.com', 12, 55, tt('A tua encomenda foi enviada')),
+  demo('spotify.com', 'Spotify', 'lazer', 'purchase', 'privacy@spotify.com', 51, 4, tt('O teu recibo do Spotify Premium')),
+  demo('glovoapp.com', 'Glovo', 'comida', 'purchase', 'dpo@glovoapp.com', 27, 21, tt('O teu pedido está a caminho')),
+  demo('vinted.pt', 'Vinted', 'compras', 'newsletter', 'privacysupport@vinted.pt', 87, 2, tt('Novidades da semana na Vinted')),
   // A Samsung recebe pedidos RGPD por formulário (privacyForm), não por email: o endereço usado é de exemplo.
-  { ...demo('samsung.com', 'Samsung', 'compras', 'likely_account', '', 15, 18, 'Bem-vindo à tua Samsung Account'), privacyForm: 'https://www.samsung.com/request-desk/' },
-  demo('revolut.com', 'Revolut', 'financas', 'likely_account', '', 64, 1, 'Confirma o teu email'),
-  demo('wells.pt', 'Wells', 'saude', 'purchase', '', 6, 120, 'A tua encomenda Wells'),
-  demo('clinicaexemplo.pt', 'Clínica Exemplo', 'saude', 'likely_account', '', 4, 300, 'Bem-vindo à área de cliente'),
-  demo('tinder.com', 'Tinder', 'encontros', 'likely_account', '', 9, 700, 'Bem-vindo ao Tinder'),
-  demo('booking.com', 'Booking.com', 'viagens', 'purchase', '', 18, 40, 'A tua reserva está confirmada'),
-  demo('netflix.com', 'Netflix', 'lazer', 'likely_account', '', 22, 30, 'Repor a palavra-passe'),
-  demo('linkedin.com', 'LinkedIn', 'social', 'likely_account', '', 140, 1, 'Novo início de sessão na tua conta'),
-  demo('edp.pt', 'EDP', 'servicos', 'purchase', '', 24, 12, 'A tua fatura está disponível'),
-  demo('lojaexemplo.pt', 'Loja Exemplo', 'outros', 'unknown', '', 3, 400, 'Obrigado pela tua visita')
+  { ...demo('samsung.com', 'Samsung', 'compras', 'likely_account', '', 15, 18, tt('Bem-vindo à tua Samsung Account')), privacyForm: 'https://www.samsung.com/request-desk/' },
+  demo('revolut.com', 'Revolut', 'financas', 'likely_account', '', 64, 1, tt('Confirma o teu email')),
+  demo('wells.pt', 'Wells', 'saude', 'purchase', '', 6, 120, tt('A tua encomenda Wells')),
+  demo('clinicaexemplo.pt', tt('Clínica Exemplo'), 'saude', 'likely_account', '', 4, 300, tt('Bem-vindo à área de cliente')),
+  demo('tinder.com', 'Tinder', 'encontros', 'likely_account', '', 9, 700, tt('Bem-vindo ao Tinder')),
+  demo('booking.com', 'Booking.com', 'viagens', 'purchase', '', 18, 40, tt('A tua reserva está confirmada')),
+  demo('netflix.com', 'Netflix', 'lazer', 'likely_account', '', 22, 30, tt('Repor a palavra-passe')),
+  demo('linkedin.com', 'LinkedIn', 'social', 'likely_account', '', 140, 1, tt('Novo início de sessão na tua conta')),
+  demo('edp.pt', 'EDP', 'servicos', 'purchase', '', 24, 12, tt('A tua fatura está disponível')),
+  demo('lojaexemplo.pt', 'Loja Exemplo', 'outros', 'unknown', '', 3, 400, tt('Obrigado pela tua visita'))
 ];
 
 function demo(domain, name, sector, kind, dpoEmail, count, days, subject) {
   const reasons = {
-    likely_account: 'Email de boas-vindas, registo ou palavra-passe',
-    purchase: 'Recibo, fatura ou encomenda',
-    newsletter: 'Só emails de marketing',
+    likely_account: tt('Email de boas-vindas, registo ou palavra-passe'),
+    purchase: tt('Recibo, fatura ou encomenda'),
+    newsletter: tt('Só emails de marketing'),
     unknown: 'Nenhuma regra correspondeu'
   };
   return {
@@ -166,79 +166,79 @@ const NOTICIAS_ATUALIZADAS = '2026-10-14';
 const NOTICIAS = [
   {
     id: 'edp-2026', data: '2026-07-13', empresa: 'EDP', dominios: ['edp.pt', 'edp.com'], tipo: 'fraude', estado: 'confirmado',
-    titulo: 'Emails falsos em nome da EDP já usam dados reais dos clientes',
-    resumo: 'A EDP alertou para emails fraudulentos que incluem o nome, a morada, o NIF ou o código do ponto de entrega (CPE) dos clientes, o que os torna difíceis de distinguir dos verdadeiros.',
-    importa: 'Quando os teus dados circulam, as burlas ficam convincentes. A EDP lembra que nunca pede dados bancários por email ou SMS e que envia as faturas em PDF anexo, não por link.',
+    get titulo() { return tt('Emails falsos em nome da EDP já usam dados reais dos clientes'); },
+    get resumo() { return tt('A EDP alertou para emails fraudulentos que incluem o nome, a morada, o NIF ou o código do ponto de entrega (CPE) dos clientes, o que os torna difíceis de distinguir dos verdadeiros.'); },
+    get importa() { return tt('Quando os teus dados circulam, as burlas ficam convincentes. A EDP lembra que nunca pede dados bancários por email ou SMS e que envia as faturas em PDF anexo, não por link.'); },
     fonte: { nome: 'RFM', url: 'https://rfm.pt/atualidade/23420/nova-fraude-em-nome-da-edp-ja-usa-os-dados-dos-clientes-aprende-a-identificar-os-e-mails-falsos' }
   },
   {
     id: 'ctt-2026', data: '2026-04-27', empresa: 'CTT', dominios: ['ctt.pt'], tipo: 'fuga', estado: 'por_confirmar',
-    titulo: 'Alegado ataque aos cacifos Locky dos CTT',
-    resumo: 'Um atacante afirmou num fórum de cibercrime ter dados de cerca de um milhão de clientes: nome, telefone, email, histórico de encomendas e horas de entrega. À data da notícia, os CTT ainda não tinham feito qualquer comunicado.',
-    importa: 'Com um histórico de encomendas real, um email falso de "taxas alfandegárias" parece verdadeiro.',
+    get titulo() { return tt('Alegado ataque aos cacifos Locky dos CTT'); },
+    get resumo() { return tt('Um atacante afirmou num fórum de cibercrime ter dados de cerca de um milhão de clientes: nome, telefone, email, histórico de encomendas e horas de entrega. À data da notícia, os CTT ainda não tinham feito qualquer comunicado.'); },
+    get importa() { return tt('Com um histórico de encomendas real, um email falso de "taxas alfandegárias" parece verdadeiro.'); },
     fonte: { nome: '4gnews', url: 'https://4gnews.pt/ctt-sob-ataque-informatico-e-os-teus-dados-podem-estar-em-risco/' }
   },
   {
     id: 'netflix-2024', data: '2024-12-18', empresa: 'Netflix', dominios: ['netflix.com'], tipo: 'multa', estado: 'confirmado',
-    titulo: 'Netflix multada em 4,75 milhões de euros nos Países Baixos',
-    resumo: 'A autoridade neerlandesa de proteção de dados concluiu que, entre 2018 e 2020, a Netflix não explicou bem porque recolhia dados, com quem os partilhava, quanto tempo os guardava e como os protegia fora da Europa. A Netflix recorreu.',
-    importa: 'É exatamente isto que um pedido de acesso te obriga a responder.',
+    get titulo() { return tt('Netflix multada em 4,75 milhões de euros nos Países Baixos'); },
+    get resumo() { return tt('A autoridade neerlandesa de proteção de dados concluiu que, entre 2018 e 2020, a Netflix não explicou bem porque recolhia dados, com quem os partilhava, quanto tempo os guardava e como os protegia fora da Europa. A Netflix recorreu.'); },
+    get importa() { return tt('É exatamente isto que um pedido de acesso te obriga a responder.'); },
     fonte: { nome: 'Al Arabiya', url: 'https://english.alarabiya.net/News/world/2024/12/18/dutch-authorities-fine-netflix-4-75-mln-euros-over-personal-data-use' }
   },
   {
     id: 'linkedin-2024', data: '2024-10-24', empresa: 'LinkedIn', dominios: ['linkedin.com'], tipo: 'multa', estado: 'confirmado',
-    titulo: 'LinkedIn multado em 310 milhões de euros pela Irlanda',
-    resumo: 'A autoridade irlandesa concluiu que o LinkedIn usou dados dos membros para analisar comportamentos e dirigir publicidade sem uma base legal válida.',
-    importa: 'O direito de oposição permite-te parar o uso dos teus dados para publicidade.',
+    get titulo() { return tt('LinkedIn multado em 310 milhões de euros pela Irlanda'); },
+    get resumo() { return tt('A autoridade irlandesa concluiu que o LinkedIn usou dados dos membros para analisar comportamentos e dirigir publicidade sem uma base legal válida.'); },
+    get importa() { return tt('O direito de oposição permite-te parar o uso dos teus dados para publicidade.'); },
     fonte: { nome: 'Data Protection Commission', url: 'https://dataprotection.ie/en/news-media/press-releases/irish-data-protection-commission-fines-linkedin-ireland-eu310-million' }
   },
   {
     id: 'vinted-2024', data: '2024-07-03', empresa: 'Vinted', dominios: ['vinted.pt', 'vinted.com'], tipo: 'multa', estado: 'confirmado',
-    titulo: 'Vinted multada em 2,4 milhões de euros por falhar pedidos de apagamento',
-    resumo: 'A autoridade lituana concluiu que a Vinted recusou apagar dados a quem não apresentava um "motivo específico", tratou mal pedidos de acesso e escondia utilizadores sem os avisar (shadow banning).',
-    importa: 'Não precisas de justificar um pedido de apagamento. Se a empresa recusar, podes queixar-te à CNPD.',
+    get titulo() { return tt('Vinted multada em 2,4 milhões de euros por falhar pedidos de apagamento'); },
+    get resumo() { return tt('A autoridade lituana concluiu que a Vinted recusou apagar dados a quem não apresentava um "motivo específico", tratou mal pedidos de acesso e escondia utilizadores sem os avisar (shadow banning).'); },
+    get importa() { return tt('Não precisas de justificar um pedido de apagamento. Se a empresa recusar, podes queixar-te à CNPD.'); },
     fonte: { nome: 'LRT', url: 'https://www.lrt.lt/en/news-in-english/19/2310451/lithuania-s-vinted-fined-eur2-4m-for-consumer-data-breaches' }
   },
   {
     id: 'grindr-2024', data: '2024-07-01', empresa: 'Grindr', dominios: ['grindr.com'], setores: ['encontros'], tipo: 'multa', estado: 'confirmado',
-    titulo: 'Tribunal confirma multa de 5,7 milhões de euros ao Grindr',
-    resumo: 'Um tribunal norueguês confirmou que a app de encontros partilhou dados dos utilizadores com anunciantes sem um consentimento válido.',
-    importa: 'Em apps de encontros, até o simples facto de teres conta pode revelar a tua orientação sexual.',
+    get titulo() { return tt('Tribunal confirma multa de 5,7 milhões de euros ao Grindr'); },
+    get resumo() { return tt('Um tribunal norueguês confirmou que a app de encontros partilhou dados dos utilizadores com anunciantes sem um consentimento válido.'); },
+    get importa() { return tt('Em apps de encontros, até o simples facto de teres conta pode revelar a tua orientação sexual.'); },
     fonte: { nome: 'noyb', url: 'https://noyb.eu/en/norwegian-court-confirms-eu-57-million-fine-grindr' }
   },
   {
     id: 'spotify-2023', data: '2023-06-13', empresa: 'Spotify', dominios: ['spotify.com'], tipo: 'multa', estado: 'confirmado',
-    titulo: 'Spotify multado em 58 milhões de coroas suecas',
-    resumo: 'A autoridade sueca concluiu que, quando os utilizadores pediam os seus dados, o Spotify entregava-os mas não explicava com clareza como os usava.',
-    importa: 'Num pedido de acesso, a empresa tem de dizer também para que usa os dados, não só entregá-los.',
+    get titulo() { return tt('Spotify multado em 58 milhões de coroas suecas'); },
+    get resumo() { return tt('A autoridade sueca concluiu que, quando os utilizadores pediam os seus dados, o Spotify entregava-os mas não explicava com clareza como os usava.'); },
+    get importa() { return tt('Num pedido de acesso, a empresa tem de dizer também para que usa os dados, não só entregá-los.'); },
     fonte: { nome: 'IMY', url: 'https://imy.se/en/news/administrative-fee-against-spotify' }
   },
   {
     id: 'tap-2022', data: '2022-09-22', empresa: 'TAP', dominios: ['flytap.com', 'tap.pt'], tipo: 'fuga', estado: 'confirmado',
-    titulo: 'Dados de cerca de 1,5 milhões de clientes da TAP publicados',
-    resumo: 'Depois de um ataque detetado em agosto, o grupo Ragnar Locker publicou 581 GB com nome, nacionalidade, data de nascimento, morada, email, telefone e número de passageiro frequente.',
-    importa: 'Dados como a data de nascimento e a morada não se mudam como uma palavra-passe.',
+    get titulo() { return tt('Dados de cerca de 1,5 milhões de clientes da TAP publicados'); },
+    get resumo() { return tt('Depois de um ataque detetado em agosto, o grupo Ragnar Locker publicou 581 GB com nome, nacionalidade, data de nascimento, morada, email, telefone e número de passageiro frequente.'); },
+    get importa() { return tt('Dados como a data de nascimento e a morada não se mudam como uma palavra-passe.'); },
     fonte: { nome: 'Executive Digest', url: 'https://executivedigest.sapo.pt/?p=324074' }
   },
   {
     id: 'revolut-2022', data: '2022-09-20', empresa: 'Revolut', dominios: ['revolut.com'], tipo: 'fuga', estado: 'confirmado',
-    titulo: 'Fuga na Revolut expõe dados de mais de 50 mil clientes',
-    resumo: 'Um atacante usou engenharia social para entrar na base de dados. Segundo a comunicação às autoridades lituanas, foram afetados 50.150 clientes: nome, morada, email, telefone e dados parciais do cartão.',
-    importa: 'Mesmo num banco digital, os dados de contacto bastam para burlas por telefone.',
+    get titulo() { return tt('Fuga na Revolut expõe dados de mais de 50 mil clientes'); },
+    get resumo() { return tt('Um atacante usou engenharia social para entrar na base de dados. Segundo a comunicação às autoridades lituanas, foram afetados 50.150 clientes: nome, morada, email, telefone e dados parciais do cartão.'); },
+    get importa() { return tt('Mesmo num banco digital, os dados de contacto bastam para burlas por telefone.'); },
     fonte: { nome: 'TechCrunch', url: 'https://techcrunch.com/2022/09/20/revolut-cyberattack-thousands-exposed' }
   },
   {
     id: 'edp-2020', data: '2020-04-15', empresa: 'EDP', dominios: ['edp.pt', 'edp.com'], tipo: 'fuga', estado: 'confirmado',
-    titulo: 'EDP atacada com ransomware',
-    resumo: 'O grupo Ragnar Locker cifrou sistemas da EDP, disse ter levado 10 TB de ficheiros e pediu 1580 bitcoins (cerca de 10,9 milhões de dólares) para não os divulgar.',
-    importa: 'Uma empresa grande também pode ser atacada. Quanto menos dados teus guardar, menos há para perder.',
+    get titulo() { return tt('EDP atacada com ransomware'); },
+    get resumo() { return tt('O grupo Ragnar Locker cifrou sistemas da EDP, disse ter levado 10 TB de ficheiros e pediu 1580 bitcoins (cerca de 10,9 milhões de dólares) para não os divulgar.'); },
+    get importa() { return tt('Uma empresa grande também pode ser atacada. Quanto menos dados teus guardar, menos há para perder.'); },
     fonte: { nome: 'Bitdefender', url: 'https://www.bitdefender.com/en-au/blog/hotforsecurity/portuguese-energy-company-hit-with-ragnar-locker-ransomware-attackers-demand-10-million-to-decrypt-the-data' }
   }
 ];
 const TIPOS_NOTICIA = {
-  fuga: { label: 'Fuga de dados', style: 'bg-rose-400/15 text-rose-200' },
-  multa: { label: 'Multa', style: 'bg-amber-400/15 text-amber-100' },
-  fraude: { label: 'Burla', style: 'bg-orange-400/15 text-orange-200' }
+  fuga: { get label() { return tt('Fuga de dados'); }, style: 'bg-rose-400/15 text-rose-200' },
+  multa: { get label() { return tt('Multa'); }, style: 'bg-amber-400/15 text-amber-100' },
+  fraude: { get label() { return tt('Burla'); }, style: 'bg-orange-400/15 text-orange-200' }
 };
 
 // Como as empresas tratam os dados: o essencial, com o direito que responde a cada ponto
@@ -246,94 +246,94 @@ const TIPOS_NOTICIA = {
 // Cada bloco é um parágrafo (texto) ou uma lista (array). "filtro" mostra os casos reais desse tipo.
 const GUIA = [
   {
-    id: 'porque', icone: 'lupa', pergunta: 'Porque importa saber quem tem os teus dados?',
+    id: 'porque', icone: 'lupa', get pergunta() { return tt('Porque importa saber quem tem os teus dados?'); },
     blocos: [
-      'Cada empresa que guarda os teus dados é mais um sítio de onde eles podem fugir. Muitas são contas antigas de que já nem te lembras, mas que continuam a guardar o teu nome, email, morada ou dados de pagamento.',
-      'Não podes pedir que apaguem o que não sabes que existe. Quanto menos empresas tiverem os teus dados, menos fugas te afetam.'
+      tt('Cada empresa que guarda os teus dados é mais um sítio de onde eles podem fugir. Muitas são contas antigas de que já nem te lembras, mas que continuam a guardar o teu nome, email, morada ou dados de pagamento.'),
+      tt('Não podes pedir que apaguem o que não sabes que existe. Quanto menos empresas tiverem os teus dados, menos fugas te afetam.')
     ],
-    acao: 'Começa pelas empresas de áreas sensíveis: saúde, finanças e encontros.'
+    get acao() { return tt('Começa pelas empresas de áreas sensíveis: saúde, finanças e encontros.'); }
   },
   {
-    id: 'consequencias', icone: 'mensagem', pergunta: 'O que pode acontecer se os teus dados fugirem?',
+    id: 'consequencias', icone: 'mensagem', get pergunta() { return tt('O que pode acontecer se os teus dados fugirem?'); },
     blocos: [
-      'Os dados de uma fuga acabam muitas vezes à venda e são usados para enganar pessoas. Com o teu nome verdadeiro e o que compraste, uma mensagem falsa parece mesmo da empresa.',
+      tt('Os dados de uma fuga acabam muitas vezes à venda e são usados para enganar pessoas. Com o teu nome verdadeiro e o que compraste, uma mensagem falsa parece mesmo da empresa.'),
       [
-        'Mensagens falsas em nome da empresa: uma entrega pendente, uma fatura em atraso, um problema na conta, sempre com um link.',
-        'Chamadas de falsos funcionários do banco ou da operadora, que já sabem quem és.',
-        'A burla «Olá pai, olá mãe»: alguém finge ser um filho com um número novo e pede dinheiro por MB WAY.',
-        'Entradas noutras contas, se usas a mesma palavra-passe em vários sítios.',
-        'Roubo de identidade: com o NIF, a morada e uma cópia do cartão de cidadão, podem tentar abrir contas ou pedir crédito em teu nome.',
-        'Mais spam e mais chamadas comerciais.'
+        tt('Mensagens falsas em nome da empresa: uma entrega pendente, uma fatura em atraso, um problema na conta, sempre com um link.'),
+        tt('Chamadas de falsos funcionários do banco ou da operadora, que já sabem quem és.'),
+        tt('A burla «Olá pai, olá mãe»: alguém finge ser um filho com um número novo e pede dinheiro por MB WAY.'),
+        tt('Entradas noutras contas, se usas a mesma palavra-passe em vários sítios.'),
+        tt('Roubo de identidade: com o NIF, a morada e uma cópia do cartão de cidadão, podem tentar abrir contas ou pedir crédito em teu nome.'),
+        tt('Mais spam e mais chamadas comerciais.')
       ]
     ],
-    filtro: ['fraude', 'Ver burlas reais']
+    filtro: ['fraude', tt('Ver burlas reais')]
   },
   {
-    id: 'venda', icone: 'troca', pergunta: 'Uma empresa pode vender ou passar os teus dados a outra?',
+    id: 'venda', icone: 'troca', get pergunta() { return tt('Uma empresa pode vender ou passar os teus dados a outra?'); },
     blocos: [
-      'Só se tiver uma razão legal para isso, muitas vezes o teu consentimento (artigo 6.º do RGPD). E tem de ser transparente:',
+      tt('Só se tiver uma razão legal para isso, muitas vezes o teu consentimento (artigo 6.º do RGPD). E tem de ser transparente:'),
       [
-        'Quando recolhe os teus dados, tem de te dizer a quem os vai passar, ou pelo menos a que tipo de empresas (artigo 13.º).',
-        'A empresa que os recebe tem de te avisar, em regra no prazo de um mês, e dizer-te de onde vieram (artigo 14.º).',
-        'Se deste consentimento, podes retirá-lo quando quiseres, e tem de ser tão fácil como foi dá-lo (artigo 7.º).'
+        tt('Quando recolhe os teus dados, tem de te dizer a quem os vai passar, ou pelo menos a que tipo de empresas (artigo 13.º).'),
+        tt('A empresa que os recebe tem de te avisar, em regra no prazo de um mês, e dizer-te de onde vieram (artigo 14.º).'),
+        tt('Se deste consentimento, podes retirá-lo quando quiseres, e tem de ser tão fácil como foi dá-lo (artigo 7.º).')
       ]
     ],
-    acao: 'Um pedido de acesso obriga a empresa a dizer-te a quem passou os teus dados (artigo 15.º).'
+    get acao() { return tt('Um pedido de acesso obriga a empresa a dizer-te a quem passou os teus dados (artigo 15.º).'); }
   },
   {
-    id: 'apagar_cadeia', icone: 'lixo', pergunta: 'Se pedires a uma empresa para apagar, as outras também apagam?',
+    id: 'apagar_cadeia', icone: 'lixo', get pergunta() { return tt('Se pedires a uma empresa para apagar, as outras também apagam?'); },
     blocos: [
-      'Depende do papel da outra empresa.',
+      tt('Depende do papel da outra empresa.'),
       [
-        'Se trabalha por conta da primeira (um terceiro, como o Mailchimp, que lhe envia os emails): só pode usar os teus dados como a primeira manda. Quando a primeira apaga, tem de garantir que esse terceiro também apaga (artigo 28.º).',
-        'Se recebeu ou comprou os teus dados para os usar ela própria: a primeira tem de a avisar do teu pedido (artigo 19.º), a não ser que seja impossível ou exija um esforço desproporcionado. Mas a segunda responde pelos dados que tem: para teres a certeza, pede-lhe o apagamento a ela também.'
+        tt('Se trabalha por conta da primeira (um terceiro, como o Mailchimp, que lhe envia os emails): só pode usar os teus dados como a primeira manda. Quando a primeira apaga, tem de garantir que esse terceiro também apaga (artigo 28.º).'),
+        tt('Se recebeu ou comprou os teus dados para os usar ela própria: a primeira tem de a avisar do teu pedido (artigo 19.º), a não ser que seja impossível ou exija um esforço desproporcionado. Mas a segunda responde pelos dados que tem: para teres a certeza, pede-lhe o apagamento a ela também.')
       ]
     ],
-    acao: 'Pergunta à primeira empresa a quem passou os teus dados: tem de te dizer (artigo 19.º).'
+    get acao() { return tt('Pergunta à primeira empresa a quem passou os teus dados: tem de te dizer (artigo 19.º).'); }
   },
   {
-    id: 'recusar', icone: 'balanca', pergunta: 'A empresa pode recusar apagar os teus dados?',
+    id: 'recusar', icone: 'balanca', get pergunta() { return tt('A empresa pode recusar apagar os teus dados?'); },
     blocos: [
-      'Pode, em alguns casos (artigo 17.º):',
+      tt('Pode, em alguns casos (artigo 17.º):'),
       [
-        'se ainda precisa deles, por exemplo enquanto tens um contrato ativo;',
-        'se a lei a obriga a guardá-los, como as faturas, durante vários anos;',
-        'se precisa deles para se defender num processo em tribunal.'
+        tt('se ainda precisa deles, por exemplo enquanto tens um contrato ativo;'),
+        tt('se a lei a obriga a guardá-los, como as faturas, durante vários anos;'),
+        tt('se precisa deles para se defender num processo em tribunal.')
       ],
-      'Mesmo assim, tem de te responder no prazo de um mês e explicar porquê (artigo 12.º). E o marketing tem de parar sempre que o pedires (artigo 21.º).'
+      tt('Mesmo assim, tem de te responder no prazo de um mês e explicar porquê (artigo 12.º). E o marketing tem de parar sempre que o pedires (artigo 21.º).')
     ]
   },
   {
-    id: 'fuga', icone: 'escudo', pergunta: 'O que tem de fazer uma empresa quando há uma fuga?',
+    id: 'fuga', icone: 'escudo', get pergunta() { return tt('O que tem de fazer uma empresa quando há uma fuga?'); },
     blocos: [
-      'Tem 72 horas para avisar a CNPD, a autoridade portuguesa de proteção de dados (artigo 33.º). Se a fuga te puder trazer um risco elevado, tem de te avisar a ti, sem demora (artigo 34.º).',
-      'Se a fuga te causar danos, materiais ou não, tens direito a indemnização (artigo 82.º) e podes apresentar queixa na CNPD (artigo 77.º).'
+      tt('Tem 72 horas para avisar a CNPD, a autoridade portuguesa de proteção de dados (artigo 33.º). Se a fuga te puder trazer um risco elevado, tem de te avisar a ti, sem demora (artigo 34.º).'),
+      tt('Se a fuga te causar danos, materiais ou não, tens direito a indemnização (artigo 82.º) e podes apresentar queixa na CNPD (artigo 77.º).')
     ],
-    acao: 'Se receberes um aviso: muda a palavra-passe dessa conta e das outras onde a uses, e desconfia de mensagens em nome da empresa.',
-    filtro: ['fuga', 'Ver fugas reais']
+    get acao() { return tt('Se receberes um aviso: muda a palavra-passe dessa conta e das outras onde a uses, e desconfia de mensagens em nome da empresa.'); },
+    filtro: ['fuga', tt('Ver fugas reais')]
   },
   {
-    id: 'tempo', icone: 'relogio', pergunta: 'Quanto tempo podem guardar os teus dados?',
-    blocos: ['Só enquanto forem precisos para o fim com que os recolheram (artigo 5.º). Na prática, muitas empresas guardam-nos durante anos, mesmo depois de deixares de ser cliente.'],
-    acao: 'Um pedido de acesso obriga-as a dizer-te durante quanto tempo os guardam (artigo 15.º).'
+    id: 'tempo', icone: 'relogio', get pergunta() { return tt('Quanto tempo podem guardar os teus dados?'); },
+    blocos: [tt('Só enquanto forem precisos para o fim com que os recolheram (artigo 5.º). Na prática, muitas empresas guardam-nos durante anos, mesmo depois de deixares de ser cliente.')],
+    get acao() { return tt('Um pedido de acesso obriga-as a dizer-te durante quanto tempo os guardam (artigo 15.º).'); }
   },
   {
-    id: 'publicidade', icone: 'alvo', pergunta: 'Usam os teus dados para publicidade?',
-    blocos: ['Muitas usam o que compras, vês e clicas para traçar um perfil teu e decidir que anúncios te mostram, às vezes com a ajuda de outras empresas.'],
-    acao: 'Podes opor-te ao marketing a qualquer momento, e a empresa tem de parar (artigo 21.º).'
+    id: 'publicidade', icone: 'alvo', get pergunta() { return tt('Usam os teus dados para publicidade?'); },
+    blocos: [tt('Muitas usam o que compras, vês e clicas para traçar um perfil teu e decidir que anúncios te mostram, às vezes com a ajuda de outras empresas.')],
+    get acao() { return tt('Podes opor-te ao marketing a qualquer momento, e a empresa tem de parar (artigo 21.º).'); }
   },
   {
-    id: 'fora_europa', icone: 'globo', pergunta: 'Os teus dados podem sair da Europa?',
-    blocos: ['Podem, mas só para países com uma proteção equivalente ou com garantias específicas, como contratos-tipo aprovados pela Comissão Europeia (artigos 44.º a 49.º).'],
-    acao: 'Um pedido de acesso diz-te para onde vão os teus dados e com que garantias (artigo 15.º).'
+    id: 'fora_europa', icone: 'globo', get pergunta() { return tt('Os teus dados podem sair da Europa?'); },
+    blocos: [tt('Podem, mas só para países com uma proteção equivalente ou com garantias específicas, como contratos-tipo aprovados pela Comissão Europeia (artigos 44.º a 49.º).')],
+    get acao() { return tt('Um pedido de acesso diz-te para onde vão os teus dados e com que garantias (artigo 15.º).'); }
   },
   {
-    id: 'proteger', icone: 'cadeado', pergunta: 'Como te podes proteger?',
+    id: 'proteger', icone: 'cadeado', get pergunta() { return tt('Como te podes proteger?'); },
     blocos: [[
-      'Usa uma palavra-passe diferente em cada conta (um gestor de palavras-passe ajuda) e liga a autenticação em dois passos.',
-      'Desconfia de mensagens com pressa ou com links. Confirma sempre pelo site ou pelo número oficial da empresa.',
-      'Dá só os dados que são mesmo precisos.',
-      'Pede para apagar as contas que já não usas. O Veto prepara o pedido por ti.'
+      tt('Usa uma palavra-passe diferente em cada conta (um gestor de palavras-passe ajuda) e liga a autenticação em dois passos.'),
+      tt('Desconfia de mensagens com pressa ou com links. Confirma sempre pelo site ou pelo número oficial da empresa.'),
+      tt('Dá só os dados que são mesmo precisos.'),
+      tt('Pede para apagar as contas que já não usas. O Veto prepara o pedido por ti.')
     ]]
   }
 ];
@@ -351,8 +351,8 @@ const TESTE = { URL: 'https://script.google.com/macros/s/AKfycbxriEsOIy6mvbaaf5H
 // O teu Google OAuth Client ID (termina em .apps.googleusercontent.com). Não é segredo:
 // com ele preenchido, os testadores não veem o campo e só carregam em "Ligar Gmail".
 
-const GOOGLE_CLIENT_ID = '788465290091-1499vipmp7l7fv0t9oguigev9mlptibq.apps.googleusercontent.com';
-//const GOOGLE_CLIENT_ID = '937297986746-k81vu89sv318tkvmv6ev8e2ht7dt3r82.apps.googleusercontent.com';
+//const GOOGLE_CLIENT_ID = '788465290091-1499vipmp7l7fv0t9oguigev9mlptibq.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '937297986746-k81vu89sv318tkvmv6ev8e2ht7dt3r82.apps.googleusercontent.com';
 // Enquanto a app estiver em teste no Google, só contas convidadas podem ligar o Gmail.
 // Cola aqui o link de um formulário (por exemplo, Google Forms) onde as pessoas pedem acesso.
 const PEDIR_ACESSO_URL = '';
@@ -363,10 +363,10 @@ const PLUS = {
   MENSAL: '2,99 €',
   ANUAL: '29,99 €',
   FUNCOES: [
-    ['Limpeza profunda', 'Cancela as subscrições todas de uma vez e apaga os emails antigos dessas empresas.'],
-    ['Várias contas', 'Junta os teus emails pessoais e de trabalho numa só análise.'],
-    ['Análise contínua', 'A contagem de emails e a gravidade de cada empresa sempre atualizadas.'],
-    ['Pedidos acompanhados', 'Segue cada pedido ao DPO, avisa quando o prazo passa e prepara a insistência.']
+    [tt('Limpeza profunda'), tt('Cancela as subscrições todas de uma vez e apaga os emails antigos dessas empresas.')],
+    [tt('Várias contas'), tt('Junta os teus emails pessoais e de trabalho numa só análise.')],
+    [tt('Análise contínua'), tt('A contagem de emails e a gravidade de cada empresa sempre atualizadas.')],
+    [tt('Pedidos acompanhados'), tt('Segue cada pedido ao DPO, avisa quando o prazo passa e prepara a insistência.')]
   ]
 };
 const VERSAO = 'prototipo-0.7';
@@ -398,18 +398,18 @@ const ignoredDomains = new Set([
 ]);
 
 const KINDS = {
-  likely_account: { label: 'Conta', filtro: 'Tens conta', style: 'text-rose-200 bg-rose-400/10', bar: 'bg-ink', help: 'Recebeste um email de boas-vindas, de registo ou de palavra-passe. Provavelmente tens conta.' },
-  purchase: { label: 'Compra', filtro: 'Compraste', style: 'text-amber-200 bg-amber-400/10', bar: 'bg-ink/60', help: 'Recebeste recibos, faturas ou confirmações de encomenda. A empresa guarda dados da compra, como o nome e a morada.' },
-  newsletter: { label: 'Newsletter', filtro: 'Recebes publicidade', style: 'text-sky-200 bg-sky-400/10', bar: 'bg-ink/30', help: 'Só recebes marketing. A empresa tem o teu email, mas pode não haver conta.' },
-  unknown: { label: 'Por confirmar', filtro: 'Sem tipo claro', style: 'text-slate-300 bg-slate-700/60', bar: 'bg-ink/15', help: 'Há emails desta empresa, mas nenhuma regra os explica. Revê tu.' }
+  likely_account: { get label() { return tt('Conta'); }, get filtro() { return tt('Tens conta'); }, style: 'text-rose-200 bg-rose-400/10', bar: 'bg-ink', get help() { return tt('Recebeste um email de boas-vindas, de registo ou de palavra-passe. Provavelmente tens conta.'); } },
+  purchase: { get label() { return tt('Compra'); }, get filtro() { return tt('Compraste'); }, style: 'text-amber-200 bg-amber-400/10', bar: 'bg-ink/60', get help() { return tt('Recebeste recibos, faturas ou confirmações de encomenda. A empresa guarda dados da compra, como o nome e a morada.'); } },
+  newsletter: { get label() { return tt('Newsletter'); }, get filtro() { return tt('Recebes publicidade'); }, style: 'text-sky-200 bg-sky-400/10', bar: 'bg-ink/30', get help() { return tt('Só recebes marketing. A empresa tem o teu email, mas pode não haver conta.'); } },
+  unknown: { get label() { return tt('Por confirmar'); }, get filtro() { return tt('Sem tipo claro'); }, style: 'text-slate-300 bg-slate-700/60', bar: 'bg-ink/15', get help() { return tt('Há emails desta empresa, mas nenhuma regra os explica. Revê tu.'); } }
 };
 
 // O que cada tipo de relação costuma deixar nas mãos da empresa ("Porquê esta empresa?")
 const O_QUE_GUARDAM = {
-  likely_account: 'Os dados da conta (nome, email e, muitas vezes, telefone) e o que fazes no serviço.',
-  purchase: 'Nome, morada, contactos e o histórico das tuas compras.',
-  newsletter: 'O teu email e, muitas vezes, quando abres as mensagens e em que links carregas.',
-  unknown: 'Pelo menos o teu endereço de email.'
+  get likely_account() { return tt('Os dados da conta (nome, email e, muitas vezes, telefone) e o que fazes no serviço.'); },
+  get purchase() { return tt('Nome, morada, contactos e o histórico das tuas compras.'); },
+  get newsletter() { return tt('O teu email e, muitas vezes, quando abres as mensagens e em que links carregas.'); },
+  get unknown() { return tt('Pelo menos o teu endereço de email.'); }
 };
 const KIND_ORDER = ['likely_account', 'purchase', 'newsletter', 'unknown'];
 
@@ -428,7 +428,7 @@ function duracaoCurta(segundos) {
   return `${Math.floor(minutos / 60)}h${String(minutos % 60).padStart(2, '0')}`;
 }
 function formatarDuracao(segundos) {
-  if (segundos < 60) return 'menos de 1 min';
+  if (segundos < 60) return tt('menos de 1 min');
   const minutos = Math.round(segundos / 60);
   if (minutos < 60) return `${minutos} min`;
   const horas = Math.floor(minutos / 60);
@@ -437,88 +437,53 @@ function formatarDuracao(segundos) {
 }
 
 const SUBJECT_RULES = [
-  { kind: 'likely_account', reason: 'Email de boas-vindas, registo ou palavra-passe',
+  { kind: 'likely_account', get reason() { return tt('Email de boas-vindas, registo ou palavra-passe'); },
     re: /bem-vind|boas-vindas|welcome|confirm\w*\s.*(conta|registo|e-?mail)|verifi|ativ\w*\s.*conta|activate|palavra-passe|password|reset|registo|sign ?up|inscri|criaste|nova conta|new account|account created|in[ií]cio de sess[aã]o/i },
-  { kind: 'purchase', reason: 'Recibo, fatura ou encomenda',
+  { kind: 'purchase', get reason() { return tt('Recibo, fatura ou encomenda'); },
     re: /encomenda|order|fatura|factura|invoice|recibo|receipt|compra|purchase|pagamento|payment|enviad|shipped|entrega|delivery|reserva|booking|bilhete/i }
 ];
 
 const RIGHTS = {
   access: {
-    label: 'Pedir os meus dados', short: 'Acesso', article: 'artigo 15.º',
-    subject: 'Pedido de acesso aos dados pessoais (artigo 15.º do RGPD)',
-    body: (nome) => `Exmos. Senhores da ${nome},
-
-Ao abrigo do artigo 15.º do RGPD, solicito:
-1. A confirmação de que tratam dados pessoais que me dizem respeito;
-2. Uma cópia desses dados;
-3. Informação sobre as finalidades do tratamento, os destinatários, o prazo de conservação e a origem dos dados.
-
-Os dados estão associados ao endereço de email a partir do qual envio este pedido.
-
-Aguardo resposta no prazo de um mês, nos termos do artigo 12.º, n.º 3, do RGPD.
-
-Com os melhores cumprimentos.`
+    get label() { return tt('Pedir os meus dados'); }, get short() { return tt('Acesso'); }, article: 'artigo 15.º',
+    get subject() { return tt('Pedido de acesso aos dados pessoais (artigo 15.º do RGPD)'); },
+    body: (nome) => tt('Exmos. Senhores da {0},\n\nAo abrigo do artigo 15.º do RGPD, solicito:\n1. A confirmação de que tratam dados pessoais que me dizem respeito;\n2. Uma cópia desses dados;\n3. Informação sobre as finalidades do tratamento, os destinatários, o prazo de conservação e a origem dos dados.\n\nOs dados estão associados ao endereço de email a partir do qual envio este pedido.\n\nAguardo resposta no prazo de um mês, nos termos do artigo 12.º, n.º 3, do RGPD.\n\nCom os melhores cumprimentos.', [nome])
   },
   erasure: {
-    label: 'Apagar os meus dados', short: 'Apagamento', article: 'artigo 17.º',
-    subject: 'Pedido de apagamento de dados pessoais (artigo 17.º do RGPD)',
-    body: (nome) => `Exmos. Senhores da ${nome},
-
-Ao abrigo do artigo 17.º do RGPD, solicito o apagamento de todos os dados pessoais que me dizem respeito, associados ao endereço de email a partir do qual envio este pedido. Caso tenha dado consentimento para algum tratamento, retiro-o (artigo 7.º, n.º 3).
-
-Peço confirmação por escrito do apagamento, no prazo de um mês (artigo 12.º, n.º 3, do RGPD).
-
-Com os melhores cumprimentos.`
+    get label() { return tt('Apagar os meus dados'); }, get short() { return tt('Apagamento'); }, article: 'artigo 17.º',
+    get subject() { return tt('Pedido de apagamento de dados pessoais (artigo 17.º do RGPD)'); },
+    body: (nome) => tt('Exmos. Senhores da {0},\n\nAo abrigo do artigo 17.º do RGPD, solicito o apagamento de todos os dados pessoais que me dizem respeito, associados ao endereço de email a partir do qual envio este pedido. Caso tenha dado consentimento para algum tratamento, retiro-o (artigo 7.º, n.º 3).\n\nPeço confirmação por escrito do apagamento, no prazo de um mês (artigo 12.º, n.º 3, do RGPD).\n\nCom os melhores cumprimentos.', [nome])
   },
   objection: {
-    label: 'Parar o marketing', short: 'Oposição', article: 'artigo 21.º',
-    subject: 'Oposição ao marketing direto e à definição de perfis (artigo 21.º do RGPD)',
-    body: (nome) => `Exmos. Senhores da ${nome},
-
-Ao abrigo do artigo 21.º, n.ºs 2 e 3, do RGPD, oponho-me ao tratamento dos meus dados pessoais para marketing direto, incluindo a definição de perfis relacionada com esse marketing. Retiro também qualquer consentimento que tenha dado para personalização ou publicidade (artigo 7.º, n.º 3).
-
-Solicito ainda:
-1. O apagamento dos dados tratados apenas para esse fim (artigo 17.º, n.º 1, alínea c));
-2. Informação sobre se tomam decisões automatizadas a meu respeito e sobre a lógica envolvida (artigo 15.º, n.º 1, alínea h)).
-
-Peço confirmação por escrito no prazo de um mês (artigo 12.º, n.º 3, do RGPD).
-
-Com os melhores cumprimentos.`
+    get label() { return tt('Parar o marketing'); }, get short() { return tt('Oposição'); }, article: 'artigo 21.º',
+    get subject() { return tt('Oposição ao marketing direto e à definição de perfis (artigo 21.º do RGPD)'); },
+    body: (nome) => tt('Exmos. Senhores da {0},\n\nAo abrigo do artigo 21.º, n.ºs 2 e 3, do RGPD, oponho-me ao tratamento dos meus dados pessoais para marketing direto, incluindo a definição de perfis relacionada com esse marketing. Retiro também qualquer consentimento que tenha dado para personalização ou publicidade (artigo 7.º, n.º 3).\n\nSolicito ainda:\n1. O apagamento dos dados tratados apenas para esse fim (artigo 17.º, n.º 1, alínea c));\n2. Informação sobre se tomam decisões automatizadas a meu respeito e sobre a lógica envolvida (artigo 15.º, n.º 1, alínea h)).\n\nPeço confirmação por escrito no prazo de um mês (artigo 12.º, n.º 3, do RGPD).\n\nCom os melhores cumprimentos.', [nome])
   },
   portability: {
-    label: 'Receber os dados num ficheiro', short: 'Portabilidade', article: 'artigo 20.º',
-    subject: 'Pedido de portabilidade dos dados pessoais (artigo 20.º do RGPD)',
-    body: (nome) => `Exmos. Senhores da ${nome},
-
-Ao abrigo do artigo 20.º do RGPD, solicito que me enviem os dados pessoais que me dizem respeito e que vos forneci, incluindo os dados resultantes da utilização do vosso serviço, num formato estruturado, de uso corrente e de leitura automática (por exemplo, CSV ou JSON).
-
-Os dados estão associados ao endereço de email a partir do qual envio este pedido.
-
-Aguardo resposta no prazo de um mês, nos termos do artigo 12.º, n.º 3, do RGPD.
-
-Com os melhores cumprimentos.`
+    get label() { return tt('Receber os dados num ficheiro'); }, get short() { return tt('Portabilidade'); }, article: 'artigo 20.º',
+    get subject() { return tt('Pedido de portabilidade dos dados pessoais (artigo 20.º do RGPD)'); },
+    body: (nome) => tt('Exmos. Senhores da {0},\n\nAo abrigo do artigo 20.º do RGPD, solicito que me enviem os dados pessoais que me dizem respeito e que vos forneci, incluindo os dados resultantes da utilização do vosso serviço, num formato estruturado, de uso corrente e de leitura automática (por exemplo, CSV ou JSON).\n\nOs dados estão associados ao endereço de email a partir do qual envio este pedido.\n\nAguardo resposta no prazo de um mês, nos termos do artigo 12.º, n.º 3, do RGPD.\n\nCom os melhores cumprimentos.', [nome])
   }
 };
 
 // Os quatro direitos, pela ordem em que aparecem no mapa, com uma frase simples cada
 const DIREITOS_NO_MAPA = [
-  { right: 'access', titulo: 'Acesso', frase: 'Saber que dados têm e receber uma cópia' },
-  { right: 'portability', titulo: 'Portabilidade', frase: 'Receber os dados num ficheiro para levar para outro serviço' },
-  { right: 'erasure', titulo: 'Apagamento', frase: 'Pedir que apaguem os teus dados' },
-  { right: 'objection', titulo: 'Oposição', frase: 'Parar o marketing e os perfis de publicidade' }
+  { right: 'access', get titulo() { return tt('Acesso'); }, get frase() { return tt('Saber que dados têm e receber uma cópia'); } },
+  { right: 'portability', get titulo() { return tt('Portabilidade'); }, get frase() { return tt('Receber os dados num ficheiro para levar para outro serviço'); } },
+  { right: 'erasure', get titulo() { return tt('Apagamento'); }, get frase() { return tt('Pedir que apaguem os teus dados'); } },
+  { right: 'objection', get titulo() { return tt('Oposição'); }, get frase() { return tt('Parar o marketing e os perfis de publicidade'); } }
 ];
 
 // Resultados que o utilizador pode registar quando a empresa responde.
 // holdsData: true = a empresa tem os dados; false = não tem (ou apagou); null = ainda não se sabe.
 const OUTCOMES = {
-  data_received: { label: 'Enviou-me os dados', holdsData: true, closeReason: 'data_received', badge: 'Enviou-te os dados' },
-  data_erased: { label: 'Apagou os meus dados', holdsData: false, closeReason: 'data_erased', badge: 'Apagou os teus dados' },
-  objection_accepted: { label: 'Aceitou: deixa de usar para marketing', holdsData: true, closeReason: 'objection_accepted', badge: 'Sem marketing' },
-  no_data: { label: 'Diz que não tem dados meus', holdsData: false, closeReason: 'other', badge: 'Diz que não tem dados' },
-  company_refused: { label: 'Recusou o pedido', holdsData: true, closeReason: 'company_refused', badge: 'Recusou' },
-  partial: { label: 'Respondeu, mas ainda sem resultado', holdsData: null, closeReason: null, badge: 'Respondeu' },
-  no_reply: { label: 'Sem resposta no prazo', holdsData: null, closeReason: 'no_reply', badge: 'Sem resposta' }
+  data_received: { get label() { return tt('Enviou-me os dados'); }, holdsData: true, closeReason: 'data_received', get badge() { return tt('Enviou-te os dados'); } },
+  data_erased: { get label() { return tt('Apagou os meus dados'); }, holdsData: false, closeReason: 'data_erased', get badge() { return tt('Apagou os teus dados'); } },
+  objection_accepted: { get label() { return tt('Aceitou: deixa de usar para marketing'); }, holdsData: true, closeReason: 'objection_accepted', get badge() { return tt('Sem marketing'); } },
+  no_data: { get label() { return tt('Diz que não tem dados meus'); }, holdsData: false, closeReason: 'other', get badge() { return tt('Diz que não tem dados'); } },
+  company_refused: { get label() { return tt('Recusou o pedido'); }, holdsData: true, closeReason: 'company_refused', get badge() { return tt('Recusou'); } },
+  partial: { get label() { return tt('Respondeu, mas ainda sem resultado'); }, holdsData: null, closeReason: null, get badge() { return tt('Respondeu'); } },
+  no_reply: { get label() { return tt('Sem resposta no prazo'); }, holdsData: null, closeReason: 'no_reply', get badge() { return tt('Sem resposta'); } }
 };
 const OUTCOMES_BY_RIGHT = {
   access: ['data_received', 'no_data', 'company_refused', 'partial'],
@@ -534,10 +499,10 @@ const OUTCOMES_BY_RIGHT = {
    no mapa, os pontos mais graves também são maiores.
    ========================================================================== */
 const SEVERITY = {
-  critica: { label: 'Crítica', nivel: 4, hex: '#d03b3b', r: 7.5 },
-  alta: { label: 'Alta', nivel: 3, hex: '#ec835a', r: 6.5 },
-  media: { label: 'Média', nivel: 2, hex: '#fab219', r: 5.5 },
-  baixa: { label: 'Baixa', nivel: 1, hex: '#719b08', r: 4.5 }
+  critica: { get label() { return tt('Crítica'); }, nivel: 4, hex: '#d03b3b', r: 7.5 },
+  alta: { get label() { return tt('Alta'); }, nivel: 3, hex: '#ec835a', r: 6.5 },
+  media: { get label() { return tt('Média'); }, nivel: 2, hex: '#fab219', r: 5.5 },
+  baixa: { get label() { return tt('Baixa'); }, nivel: 1, hex: '#719b08', r: 4.5 }
 };
 const SEVERITY_ORDER = ['critica', 'alta', 'media', 'baixa'];
 
@@ -549,7 +514,7 @@ function gravidadeDe(empresa) {
   let motivo = setor.porque;
   if (empresa.kind === 'newsletter' && indice < SEVERITY_ORDER.length - 1) {
     indice += 1;
-    motivo += ' Como só recebes marketing, provavelmente só têm o teu email.';
+    motivo += tt(' Como só recebes marketing, provavelmente só têm o teu email.');
   }
   return { chave: SEVERITY_ORDER[indice], motivo };
 }
@@ -567,21 +532,21 @@ function seloGravidade(chave, prefixo = 'Gravidade') {
 
 // Estados de cada empresa no mapa de exposição. "sempedido" = encontrada na análise, ainda sem pedido.
 const BUCKETS = {
-  confirmado: { label: 'Têm os teus dados', dot: 'bg-rose-400', hex: '#fb7185' },
-  atraso: { label: 'Em atraso', dot: 'bg-orange-400', hex: '#fb923c' },
-  espera: { label: 'À espera', dot: 'bg-amber-200', hex: '#fde68a' },
-  resolvido: { label: 'Já não têm', dot: 'bg-lime', hex: '#c2ea5d' },
-  sempedido: { label: 'Ainda sem pedido', dot: 'bg-slate-600', hex: '#655b6c' }
+  confirmado: { get label() { return tt('Têm os teus dados'); }, dot: 'bg-rose-400', hex: '#fb7185' },
+  atraso: { get label() { return tt('Em atraso'); }, dot: 'bg-orange-400', hex: '#fb923c' },
+  espera: { get label() { return tt('À espera'); }, dot: 'bg-amber-200', hex: '#fde68a' },
+  resolvido: { get label() { return tt('Já não têm'); }, dot: 'bg-lime', hex: '#c2ea5d' },
+  sempedido: { get label() { return tt('Ainda sem pedido'); }, dot: 'bg-slate-600', hex: '#655b6c' }
 };
 const MAP_ORDER = ['confirmado', 'atraso', 'espera', 'resolvido', 'sempedido'];
 
 // Medidas do mapa (em unidades do SVG, que no telemóvel são cerca de 1 px)
 
 const STATUS_LABELS = {
-  draft: 'Rascunho, ainda não enviado',
-  awaiting_confirmation: 'À espera de confirmação: enviaste?',
-  sent: 'Enviado (indicado por ti)',
-  reply_received: 'Resposta recebida (indicada por ti)',
+  get draft() { return tt('Rascunho, ainda não enviado'); },
+  get awaiting_confirmation() { return tt('À espera de confirmação: enviaste?'); },
+  get sent() { return tt('Enviado (indicado por ti)'); },
+  get reply_received() { return tt('Resposta recebida (indicada por ti)'); },
   closed: 'Fechado'
 };
 
@@ -726,6 +691,13 @@ if (estado.demo || estado.pedidos.some((pedido) => pedido.demo)) limparExemplo()
 estado.pedidos.forEach((pedido) => { if (pedido.sentAt) pedido.dueDate = estimarPrazo(pedido.sentAt); });
 renderTudo();
 mostrarPerguntaConsentimento();
+// Mudar de idioma: volta a desenhar tudo o que o app.js escreve
+document.addEventListener('veto:languagechange', () => {
+  if (document.body.classList.contains('menu-fechado')) alternarMenu(true);
+  renderTudo();
+  renderTeste();
+  registo.desenhar();
+});
 setTimeout(verificarPendente, 600);
 
 /* ==========================================================================
@@ -734,29 +706,29 @@ setTimeout(verificarPendente, 600);
 function ligarGmail() {
   const clientId = document.getElementById('google-client-id').value.trim();
   if (!clientId) {
-    atualizarStatus('Introduz o Google OAuth Client ID para ligar a tua conta.', true);
+    atualizarStatus(tt('Introduz o Google OAuth Client ID para ligar a tua conta.'), true);
     return;
   }
   // O ID do cliente acaba sempre em .apps.googleusercontent.com (não é o segredo GOCSPX-… nem uma chave AIza…)
   if (!/^[\w-]+\.apps\.googleusercontent\.com$/.test(clientId)) {
-    atualizarStatus('Isto não parece um Client ID. Na Google Cloud Console, em Credenciais, copia o "ID do cliente" do tipo Aplicação Web: acaba em .apps.googleusercontent.com.', true);
+    atualizarStatus(tt('Isto não parece um Client ID. Na Google Cloud Console, em Credenciais, copia o "ID do cliente" do tipo Aplicação Web: acaba em .apps.googleusercontent.com.'), true);
     return;
   }
   if (location.protocol === 'file:') {
-    atualizarStatus('Para ligar o Gmail, abre a app por http://localhost:8000 (com o servidor a correr), não com duplo clique no ficheiro.', true);
+    atualizarStatus(tt('Para ligar o Gmail, abre a app por http://localhost:8000 (com o servidor a correr), não com duplo clique no ficheiro.'), true);
     return;
   }
   if (!window.google?.accounts?.oauth2) {
-    atualizarStatus('A biblioteca de autenticação do Google ainda está a carregar. Tenta novamente.', true);
+    atualizarStatus(tt('A biblioteca de autenticação do Google ainda está a carregar. Tenta novamente.'), true);
     return;
   }
   const button = document.getElementById('analyze-button');
   button.disabled = true;
-  button.innerHTML = 'A preparar ligação <span class="animate-pulse">•••</span>';
+  button.innerHTML = `${tt('A preparar ligação')} <span class="animate-pulse">•••</span>`;
   document.getElementById('closed-test').classList.add('hidden');
   status.classList.add('hidden');
   registo.comecar();
-  registo.passo('login', 'A abrir o login do Google');
+  registo.passo('login', tt('A abrir o login do Google'));
   const tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: clientId,
     scope: GMAIL_READ_SCOPE,
@@ -764,29 +736,29 @@ function ligarGmail() {
     callback: (response) => {
       if (response.error) {
         repor(button);
-        registo.erro(response.error === 'access_denied' ? 'O Google não deixou ligar esta conta.' : `O Google recusou a ligação (${response.error}).`);
+        registo.erro(response.error === 'access_denied' ? tt('O Google não deixou ligar esta conta.') : tt('O Google recusou a ligação ({0}).', [response.error]));
         if (response.error === 'access_denied') mostrarTesteFechado();
         return;
       }
       // O Google deixa desmarcar a permissão no ecrã de consentimento: sem ela, o Gmail responde 403.
       if (google.accounts.oauth2.hasGrantedAllScopes?.(response, GMAIL_READ_SCOPE) === false) {
         repor(button);
-        registo.erro('Não foi dada permissão para ler os emails. Tenta outra vez e, no ecrã do Google, marca a caixa «Ver as suas mensagens de email».');
+        registo.erro(tt('Não foi dada permissão para ler os emails. Tenta outra vez e, no ecrã do Google, marca a caixa «Ver as suas mensagens de email».'));
         google.accounts.oauth2.revoke(response.access_token, () => {});
         return;
       }
-      registo.feito('login', 'Sessão iniciada no Google');
-      button.innerHTML = 'A analisar <span class="animate-pulse">•••</span>';
+      registo.feito('login', tt('Sessão iniciada no Google'));
+      button.innerHTML = `${tt('A analisar')} <span class="animate-pulse">•••</span>`;
       analisarCabecalhos(response.access_token)
         .catch((error) => {
           mostrarProgresso(null);
-          registo.erro(`Não foi possível ler o Gmail: ${error.message}`);
+          registo.erro(tt('Não foi possível ler o Gmail: {0}', [error.message]));
         })
         .finally(() => {
           repor(button);
           // Ligação por análise: o acesso é revogado assim que a análise termina.
           google.accounts.oauth2.revoke(response.access_token, () => {});
-          registo.feito('revogar', 'Acesso ao Gmail cancelado');
+          registo.feito('revogar', tt('Acesso ao Gmail cancelado'));
         });
     }
   });
@@ -798,10 +770,10 @@ function ligarGmail() {
 function erroNaJanelaGoogle(erro, button) {
   repor(button);
   const mensagens = {
-    popup_failed_to_open: 'O browser bloqueou a janela de login do Google. Permite pop-ups para este site (ícone à direita na barra de endereço) e tenta outra vez.',
-    popup_closed: 'A janela do Google fechou antes de terminares.'
+    popup_failed_to_open: tt('O browser bloqueou a janela de login do Google. Permite pop-ups para este site (ícone à direita na barra de endereço) e tenta outra vez.'),
+    popup_closed: tt('A janela do Google fechou antes de terminares.')
   };
-  registo.erro(mensagens[erro?.type] || `Não foi possível abrir o login do Google (${erro?.type || 'erro desconhecido'}).`);
+  registo.erro(mensagens[erro?.type] || tt('Não foi possível abrir o login do Google ({0}).', [erro?.type || 'erro desconhecido']));
   if (erro?.type === 'popup_closed') mostrarTesteFechado();
 }
 
@@ -809,10 +781,10 @@ function erroNaJanelaGoogle(erro, button) {
 function mostrarTesteFechado() {
   const caixa = document.getElementById('closed-test');
   const pedir = document.getElementById('closed-test-request');
-  document.getElementById('closed-test-text').textContent = 'Se fechaste a janela do Google sem querer, carrega outra vez em «Ligar Gmail e começar». '
+  document.getElementById('closed-test-text').textContent = tt('Se fechaste a janela do Google sem querer, carrega outra vez em «Ligar Gmail e começar». ')
     + (PEDIR_ACESSO_URL || TESTE.URL
-      ? 'Se o Google mostrou «Acesso bloqueado», o teste ainda está limitado a algumas contas: pede acesso aqui.'
-      : 'Se o Google mostrou «Acesso bloqueado», o teste ainda está limitado a algumas contas.');
+      ? tt('Se o Google mostrou «Acesso bloqueado», o teste ainda está limitado a algumas contas: pede acesso aqui.')
+      : tt('Se o Google mostrou «Acesso bloqueado», o teste ainda está limitado a algumas contas.'));
   pedir.classList.toggle('hidden', !PEDIR_ACESSO_URL && !TESTE.URL);
   if (PEDIR_ACESSO_URL) pedir.href = PEDIR_ACESSO_URL;
   else { pedir.removeAttribute('href'); pedir.setAttribute('data-action', 'pedir-acesso'); pedir.setAttribute('role', 'button'); }
@@ -821,9 +793,9 @@ function mostrarTesteFechado() {
   const local = location.protocol === 'file:' || ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
   dev.classList.toggle('hidden', !local);
   if (location.protocol === 'file:') {
-    dev.textContent = 'Em desenvolvimento: abriste o ficheiro diretamente (file://) e assim o Google não deixa entrar. Abre a app através de um servidor, por exemplo com «python -m http.server 8000».';
+    dev.textContent = tt('Em desenvolvimento: abriste o ficheiro diretamente (file://) e assim o Google não deixa entrar. Abre a app através de um servidor, por exemplo com «python -m http.server 8000».');
   } else if (local) {
-    dev.textContent = `Em desenvolvimento: se o Google mostrou «origin_mismatch», acrescenta ${location.origin} às «Origens JavaScript autorizadas» do teu cliente OAuth e espera uns minutos.`;
+    dev.textContent = tt('Em desenvolvimento: se o Google mostrou «origin_mismatch», acrescenta {0} às «Origens JavaScript autorizadas» do teu cliente OAuth e espera uns minutos.', [location.origin]);
   }
   caixa.classList.remove('hidden');
   registarEvento('login_google_interrompido', {});
@@ -831,23 +803,23 @@ function mostrarTesteFechado() {
 
 function repor(button) {
   button.disabled = false;
-  button.innerHTML = 'Ligar Gmail e começar <span>→</span>';
+  button.innerHTML = `${tt('Ligar Gmail e começar')} <span>→</span>`;
 }
 
 async function analisarCabecalhos(accessToken) {
   mostrarProgresso(0);
   gastosGmail.length = 0;
   // O endereço da conta serve para abrir o Gmail na conta certa ao enviar pedidos (fica só neste dispositivo).
-  registo.passo('conta', 'A identificar a conta');
+  registo.passo('conta', tt('A identificar a conta'));
   const perfil = await gmailFetch('/profile', accessToken, GMAIL_QUOTA.CUSTO_LIST).catch(() => null);
   if (perfil?.emailAddress) estado.contaEmail = perfil.emailAddress;
   registo.feito('conta', perfil?.emailAddress ? `Conta ${perfil.emailAddress}` : 'Conta Gmail ligada');
-  registo.passo('lista', 'A procurar os teus emails mais recentes');
+  registo.passo('lista', tt('A procurar os teus emails mais recentes'));
   const messages = await listarMensagens(accessToken);
-  registo.feito('lista', 'Emails para analisar', `${messages.length}`);
+  registo.feito('lista', tt('Emails para analisar'), `${messages.length}`);
   const porMinuto = Math.floor((GMAIL_QUOTA.UNIDADES * GMAIL_QUOTA.MARGEM) / GMAIL_QUOTA.CUSTO_GET);
   const minutos = Math.ceil(messages.length / porMinuto);
-  if (minutos > 1) registo.feito('ritmo', `O Gmail deixa ler ${porMinuto} por minuto: demora uns ${minutos} min`);
+  if (minutos > 1) registo.feito('ritmo', tt('O Gmail deixa ler {0} por minuto: demora uns {1} min', [porMinuto, minutos]));
   const cabecalhos = ['From', 'Subject', 'Date', 'List-Unsubscribe'].map((nome) => `metadataHeaders=${nome}`).join('&');
 
   // Cada email é juntado à empresa que o enviou logo que chega, para o registo mostrar as empresas a aparecer
@@ -896,20 +868,20 @@ async function analisarCabecalhos(accessToken) {
     porEmpresa.set(dominioEmpresa, atual);
   };
 
-  registo.passo('ler', 'A ler remetente, assunto e data', `0 de ${messages.length}`);
+  registo.passo('ler', tt('A ler remetente, assunto e data'), tt('0 de {0}', [messages.length]));
   await emLotes(messages, GMAIL_PARALELO, async (message) => {
     juntar(await gmailFetch(`/messages/${message.id}?format=metadata&${cabecalhos}&fields=id,internalDate,payload/headers`, accessToken, GMAIL_QUOTA.CUSTO_GET));
   }, (feitos) => {
     registo.atualizar('ler', { extra: `${feitos} de ${messages.length}` });
     mostrarProgresso(feitos / Math.max(messages.length, 1));
   });
-  registo.feito('ler', 'Remetente, assunto e data lidos (o texto não é aberto)', `${messages.length}`);
+  registo.feito('ler', tt('Remetente, assunto e data lidos (o texto não é aberto)'), `${messages.length}`);
 
   // Quantas vezes cada empresa aparece na caixa toda, e quantos emails lhe escreveste.
   // São pesquisas (5 unidades), não leituras: não se abre nenhum email.
   const agregados = [...porEmpresa.values()];
   mostrarProgresso(0);
-  registo.passo('contar', 'A contar os emails de cada empresa na caixa toda', `0 de ${agregados.length}`);
+  registo.passo('contar', tt('A contar os emails de cada empresa na caixa toda'), tt('0 de {0}', [agregados.length]));
   await emLotes(agregados, GMAIL_PARALELO, async (agregado) => {
     const dominios = [...agregado.domains];
     const [recebidos, enviados] = await Promise.all([
@@ -922,14 +894,14 @@ async function analisarCabecalhos(accessToken) {
     registo.atualizar('contar', { extra: `${feitos} de ${agregados.length}` });
     mostrarProgresso(feitos / Math.max(agregados.length, 1));
   });
-  registo.feito('contar', 'Emails contados por empresa', `${agregados.length}`);
+  registo.feito('contar', tt('Emails contados por empresa'), `${agregados.length}`);
 
   const encontradas = agregados.map(criarEmpresaLocal);
   estado.emailsAnalisados = messages.length;
   substituirEmpresas(encontradas, false);
   mostrarProgresso(null);
   const areas = new Set(encontradas.map((empresa) => empresa.sector)).size;
-  registo.feito('fim', `Análise concluída: ${encontradas.length} ${plural(encontradas.length, 'empresa', 'empresas')} em ${areas} ${plural(areas, 'área', 'áreas')}`);
+  registo.feito('fim', tt('Análise concluída: {0} {1} em {2} {3}', [encontradas.length, plural(encontradas.length, tt('empresa'), tt('empresas')), areas, plural(areas, tt('área'), tt('áreas'))]));
   registarEvento('analise_concluida', { demo: false, emails: messages.length, ...resumoParaEventos(encontradas) });
   location.hash = '#resultados';
 }
@@ -1015,18 +987,18 @@ function apagarEmailsEmpresa(empresaId) {
   const pesquisa = `{${dominios.map((domain) => `from:${domain}`).join(' ')}} -in:spam -in:trash -in:sent -in:drafts -in:chats`;
   const url = `https://mail.google.com/mail/u/0/#search/${encodeURIComponent(pesquisa)}`;
   abrirFolha({
-    titulo: `Apagar os emails da ${empresa.name}`,
-    texto: 'O Gmail abre com os emails desta empresa. Seleciona-os e move-os para o Lixo.',
-    nota: 'O Veto não apaga emails por ti.',
+    titulo: tt('Apagar os emails da {0}', [empresa.name]),
+    texto: tt('O Gmail abre com os emails desta empresa. Seleciona-os e move-os para o Lixo.'),
+    nota: tt('O Veto não apaga emails por ti.'),
     opcoes: [
       {
-        label: 'Abrir no Gmail', estilo: 'primary', acao: () => {
+        label: tt('Abrir no Gmail'), estilo: 'primary', acao: () => {
           const janela = window.open(url, '_blank');
           if (janela) janela.opener = null;
           else window.location.href = url;
         }
       },
-      { label: 'Cancelar', estilo: 'ghost', acao: () => {} }
+      { label: tt('Cancelar'), estilo: 'ghost', acao: () => {} }
     ]
   });
 }
@@ -1062,7 +1034,7 @@ function contagemDecrescente(fim) {
       registo.remover('quota');
       return;
     }
-    registo.aviso('quota', `Limite do Gmail por minuto: a continuar dentro de ${falta} s`);
+    registo.aviso('quota', tt('Limite do Gmail por minuto: a continuar dentro de {0} s', [falta]));
   };
   mostrar();
   contagemDecrescente.relogio = setInterval(mostrar, 1000);
@@ -1075,12 +1047,12 @@ function dormir(ms) {
 // Traduz os erros mais comuns da configuração na Google Cloud
 function explicarErroGmail(codigo, motivos, mensagem) {
   if (motivos.some((motivo) => /accessNotConfigured|SERVICE_DISABLED/i.test(motivo))) {
-    return 'a Gmail API não está ativada neste projeto da Google Cloud. Ativa-a em APIs e serviços > Biblioteca > Gmail API, espera um minuto e tenta outra vez.';
+    return tt('a Gmail API não está ativada neste projeto da Google Cloud. Ativa-a em APIs e serviços > Biblioteca > Gmail API, espera um minuto e tenta outra vez.');
   }
   if (motivos.some((motivo) => /insufficientPermissions|SCOPE_INSUFFICIENT/i.test(motivo))) {
-    return 'não foi dada permissão para ler os emails. Tenta outra vez e, no ecrã do Google, marca a caixa "Ver as suas mensagens de email".';
+    return tt('não foi dada permissão para ler os emails. Tenta outra vez e, no ecrã do Google, marca a caixa "Ver as suas mensagens de email".');
   }
-  return `o Gmail respondeu com ${codigo}${mensagem ? `: ${mensagem}` : ''}`;
+  return tt('o Gmail respondeu com {0}{1}', [codigo, mensagem ? `: ${mensagem}` : '']);
 }
 
 /* ==========================================================================
@@ -1121,7 +1093,7 @@ const registo = {
     if (this.empresasVistas <= this.maxEmpresas) this.linhas.push({ id: `e${this.empresasVistas}`, texto: nome, extra: area, estado: 'nota' });
     else {
       const resto = this.linha('mais-empresas');
-      const texto = `e mais ${this.empresasVistas - this.maxEmpresas} ${plural(this.empresasVistas - this.maxEmpresas, 'empresa', 'empresas')}`;
+      const texto = tt('e mais {0} {1}', [this.empresasVistas - this.maxEmpresas, plural(this.empresasVistas - this.maxEmpresas, tt('empresa'), tt('empresas'))]);
       if (resto) resto.texto = texto;
       else this.linhas.push({ id: 'mais-empresas', texto, extra: '', estado: 'nota' });
     }
@@ -1179,7 +1151,7 @@ function mostrarProgresso(fracao) {
 function classificarEmail(assunto, temListUnsubscribe) {
   const regra = SUBJECT_RULES.find((item) => item.re.test(assunto || ''));
   if (regra) return { kind: regra.kind, reason: regra.reason };
-  if (temListUnsubscribe) return { kind: 'newsletter', reason: 'Só emails de marketing' };
+  if (temListUnsubscribe) return { kind: 'newsletter', reason: tt('Só emails de marketing') };
   return { kind: 'unknown', reason: 'Nenhuma regra correspondeu' };
 }
 
@@ -1269,7 +1241,7 @@ function prepararPedido(empresaId, right) {
   const empresa = obterEmpresa(empresaId);
   if (!empresa) return;
   if (!empresa.dpo_email) {
-    mostrarToast('Ainda não temos um contacto de privacidade verificado para esta empresa.');
+    mostrarToast(tt('Ainda não temos um contacto de privacidade verificado para esta empresa.'));
     return;
   }
   if (!temPedidoDisponivelHoje()) {
@@ -1287,7 +1259,7 @@ function prepararPedido(empresaId, right) {
     return;
   }
   const aberto = estado.pedidos.find((pedido) => pedido.companyId === empresaId && pedido.right === right && !['closed', 'draft'].includes(pedido.status));
-  if (aberto) mostrarToast(`Já tens um pedido de ${RIGHTS[right].short.toLowerCase()} aberto para ${empresa.name}.`);
+  if (aberto) mostrarToast(tt('Já tens um pedido de {0} aberto para {1}.', [RIGHTS[right].short.toLowerCase(), empresa.name]));
 
   const agora = new Date().toISOString();
   const pedido = {
@@ -1323,15 +1295,15 @@ function reabrirRascunho(pedidoId) {
    ========================================================================== */
 const APPS_EMAIL = {
   gmail: {
-    label: 'Gmail',
+    get label() { return tt('Gmail'); },
     url: (para, assunto, corpo) => `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(para)}&su=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}${estado.contaEmail ? `&authuser=${encodeURIComponent(estado.contaEmail)}` : ''}`
   },
   outlook: {
-    label: 'Outlook ou Hotmail',
+    get label() { return tt('Outlook ou Hotmail'); },
     url: (para, assunto, corpo) => `https://outlook.live.com/mail/0/deeplink/compose?to=${encodeURIComponent(para)}&subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`
   },
   sistema: {
-    label: 'App de email do dispositivo',
+    get label() { return tt('App de email do dispositivo'); },
     url: (para, assunto, corpo) => `mailto:${para}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`
   }
 };
@@ -1343,7 +1315,7 @@ function abrirEmail(destinatario, assunto, corpo, aoCancelar = () => {}) {
   }
   const app = APPS_EMAIL[estado.appEmail];
   const url = app.url(destinatario, assunto, corpo);
-  mostrarToast(`A abrir o pedido no ${app.label}…`);
+  mostrarToast(tt('A abrir o pedido no {0}…', [app.label]));
   if (estado.appEmail === 'sistema') {
     window.location.href = url;
   } else {
@@ -1362,10 +1334,10 @@ function escolherAppEmail(depois, aoCancelar) {
   const conta = estado.contaEmail || '';
   const sugerida = /@(hotmail|outlook|live|msn)\./i.test(conta) ? 'outlook' : 'gmail';
   abrirFolha({
-    titulo: 'Onde queres escrever o pedido?',
+    titulo: tt('Onde queres escrever o pedido?'),
     texto: conta
-      ? `Envia-o a partir de ${conta}, o email que analisámos: é a esse endereço que a empresa associa os teus dados.`
-      : 'Envia-o a partir do email que a empresa tem associado aos teus dados.',
+      ? tt('Envia-o a partir de {0}, o email que analisámos: é a esse endereço que a empresa associa os teus dados.', [conta])
+      : tt('Envia-o a partir do email que a empresa tem associado aos teus dados.'),
     opcoes: [
       ...['gmail', 'outlook', 'sistema'].map((chave) => ({
         label: APPS_EMAIL[chave].label,
@@ -1376,7 +1348,7 @@ function escolherAppEmail(depois, aoCancelar) {
           depois();
         }
       })),
-      { label: 'Cancelar', estilo: 'ghost', acao: aoCancelar }
+      { label: tt('Cancelar'), estilo: 'ghost', acao: aoCancelar }
     ]
   });
 }
@@ -1390,13 +1362,13 @@ function verificarPendente() {
 function perguntarSeEnviou(pedido, aoFecharFora = null) {
   abrirFolha({
     aoFecharFora,
-    titulo: `Enviaste o pedido à ${pedido.companyName}?`,
-    texto: 'Só tu sabes: o Veto não tem acesso ao teu email enviado. Se disseres que sim, começamos a contar o prazo de resposta.',
+    titulo: tt('Enviaste o pedido à {0}?', [pedido.companyName]),
+    texto: tt('Só tu sabes: o Veto não tem acesso ao teu email enviado. Se disseres que sim, começamos a contar o prazo de resposta.'),
     opcoes: [
-      { label: 'Sim, enviei', estilo: 'primary', acao: () => confirmarEnvio(pedido.id) },
-      { label: 'Ainda não', estilo: 'secondary', acao: () => marcarNaoEnviado(pedido.id) },
+      { label: tt('Sim, enviei'), estilo: 'primary', acao: () => confirmarEnvio(pedido.id) },
+      { label: tt('Ainda não'), estilo: 'secondary', acao: () => marcarNaoEnviado(pedido.id) },
       {
-        label: estado.appEmail ? `Abrir noutra app (agora: ${APPS_EMAIL[estado.appEmail]?.label || 'nenhuma'})` : 'Abrir noutra app de email',
+        label: estado.appEmail ? `Abrir noutra app (agora: ${APPS_EMAIL[estado.appEmail]?.label || 'nenhuma'})` : tt('Abrir noutra app de email'),
         estilo: 'ghost',
         acao: () => {
           estado.appEmail = null;
@@ -1418,13 +1390,13 @@ function confirmarEnvio(pedidoId) {
   registarEvento('pedido_enviado', { demo: pedido.demo, direito: pedido.right, area: pedido.companySector, app: estado.appEmail || '' });
   // Depois de enviar, o próximo sítio natural é a página de pedidos.
   abrirFolha({
-    titulo: 'Pedido enviado',
-    texto: `A ${pedido.companyName} tem até ${formatarData(pedido.dueDate)} para responder. Acompanha-o no mapa de exposição.`,
+    titulo: tt('Pedido enviado'),
+    texto: tt('A {0} tem até {1} para responder. Acompanha-o no mapa de exposição.', [pedido.companyName, formatarData(pedido.dueDate)]),
     opcoes: vistaAtual() === 'pedidos'
-      ? [{ label: 'OK', estilo: 'primary', acao: () => {} }]
+      ? [{ label: tt('OK'), estilo: 'primary', acao: () => {} }]
       : [
-        { label: 'Ver no mapa', estilo: 'primary', acao: () => { selecaoMapa = { tipo: 'empresa', chave: pedido.companyId }; location.hash = '#pedidos'; } },
-        { label: 'Continuar nos resultados', estilo: 'secondary', acao: () => {} }
+        { label: tt('Ver no mapa'), estilo: 'primary', acao: () => { selecaoMapa = { tipo: 'empresa', chave: pedido.companyId }; location.hash = '#pedidos'; } },
+        { label: tt('Continuar nos resultados'), estilo: 'secondary', acao: () => {} }
       ]
   });
 }
@@ -1433,20 +1405,20 @@ function marcarNaoEnviado(pedidoId) {
   const pedido = obterPedido(pedidoId);
   if (!pedido) return;
   mudarEstado(pedido, 'draft');
-  mostrarToast('Guardado como rascunho na página de pedidos.');
+  mostrarToast(tt('Guardado como rascunho na página de pedidos.'));
 }
 
 function registarResposta(pedidoId) {
   const pedido = obterPedido(pedidoId);
   if (!pedido) return;
   abrirFolha({
-    titulo: `O que respondeu a ${pedido.companyName}?`,
-    texto: 'Escolhe a opção que melhor descreve a resposta. Isto atualiza o teu mapa de exposição.',
+    titulo: tt('O que respondeu a {0}?', [pedido.companyName]),
+    texto: tt('Escolhe a opção que melhor descreve a resposta. Isto atualiza o teu mapa de exposição.'),
     opcoes: [
       ...OUTCOMES_BY_RIGHT[pedido.right].map((chave, indice) => ({
         label: OUTCOMES[chave].label, estilo: indice === 0 ? 'primary' : 'secondary', acao: () => aplicarResultado(pedido.id, chave)
       })),
-      { label: 'Cancelar', estilo: 'ghost', acao: () => {} }
+      { label: tt('Cancelar'), estilo: 'ghost', acao: () => {} }
     ]
   });
 }
@@ -1473,13 +1445,7 @@ function enviarInsistencia(pedidoId) {
   const pedido = obterPedido(pedidoId);
   if (!pedido) return;
   const direito = RIGHTS[pedido.right];
-  const corpo = `Exmos. Senhores da ${pedido.companyName},
-
-No dia ${formatarData(pedido.sentAt)}, enviei-vos, a partir deste endereço de email, um pedido ao abrigo do ${direito.article} do RGPD. O prazo de um mês previsto no artigo 12.º, n.º 3, do RGPD terminou sem resposta.
-
-Solicito resposta com a maior brevidade. Na falta dela, reservo-me o direito de apresentar queixa à Comissão Nacional de Proteção de Dados (CNPD).
-
-Com os melhores cumprimentos.`;
+  const corpo = tt('Exmos. Senhores da {0},\n\nNo dia {1}, enviei-vos, a partir deste endereço de email, um pedido ao abrigo do {2} do RGPD. O prazo de um mês previsto no artigo 12.º, n.º 3, do RGPD terminou sem resposta.\n\nSolicito resposta com a maior brevidade. Na falta dela, reservo-me o direito de apresentar queixa à Comissão Nacional de Proteção de Dados (CNPD).\n\nCom os melhores cumprimentos.', [pedido.companyName, formatarData(pedido.sentAt), direito.article]);
   pedido.followUpAt = new Date().toISOString();
   pedido.timeline.push({ to: 'follow_up', at: pedido.followUpAt });
   guardarEstado();
@@ -1599,8 +1565,8 @@ function empresasDaNoticia(noticia) {
 function renderNoticias() {
   const minhas = NOTICIAS.filter((noticia) => empresasDaNoticia(noticia).length);
   document.getElementById('news-mine').innerHTML = minhas.length
-    ? `<span class="mt-0.5 text-slate-300">${icone('marcador')}</span><span><span class="font-semibold text-white">${minhas.length} ${plural(minhas.length, 'notícia é', 'notícias são')} sobre empresas que tens:</span> ${esc([...new Set(minhas.map((noticia) => noticia.empresa))].join(', '))}.</span>`
-    : '<span>Depois de analisares o teu email, marcamos aqui as notícias sobre empresas que têm os teus dados.</span>';
+    ? `<span class="mt-0.5 text-slate-300">${icone('marcador')}</span><span><span class="font-semibold text-white">${minhas.length} ${plural(minhas.length, tt('notícia é'), tt('notícias são'))} ${tt('sobre empresas que tens:')}</span> ${esc([...new Set(minhas.map((noticia) => noticia.empresa))].join(', '))}.</span>`
+    : `<span>${tt('Depois de analisares o teu email, marcamos aqui as notícias sobre empresas que têm os teus dados.')}</span>`;
 
   // O guia: cada pergunta abre a resposta (fica aberta entre desenhos)
   const abertas = new Set([...document.querySelectorAll('#news-guide details[open]')].map((d) => d.dataset.guia));
@@ -1620,7 +1586,7 @@ function renderNoticias() {
       </div>
     </details>`).join('');
 
-  const filtros = [['todas', 'Todas'], ['minhas', `As minhas empresas · ${minhas.length}`], ['fuga', 'Fugas de dados'], ['multa', 'Multas'], ['fraude', 'Burlas']];
+  const filtros = [['todas', 'Todas'], ['minhas', tt('As minhas empresas · {0}', [minhas.length])], ['fuga', tt('Fugas de dados')], ['multa', 'Multas'], ['fraude', 'Burlas']];
   document.getElementById('news-filters').innerHTML = filtros.map(([chave, texto]) => `
     <button data-action="filtro-noticias" data-filter="${chave}" type="button" class="shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${filtroNoticias === chave ? 'border-oliva bg-oliva text-ink' : 'border-slate-700 text-slate-300'}">${esc(texto)}</button>`).join('');
 
@@ -1628,8 +1594,8 @@ function renderNoticias() {
     .filter((noticia) => filtroNoticias === 'todas' || (filtroNoticias === 'minhas' ? empresasDaNoticia(noticia).length : noticia.tipo === filtroNoticias))
     .sort((a, b) => b.data.localeCompare(a.data));
   document.getElementById('news-list').innerHTML = lista.length ? lista.map(criarCartaoNoticia).join('')
-    : '<p class="rounded-xl border border-dashed border-slate-800 px-4 py-6 text-center text-xs text-mist">Nenhuma notícia sobre as tuas empresas, por agora.</p>';
-  document.getElementById('news-updated').textContent = `Atualizado a ${formatarData(NOTICIAS_ATUALIZADAS)}. Resumos da equipa Veto: lê sempre a fonte.`;
+    : `<p class="rounded-xl border border-dashed border-slate-800 px-4 py-6 text-center text-xs text-mist">${tt('Nenhuma notícia sobre as tuas empresas, por agora.')}</p>`;
+  document.getElementById('news-updated').textContent = tt('Atualizado a {0}. Resumos da equipa Veto: lê sempre a fonte.', [formatarData(NOTICIAS_ATUALIZADAS)]);
 }
 
 function criarCartaoNoticia(noticia) {
@@ -1641,7 +1607,7 @@ function criarCartaoNoticia(noticia) {
   return `<article class="rounded-2xl border ${afetadas.length ? 'border-rose-400/40 bg-rose-400/5' : 'border-slate-800 bg-slate-900/60'} p-4">
     <div class="flex flex-wrap items-center gap-2 text-[11px]">
       <span class="rounded-full px-2 py-0.5 font-bold ${tipo.style}">${tipo.label}</span>
-      ${noticia.estado === 'por_confirmar' ? '<span class="rounded-full bg-slate-700/60 px-2 py-0.5 font-bold text-slate-300">Por confirmar</span>' : ''}
+      ${noticia.estado === 'por_confirmar' ? `<span class="rounded-full bg-slate-700/60 px-2 py-0.5 font-bold text-slate-300">${tt('Por confirmar')}</span>` : ''}
       <span class="text-mist">${esc(noticia.empresa)} · ${formatarData(noticia.data)}</span>
     </div>
     <h3 class="mt-2 font-semibold leading-snug">${esc(noticia.titulo)}</h3>
@@ -1649,15 +1615,15 @@ function criarCartaoNoticia(noticia) {
     <p class="mt-2 text-xs leading-5 text-mist"><span class="font-semibold text-slate-200">Porque importa:</span> ${esc(noticia.importa)}</p>
     ${afetadas.length ? `
       <div class="mt-3 flex items-center justify-between gap-3 rounded-xl bg-ink/60 px-3 py-2">
-        <span class="text-[11px] font-semibold text-rose-200">Tens dados nesta empresa</span>
-        <button data-action="gerir" data-id="${esc(afetadas[0].id)}" type="button" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-[11px] font-bold text-ink">Gerir no mapa →</button>
+        <span class="text-[11px] font-semibold text-rose-200">${tt('Tens dados nesta empresa')}</span>
+        <button data-action="gerir" data-id="${esc(afetadas[0].id)}" type="button" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-[11px] font-bold text-ink">${tt('Gerir no mapa →')}</button>
       </div>` : ''}
     ${areaComum ? `
       <div class="mt-3 flex items-center justify-between gap-3 rounded-xl bg-ink/60 px-3 py-2">
-        <span class="text-[11px] font-semibold text-amber-100">Tens empresas na área ${esc(SECTORS[areaComum].label)}</span>
-        <button data-action="ver-area" data-sector="${areaComum}" type="button" class="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-[11px] font-bold text-slate-200">Ver no mapa →</button>
+        <span class="text-[11px] font-semibold text-amber-100">${tt('Tens empresas na área')} ${esc(SECTORS[areaComum].label)}</span>
+        <button data-action="ver-area" data-sector="${areaComum}" type="button" class="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-[11px] font-bold text-slate-200">${tt('Ver no mapa →')}</button>
       </div>` : ''}
-    <a href="${esc(noticia.fonte.url)}" target="_blank" rel="noopener noreferrer" data-action="abrir-fonte" data-id="${esc(noticia.id)}" class="mt-3 inline-block text-[11px] font-semibold text-lime underline decoration-lime/40 underline-offset-4">Ler em ${esc(noticia.fonte.nome)} (${esc(dominio)}) ↗</a>
+    <a href="${esc(noticia.fonte.url)}" target="_blank" rel="noopener noreferrer" data-action="abrir-fonte" data-id="${esc(noticia.id)}" class="mt-3 inline-block text-[11px] font-semibold text-lime underline decoration-lime/40 underline-offset-4">${tt('Ler em')} ${esc(noticia.fonte.nome)} (${esc(dominio)}) ↗</a>
   </article>`;
 }
 
@@ -1672,10 +1638,10 @@ function renderResumo() {
   const enviados = estado.pedidos.filter((pedido) => pedido.status !== 'draft').length;
   const atencao = estado.pedidos.filter(precisaDeAtencao).length;
   document.getElementById('service-count').textContent = lista.length;
-  document.getElementById('service-noun').textContent = plural(lista.length, 'empresa', 'empresas');
-  document.getElementById('service-verb').textContent = `${lista.length === 1 ? 'tem' : 'têm'} provavelmente os teus dados`;
+  document.getElementById('service-noun').textContent = plural(lista.length, tt('empresa'), tt('empresas'));
+  document.getElementById('service-verb').textContent = (lista.length === 1 ? tt('tem provavelmente os teus dados') : tt('têm provavelmente os teus dados'));
   document.getElementById('risk-count').textContent = sensiveis;
-  document.getElementById('analysis-date').textContent = estado.analisadoEm ? `analisado ${descreverDia(estado.analisadoEm)}` : 'ainda não analisado';
+  document.getElementById('analysis-date').textContent = estado.analisadoEm ? tt('analisado {0}', [descreverDia(estado.analisadoEm)]) : tt('ainda não analisado');
 
   const analisado = Boolean(estado.analisadoEm);
   document.getElementById('intro-panel').classList.toggle('hidden', analisado && !renderResumo.novaAnalise);
@@ -1688,8 +1654,8 @@ function renderResumo() {
   document.getElementById('relations-info').classList.toggle('hidden', !analisado || renderResumo.novaAnalise);
   if (analisado) {
     const rede = construirRede(nosDoMapa());
-    document.getElementById('relations-terceiros').textContent = rede.terceiros.length ? `· ${rede.terceiros.length} nas tuas empresas` : '· nenhum encontrado';
-    document.getElementById('relations-fugas').textContent = rede.incidentes.length ? `· ${rede.incidentes.length} nas tuas empresas` : '· nenhuma conhecida';
+    document.getElementById('relations-terceiros').textContent = rede.terceiros.length ? tt('· {0} nas tuas empresas', [rede.terceiros.length]) : tt('· nenhum encontrado');
+    document.getElementById('relations-fugas').textContent = rede.incidentes.length ? tt('· {0} nas tuas empresas', [rede.incidentes.length]) : tt('· nenhuma conhecida');
   }
 
   const badge = document.getElementById('nav-badge');
@@ -1707,15 +1673,15 @@ function renderPainel() {
   // Total e áreas sensíveis
   document.getElementById('dash-total').textContent = lista.length;
   document.getElementById('dash-source').textContent = estado.demo || !estado.emailsAnalisados
-    ? 'provavelmente têm os teus dados.'
-    : `provavelmente têm os teus dados, segundo os teus últimos ${estado.emailsAnalisados} emails.`;
+    ? tt('provavelmente têm os teus dados.')
+    : tt('provavelmente têm os teus dados, segundo os teus últimos {0} emails.', [estado.emailsAnalisados]);
   const sensiveis = SECTOR_ORDER.filter((chave) => SECTORS[chave].sensitive)
     .map((chave) => ({ chave, n: lista.filter((empresa) => empresa.sector === chave).length }))
     .filter((item) => item.n > 0);
   const totalSensiveis = sensiveis.reduce((soma, item) => soma + item.n, 0);
   document.getElementById('dash-sensitive').innerHTML = totalSensiveis
-    ? `${icone('alerta')}<span>${totalSensiveis} em áreas sensíveis: ${sensiveis.map((item) => esc(SECTORS[item.chave].short.toLowerCase())).join(', ')}</span>`
-    : '<span>Nenhuma em áreas sensíveis.</span>';
+    ? `${icone('alerta')}<span>${totalSensiveis} ${tt('em áreas sensíveis:')} ${sensiveis.map((item) => esc(SECTORS[item.chave].short.toLowerCase())).join(', ')}</span>`
+    : `<span>${tt('Nenhuma em áreas sensíveis.')}</span>`;
 
   // Gravidade se os dados se perderem
   const porGravidade = SEVERITY_ORDER.map((chave) => ({ chave, n: lista.filter((empresa) => gravidadeDe(empresa).chave === chave).length }));
@@ -1735,7 +1701,7 @@ function renderPainel() {
     const setor = SECTORS[chave];
     const ativo = filtroSetor === chave;
     return `<button data-action="setor" data-sector="${chave}" type="button"
-      aria-label="${esc(setor.label)}: ${empresas.length} ${plural(empresas.length, 'empresa', 'empresas')}, gravidade ${SEVERITY[setor.gravidade].label.toLowerCase()}"
+      aria-label="${esc(setor.label)}: ${empresas.length} ${plural(empresas.length, tt('empresa'), tt('empresas'))}, gravidade ${SEVERITY[setor.gravidade].label.toLowerCase()}"
       class="flex items-center gap-2.5 rounded-2xl border px-3 py-2.5 text-left transition ${ativo ? 'border-lime bg-lime/10' : setor.sensitive ? 'border-rose-400/30 bg-rose-400/5' : 'border-slate-800 bg-slate-900/60'}">
       <span class="text-slate-300">${icone(chave, 'h-5 w-5')}</span>
       <span class="min-w-0 flex-1">
@@ -1755,9 +1721,9 @@ function renderPainel() {
 
   // Explicação
   document.getElementById('kind-legend').innerHTML = `
-    <p>Olhamos só para quem te enviou emails, o assunto e a data. Cada empresa fica numa área (estimada pelo nome, quando não está no nosso catálogo) e numa de quatro categorias:</p>
+    <p>${tt('Olhamos só para quem te enviou emails, o assunto e a data. Cada empresa fica numa área (estimada pelo nome, quando não está no nosso catálogo) e numa de quatro categorias:')}</p>
     ${KIND_ORDER.map((chave) => `<p><span class="mr-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${KINDS[chave].style}">${KINDS[chave].label}</span>${esc(KINDS[chave].help)}</p>`).join('')}
-    <p>Se uma empresa não for tua, abre "Porquê esta empresa?" e escolhe "Não tenho dados aqui".</p>`;
+    <p>${tt('Se uma empresa não for tua, abre "Porquê esta empresa?" e escolhe "Não tenho dados aqui".')}</p>`;
 }
 
 function emailsUltimos30Dias(empresa) {
@@ -1779,13 +1745,13 @@ function renderFrequencia(lista) {
     <div class="flex items-center gap-3 rounded-xl bg-ink/60 px-3 py-2">
       <span class="w-4 text-center text-xs font-bold text-mist">${indice + 1}</span>
       <span class="min-w-0 flex-1 truncate text-sm font-semibold">${esc(empresa.name)}</span>
-      <span class="shrink-0 text-xs text-lime">${contagem} ${contagem === 1 ? 'email' : 'emails'}</span>
+      <span class="shrink-0 text-xs text-lime">${contagem} ${contagem === 1 ? tt('email') : tt('emails')}</span>
     </div>`).join('');
   const semInformacaoTexto = semInformacao.length
     ? `<div class="rounded-xl bg-ink/60 px-3 py-2 text-xs leading-4 text-mist">
-        <span class="font-semibold text-slate-200">Sem informação nos últimos 30 dias:</span>
+        <span class="font-semibold text-slate-200">${tt('Sem informação nos últimos 30 dias:')}</span>
         ${esc(semInformacao.slice(0, 5).map(({ empresa }) => empresa.name).join(', '))}
-        ${semInformacao.length > 5 ? ` e mais ${semInformacao.length - 5}.` : '.'}
+        ${semInformacao.length > 5 ? tt(' e mais {0}.', [semInformacao.length - 5]) : '.'}
       </div>`
     : '';
   container.innerHTML = ranking + semInformacaoTexto;
@@ -1802,11 +1768,11 @@ function renderEmpresas() {
     .filter((empresa) => `${empresa.name} ${empresa.domain} ${SECTORS[empresa.sector]?.label || ''}`.toLowerCase().includes(query))
     .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || (b.evidence?.count || 0) - (a.evidence?.count || 0));
 
-  document.getElementById('list-title').textContent = filtroSetor === 'todos' ? 'Todas as empresas' : SECTORS[filtroSetor].label;
-  document.getElementById('service-total').textContent = `${filtradas.length} de ${lista.length}${estado.demo ? ' · exemplo' : ''}`;
+  document.getElementById('list-title').textContent = filtroSetor === 'todos' ? tt('Todas as empresas') : SECTORS[filtroSetor].label;
+  document.getElementById('service-total').textContent = tt('{0} de {1}{2}', [filtradas.length, lista.length, estado.demo ? ' · ' + tt('exemplo') : '']);
 
   if (!filtradas.length) {
-    container.innerHTML = '<p class="py-8 text-center text-sm text-mist lg:col-span-full">Nenhuma empresa encontrada.</p>';
+    container.innerHTML = `<p class="py-8 text-center text-sm text-mist lg:col-span-full">${tt('Nenhuma empresa encontrada.')}</p>`;
   } else if (filtroSetor === 'todos' && !query && filtroTipo === 'todas') {
     // Sem filtros: agrupar por área, sensíveis primeiro.
     const grupos = SECTOR_ORDER
@@ -1825,7 +1791,7 @@ function renderEmpresas() {
   const descartadas = estado.empresas.length - lista.length;
   const linha = document.getElementById('dismissed-row');
   linha.classList.toggle('hidden', descartadas === 0);
-  linha.innerHTML = descartadas ? `<button data-action="repor-descartadas" type="button" class="text-xs font-semibold text-slate-500 underline decoration-slate-700 underline-offset-4">Repor ${descartadas} ${descartadas === 1 ? 'empresa descartada' : 'empresas descartadas'}</button>` : '';
+  linha.innerHTML = descartadas ? `<button data-action="repor-descartadas" type="button" class="text-xs font-semibold text-slate-500 underline decoration-slate-700 underline-offset-4">Repor ${descartadas} ${descartadas === 1 ? tt('empresa descartada') : tt('empresas descartadas')}</button>` : '';
 }
 
 function criarCard(empresa) {
@@ -1845,7 +1811,7 @@ function criarCard(empresa) {
     </a>` : '';
 
   const cancelada = empresa.unsubscribedAt ? `
-    <p class="mt-3 rounded-xl bg-amber-400/10 px-3 py-2 text-[11px] leading-4 text-amber-100">Subscrição cancelada. A ${esc(empresa.name)} continua a guardar os teus dados.</p>` : '';
+    <p class="mt-3 rounded-xl bg-amber-400/10 px-3 py-2 text-[11px] leading-4 text-amber-100">${tt('Subscrição cancelada. A')} ${esc(empresa.name)} ${tt('continua a guardar os teus dados.')}</p>` : '';
 
   // O essencial à vista; o porquê fica um toque abaixo
   return `<article class="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
@@ -1860,14 +1826,14 @@ function criarCard(empresa) {
     ${estadoPedido}
     ${cancelada}
     <div class="mt-3 flex gap-2">
-      <button data-action="gerir" data-id="${esc(empresa.id)}" type="button" class="flex-1 rounded-lg bg-white py-2.5 text-xs font-bold text-ink">Gerir os meus dados</button>
-      ${empresa.unsubscribe && !empresa.unsubscribedAt ? `<button data-action="cancelar-subscricao" data-id="${esc(empresa.id)}" type="button" class="rounded-lg bg-slate-800 px-3 py-2.5 text-xs font-bold text-slate-200">Cancelar subscrição</button>` : ''}
+      <button data-action="gerir" data-id="${esc(empresa.id)}" type="button" class="flex-1 rounded-lg bg-white py-2.5 text-xs font-bold text-ink">${tt('Gerir os meus dados')}</button>
+      ${empresa.unsubscribe && !empresa.unsubscribedAt ? `<button data-action="cancelar-subscricao" data-id="${esc(empresa.id)}" type="button" class="rounded-lg bg-slate-800 px-3 py-2.5 text-xs font-bold text-slate-200">${tt('Cancelar subscrição')}</button>` : ''}
     </div>
-    ${!estado.demo ? `<button data-action="apagar-emails" data-id="${esc(empresa.id)}" type="button" class="mt-3 block text-[11px] font-semibold text-rose-200/90 underline decoration-rose-300/30 underline-offset-4">Apagar os emails desta empresa no Gmail</button>` : ''}
+    ${!estado.demo ? `<button data-action="apagar-emails" data-id="${esc(empresa.id)}" type="button" class="mt-3 block text-[11px] font-semibold text-rose-200/90 underline decoration-rose-300/30 underline-offset-4">${tt('Apagar os emails desta empresa no Gmail')}</button>` : ''}
     <details class="mt-2 text-xs leading-5 text-mist">
-      <summary class="cursor-pointer font-semibold text-slate-500">Porquê esta empresa?</summary>
+      <summary class="cursor-pointer font-semibold text-slate-500">${tt('Porquê esta empresa?')}</summary>
       ${porqueEstaEmpresa(empresa)}
-      <button data-action="descartar" data-id="${esc(empresa.id)}" type="button" class="mt-2 font-semibold text-slate-400 underline decoration-slate-700 underline-offset-4">Não tenho dados aqui</button>
+      <button data-action="descartar" data-id="${esc(empresa.id)}" type="button" class="mt-2 font-semibold text-slate-400 underline decoration-slate-700 underline-offset-4">${tt('Não tenho dados aqui')}</button>
     </details>
   </article>`;
 }
@@ -1891,19 +1857,19 @@ function porqueEstaEmpresa(empresa) {
   const dominios = (empresa.domains?.length ? empresa.domains : [empresa.domain]).join(', ');
   // Se o email que deu a pista for o último, não se repete a data
   const eOUltimo = ev.sampleDate && ev.lastDate && formatarData(ev.sampleDate) === formatarData(ev.lastDate);
-  const qual = eOUltimo ? 'O último' : 'Um deles';
-  const exemplo = `${ev.sampleSubject ? `: «${esc(ocultarCodigos(ev.sampleSubject))}»` : ''}${ev.sampleDate && !eOUltimo ? `, de ${formatarData(ev.sampleDate)}` : ''}`;
+  const qual = eOUltimo ? tt('O último') : tt('Um deles');
+  const exemplo = `${ev.sampleSubject ? `: «${esc(ocultarCodigos(ev.sampleSubject))}»` : ''}${ev.sampleDate && !eOUltimo ? tt(', de {0}', [formatarData(ev.sampleDate)]) : ''}`;
   const sinal = {
-    likely_account: `${qual} é de boas-vindas, registo ou palavra-passe${exemplo}. Por isso, deves ter conta.`,
-    purchase: `${qual} é um recibo, fatura ou encomenda${exemplo}. Por isso, deves ter comprado lá.`,
-    newsletter: 'Trazem um link para cancelar a subscrição: estás na lista de marketing.',
-    unknown: 'Nenhum indica conta, compra ou marketing. Confirma se a empresa é tua.'
+    likely_account: tt('{0} é de boas-vindas, registo ou palavra-passe{1}. Por isso, deves ter conta.', [qual, exemplo]),
+    purchase: tt('{0} é um recibo, fatura ou encomenda{1}. Por isso, deves ter comprado lá.', [qual, exemplo]),
+    newsletter: tt('Trazem um link para cancelar a subscrição: estás na lista de marketing.'),
+    unknown: tt('Nenhum indica conta, compra ou marketing. Confirma se a empresa é tua.')
   }[empresa.kind] || '';
   const linha = (titulo, texto) => `<div><dt class="font-semibold text-slate-300">${titulo}</dt><dd class="mt-0.5">${texto}</dd></div>`;
   return `<dl class="mt-2 space-y-2">
-    ${linha('O que encontrámos', `Recebeste ≈ ${recebidos} ${plural(recebidos, 'email', 'emails')} de ${esc(dominios)}${ev.lastDate ? `, o último a ${formatarData(ev.lastDate)}` : ''}.${ev.enviados ? ` Escreveste-lhes ${ev.enviados} ${plural(ev.enviados, 'vez', 'vezes')}.` : ''} ${sinal}`)}
-    ${linha('O que costumam guardar', O_QUE_GUARDAM[empresa.kind] || O_QUE_GUARDAM.unknown)}
-    ${linha('Área', `${esc(setor.label)}${empresa.sectorEstimated ? ' (estimada pelo nome)' : ''}. ${esc(setor.porque || '')}`)}
+    ${linha(tt('O que encontrámos'), tt('Recebeste ≈ {0} {1} de {2}{3}.{4} {5}', [recebidos, plural(recebidos, tt('email'), tt('emails')), esc(dominios), ev.lastDate ? tt(', o último a {0}', [formatarData(ev.lastDate)]) : '', ev.enviados ? tt(' Escreveste-lhes {0} {1}.', [ev.enviados, plural(ev.enviados, tt('vez'), tt('vezes'))]) : '', sinal]))}
+    ${linha(tt('O que costumam guardar'), O_QUE_GUARDAM[empresa.kind] || O_QUE_GUARDAM.unknown)}
+    ${linha(tt('Área'), `${esc(setor.label)}${empresa.sectorEstimated ? ' ' + tt('(estimada pelo nome)') : ''}. ${esc(setor.porque || '')}`)}
   </dl>`;
 }
 
@@ -1918,12 +1884,12 @@ function cancelarSubscricao(empresaId) {
   const empresa = obterEmpresa(empresaId);
   if (!empresa?.unsubscribe) return;
   abrirFolha({
-    titulo: `Cancelar a subscrição da ${empresa.name}?`,
-    texto: `Deixas de receber os emails de marketing, mas a ${empresa.name} continua a guardar os teus dados. Para os apagar, faz um pedido de apagamento no mapa de exposição.`,
+    titulo: tt('Cancelar a subscrição da {0}?', [empresa.name]),
+    texto: tt('Deixas de receber os emails de marketing, mas a {0} continua a guardar os teus dados. Para os apagar, faz um pedido de apagamento no mapa de exposição.', [empresa.name]),
     opcoes: [
-      { label: 'Cancelar subscrição', estilo: 'primary', acao: () => abrirCancelamento(empresa) },
-      { label: 'Gerir os meus dados no mapa', estilo: 'secondary', acao: () => irParaMapa(empresa.id) },
-      { label: 'Agora não', estilo: 'ghost', acao: () => {} }
+      { label: tt('Cancelar subscrição'), estilo: 'primary', acao: () => abrirCancelamento(empresa) },
+      { label: tt('Gerir os meus dados no mapa'), estilo: 'secondary', acao: () => irParaMapa(empresa.id) },
+      { label: tt('Agora não'), estilo: 'ghost', acao: () => {} }
     ]
   });
 }
@@ -1939,7 +1905,7 @@ function abrirCancelamento(empresa) {
     const parametros = new URLSearchParams(consulta || '');
     abrirEmail(decodeURIComponent(para), parametros.get('subject') || 'Unsubscribe', parametros.get('body') || 'Unsubscribe');
   } else if (link === 'exemplo') {
-    mostrarToast('No exemplo não abrimos nenhum link de cancelamento.');
+    mostrarToast(tt('No exemplo não abrimos nenhum link de cancelamento.'));
   }
   empresa.unsubscribedAt = new Date().toISOString();
   guardarEstado();
@@ -1947,11 +1913,11 @@ function abrirCancelamento(empresa) {
   registarEvento('subscricao_cancelada', { area: empresa.sector, demo: estado.demo });
   if (porEmail) return; // a escolha da app de email já está no ecrã
   abrirFolha({
-    titulo: 'Subscrição cancelada',
-    texto: `A ${empresa.name} deixa de te enviar marketing, mas os teus dados continuam lá. Queres pedir que os apague?`,
+    titulo: tt('Subscrição cancelada'),
+    texto: tt('A {0} deixa de te enviar marketing, mas os teus dados continuam lá. Queres pedir que os apague?', [empresa.name]),
     opcoes: [
-      { label: 'Pedir apagamento no mapa', estilo: 'primary', acao: () => irParaMapa(empresa.id) },
-      { label: 'Agora não', estilo: 'ghost', acao: () => {} }
+      { label: tt('Pedir apagamento no mapa'), estilo: 'primary', acao: () => irParaMapa(empresa.id) },
+      { label: tt('Agora não'), estilo: 'ghost', acao: () => {} }
     ]
   });
 }
@@ -1961,15 +1927,15 @@ function mostrarMaisOpcoes(empresaId) {
   if (!empresa) return;
   abrirFolha({
     titulo: empresa.name,
-    texto: (!empresa.dpo_email ? 'Ainda não temos um contacto de privacidade para esta empresa.'
-      : empresa.contactExample ? `Contacto de exemplo: ${empresa.dpo_email}. Na versão final, o contacto vem de um catálogo verificado.`
-      : `Contacto de privacidade: ${empresa.dpo_email}`)
-      + (empresa.privacyForm ? ` Esta empresa recebe pedidos no formulário oficial: ${empresa.privacyForm.replace(/^https?:\/\/(www\.)?/, '')}` : ''),
+    texto: (!empresa.dpo_email ? tt('Ainda não temos um contacto de privacidade para esta empresa.')
+      : empresa.contactExample ? tt('Contacto de exemplo: {0}. Na versão final, o contacto vem de um catálogo verificado.', [empresa.dpo_email])
+      : tt('Contacto de privacidade: {0}', [empresa.dpo_email]))
+      + (empresa.privacyForm ? tt(' Esta empresa recebe pedidos no formulário oficial: {0}', [empresa.privacyForm.replace(/^https?:\/\/(www\.)?/, '')]) : ''),
     opcoes: [
       { label: RIGHTS.erasure.label, estilo: 'secondary', acao: () => prepararPedido(empresa.id, 'erasure') },
       { label: RIGHTS.objection.label, estilo: 'secondary', acao: () => prepararPedido(empresa.id, 'objection') },
-      { label: 'Não tenho dados aqui', estilo: 'secondary', acao: () => definirDescartada(empresa.id, true) },
-      { label: 'Cancelar', estilo: 'ghost', acao: () => {} }
+      { label: tt('Não tenho dados aqui'), estilo: 'secondary', acao: () => definirDescartada(empresa.id, true) },
+      { label: tt('Cancelar'), estilo: 'ghost', acao: () => {} }
     ]
   });
 }
@@ -2015,8 +1981,8 @@ function renderPedidos() {
   const concluidos = pedidos.filter((pedido) => pedido.status === 'closed' || (pedido.status === 'reply_received' && pedido.holdsData !== null))
     .sort((a, b) => (b.closedAt || b.replyAt || '').localeCompare(a.closedAt || a.replyAt || ''));
 
-  preencherGrupo('group-waiting', espera, 'Nenhum pedido à espera de resposta.');
-  preencherGrupo('group-done', concluidos, 'Ainda nenhum pedido concluído.');
+  preencherGrupo('group-waiting', espera, tt('Nenhum pedido à espera de resposta.'));
+  preencherGrupo('group-done', concluidos, tt('Ainda nenhum pedido concluído.'));
 }
 
 function preencherGrupo(id, pedidos, vazio) {
@@ -2064,7 +2030,7 @@ function incidentesDe(empresa) {
 }
 
 function nomeDoIncidente(noticia) {
-  return `${noticia.tipo === 'fuga' ? 'Fuga' : 'Burla'} ${noticia.data.slice(0, 4)}`;
+  return `${noticia.tipo === 'fuga' ? tt('Fuga') : tt('Burla')} ${noticia.data.slice(0, 4)}`;
 }
 
 function construirRede(nos) {
@@ -2257,13 +2223,13 @@ function desenharRede(rede) {
     </g>`).join('');
   const pontosEmpresas = grupos.flatMap((g) => g.nos).map((no) => ponto({
     id: no.id, r: RAIO_EMPRESA[no.gravidade] || 3.5, cor: SEVERITY[no.gravidade].hex, brilho: `brilho-${no.gravidade}`,
-    acao: `data-action="mapa-empresa" data-id="${esc(no.id)}"`, titulo: `${no.name}: gravidade ${SEVERITY[no.gravidade].label.toLowerCase()}`,
+    acao: `data-action="mapa-empresa" data-id="${esc(no.id)}"`, titulo: tt('{0}: gravidade {1}', [no.name, SEVERITY[no.gravidade].label.toLowerCase()]),
     anel: no.balde !== 'sempedido'
   })).join('');
   const nomeDe = (s) => rede.terceiros.find((x) => x.id === s.id);
   const pontosSatelites = satelites.map((s) => ponto({
     id: s.id, r: 4.6, cor: REDE.TERCEIRO, brilho: 'brilho-terceiro',
-    acao: `data-action="mapa-terceiro" data-id="${esc(s.id)}"`, titulo: `${nomeDe(s).nome}: terceiro`
+    acao: `data-action="mapa-terceiro" data-id="${esc(s.id)}"`, titulo: tt('{0}: terceiro', [nomeDe(s).nome])
   })).join('');
 
   // 6. Nomes. Os das áreas veem-se sempre; os das empresas só com zoom (ou ligadas ao que escolheste),
@@ -2288,18 +2254,18 @@ function desenharRede(rede) {
   const botao = (zoom, rotulo, conteudo) => `<button data-action="mapa-zoom" data-zoom="${zoom}" type="button" aria-label="${rotulo}" title="${rotulo}"
     class="flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 text-slate-200 transition hover:border-slate-500 disabled:opacity-30">${conteudo}</button>`;
   const traco = (d) => `<svg viewBox="0 0 16 16" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
-  return `<svg data-rede viewBox="${r1(-W / 2)} ${r1(-H / 2)} ${r1(W)} ${r1(H)}" class="block h-auto w-full select-none" role="group" aria-label="Mapa das empresas que têm os teus dados, por área">
+  return `<svg data-rede viewBox="${r1(-W / 2)} ${r1(-H / 2)} ${r1(W)} ${r1(H)}" class="block h-auto w-full select-none" role="group" aria-label="${tt('Mapa das empresas que têm os teus dados, por área')}">
       <defs>${SEVERITY_ORDER.map((chave) => gradiente(`brilho-${chave}`, SEVERITY[chave].hex)).join('')}${gradiente('brilho-empresa', REDE.EMPRESA)}${gradiente('brilho-terceiro', REDE.TERCEIRO)}</defs>
       <rect data-action="mapa-limpar" x="${r1(-W / 2)}" y="${r1(-H / 2)}" width="${r1(W)}" height="${r1(H)}" fill="transparent"/>
       ${fundos}${raiosAreas}${linhasRel}${nucleos}${pontosEmpresas}${pontosSatelites}
       <g>${textos}</g>
     </svg>
     <div class="mt-2 flex items-center justify-between gap-3">
-      <p id="map-zoom-hint" class="text-[11px] leading-4 text-mist">Aproxima para veres os nomes.</p>
+      <p id="map-zoom-hint" class="text-[11px] leading-4 text-mist">${tt('Aproxima para veres os nomes.')}</p>
       <div class="flex shrink-0 gap-1.5">
         ${botao('menos', 'Afastar', traco('M4 8h8'))}
         ${botao('mais', 'Aproximar', traco('M4 8h8M8 4v8'))}
-        ${botao('repor', 'Ver o mapa todo', traco('M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10'))}
+        ${botao('repor', tt('Ver o mapa todo'), traco('M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10'))}
       </div>
     </div>`;
 }
@@ -2403,7 +2369,7 @@ function aplicarZoom() {
   // Sem zoom, um dedo faz scroll à página; com zoom, arrasta o mapa
   caixa.style.touchAction = k > 1 ? 'none' : 'pan-y';
   const dica = document.getElementById('map-zoom-hint');
-  if (dica) dica.textContent = comNomes ? 'Arrasta para percorrer o mapa.' : 'Aproxima para veres os nomes.';
+  if (dica) dica.textContent = comNomes ? tt('Arrasta para percorrer o mapa.') : tt('Aproxima para veres os nomes.');
   caixa.querySelector('[data-zoom="menos"]')?.toggleAttribute('disabled', k <= 1);
   caixa.querySelector('[data-zoom="repor"]')?.toggleAttribute('disabled', k <= 1);
   caixa.querySelector('[data-zoom="mais"]')?.toggleAttribute('disabled', k >= zoomMax - 0.01);
@@ -2545,10 +2511,10 @@ function ligarZoomDoMapa() {
 function legendaDaRede(rede) {
   const areas = new Set(rede.empresas.map((no) => no.sector)).size;
   return `<p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-      <span class="text-slate-300"><span class="font-semibold text-white">${rede.empresas.length}</span> ${plural(rede.empresas.length, 'empresa', 'empresas')} em <span class="font-semibold text-white">${areas}</span> ${plural(areas, 'área', 'áreas')}</span>
+      <span class="text-slate-300"><span class="font-semibold text-white">${rede.empresas.length}</span> ${plural(rede.empresas.length, tt('empresa'), tt('empresas'))} ${tt('em')} <span class="font-semibold text-white">${areas}</span> ${plural(areas, tt('área'), tt('áreas'))}</span>
       ${SEVERITY_ORDER.map((chave) => `<span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full" style="background:${SEVERITY[chave].hex};box-shadow:0 0 8px ${SEVERITY[chave].hex}"></span><span class="text-slate-300">${SEVERITY[chave].label}</span></span>`).join('')}
     </p>
-    <p class="mt-2 text-[11px] leading-4 text-mist">A cor e o tamanho mostram a gravidade de uma fuga. O anel verde marca um pedido enviado.</p>`;
+    <p class="mt-2 text-[11px] leading-4 text-mist">${tt('A cor e o tamanho mostram a gravidade de uma fuga. O anel verde marca um pedido enviado.')}</p>`;
 }
 
 // Todas as empresas da análise, mais as que têm pedidos mas já não estão na lista.
@@ -2591,7 +2557,7 @@ function detalheDoMapa(nos, rede) {
   const ordenar = (lista) => [...lista].sort((a, b) => SEVERITY_ORDER.indexOf(a.gravidade) - SEVERITY_ORDER.indexOf(b.gravidade)
     || MAP_ORDER.indexOf(a.balde) - MAP_ORDER.indexOf(b.balde) || a.name.localeCompare(b.name));
   const linhas = (lista, mostrarArea) => `<div class="mt-2">${ordenar(lista).map((no) => linhaDoMapa(no, mostrarArea)).join('')}</div>`;
-  const contar = (n) => `${n} ${plural(n, 'empresa', 'empresas')}`;
+  const contar = (n) => `${n} ${plural(n, tt('empresa'), tt('empresas'))}`;
   const nomes = (lista) => {
     const n = lista.map((no) => no.name);
     return n.length > 1 ? `${n.slice(0, -1).join(', ')} e ${n[n.length - 1]}` : n[0];
@@ -2600,16 +2566,16 @@ function detalheDoMapa(nos, rede) {
   // Nada escolhido: uma frase e as três empresas mais graves
   if (!sel) {
     const primeiras = ordenar(nos).slice(0, 3);
-    return `<p class="text-sm text-slate-300"><span class="lg:hidden">Toca</span><span class="hidden lg:inline">Clica</span> num ponto para veres o que podes fazer.</p>
-      ${primeiras.length ? `<p class="mt-3 text-xs font-semibold text-slate-400">Começa pelas mais graves</p>${linhas(primeiras, true)}` : ''}`;
+    return `<p class="text-sm text-slate-300"><span class="lg:hidden">Toca</span><span class="hidden lg:inline">Clica</span> ${tt('num ponto para veres o que podes fazer.')}</p>
+      ${primeiras.length ? `<p class="mt-3 text-xs font-semibold text-slate-400">${tt('Começa pelas mais graves')}</p>${linhas(primeiras, true)}` : ''}`;
   }
 
   if (sel.tipo === 'terceiro') {
     const t = rede.terceiros.find((item) => item.id === sel.chave);
     const uma = t.ligados.length === 1;
     return `${cabecalho(bola(REDE.TERCEIRO), esc(t.nome), `Terceiro · ${esc(t.dominio)}`)}
-      <p class="mt-3 text-sm leading-5 text-slate-300">${esc(nomes(t.ligados))} ${uma ? 'usa' : 'usam'} o ${esc(t.nome)} para te enviar emails. O ${esc(t.nome)} recebe o teu endereço em nome ${uma ? 'dela' : 'delas'} e pode registar quando abres as mensagens.</p>
-      <p class="mt-2 text-xs leading-5 text-mist">Não comprou os teus dados: trabalha por conta ${uma ? 'da empresa' : 'das empresas'}. Se pedires o apagamento, ${uma ? 'ela tem' : 'elas têm'} de avisar o ${esc(t.nome)} (artigo 19.º do RGPD).</p>
+      <p class="mt-3 text-sm leading-5 text-slate-300">${esc(nomes(t.ligados))} ${uma ? tt('usa') : tt('usam')} ${tt('o')} ${esc(t.nome)} ${tt('para te enviar emails. O')} ${esc(t.nome)} ${tt('recebe o teu endereço em nome')} ${uma ? tt('dela') : tt('delas')} ${tt('e pode registar quando abres as mensagens.')}</p>
+      <p class="mt-2 text-xs leading-5 text-mist">${tt('Não comprou os teus dados: trabalha por conta')} ${uma ? tt('da empresa') : tt('das empresas')}${tt('. Se pedires o apagamento,')} ${uma ? tt('ela tem') : tt('elas têm')} ${tt('de avisar o')} ${esc(t.nome)} ${tt('(artigo 19.º do RGPD).')}</p>
       ${linhas(t.ligados, true)}`;
   }
 
@@ -2631,21 +2597,21 @@ function detalheDoMapa(nos, rede) {
   const historico = pedidosDaEmpresa.map((pedido) => `
     <div class="flex items-center justify-between gap-3 border-b border-slate-800 py-2 last:border-b-0">
       <span class="text-xs text-slate-300">${esc(RIGHTS[pedido.right].short)}: ${esc(descreverPedido(pedido))}</span>
-      <button data-action="ver-pedido" data-id="${esc(pedido.id)}" type="button" class="shrink-0 text-[11px] font-bold text-lime">Ver pedido</button>
+      <button data-action="ver-pedido" data-id="${esc(pedido.id)}" type="button" class="shrink-0 text-[11px] font-bold text-lime">${tt('Ver pedido')}</button>
     </div>`).join('');
   const semContacto = !no.empresa?.dpo_email;
   // Com quem partilha e onde já houve problemas, só se houver
   const terceiro = no.empresa ? terceiroDe(no.empresa) : null;
   const incidentes = incidentesDe(no.empresa);
   const ligacoes = terceiro || incidentes.length ? `
-    <p class="mt-4 text-xs font-semibold text-slate-400">${terceiro && incidentes.length ? 'Terceiros e fugas' : terceiro ? 'Terceiros' : 'Fugas conhecidas'}</p>
+    <p class="mt-4 text-xs font-semibold text-slate-400">${terceiro && incidentes.length ? tt('Terceiros e fugas') : terceiro ? tt('Terceiros') : tt('Fugas conhecidas')}</p>
     <div class="mt-2 flex flex-col gap-1.5">
-      ${terceiro ? `<button data-action="mapa-terceiro" data-id="${esc(terceiro.id)}" type="button" class="flex items-center gap-2 text-left text-xs text-slate-300">${bola(REDE.TERCEIRO)}Usa o ${esc(terceiro.nome)} para te enviar emails</button>` : ''}
-      ${incidentes.map((n) => `<p class="flex items-center gap-2 text-xs text-slate-300"><span class="text-slate-400">${icone('alerta', 'h-3.5 w-3.5')}</span>${n.tipo === 'fuga' ? 'Teve uma fuga de dados' : 'Foi usada numa burla'} em ${n.data.slice(0, 4)} · <a href="${esc(n.fonte.url)}" target="_blank" rel="noopener noreferrer" data-action="abrir-fonte" data-id="${esc(n.id)}" class="text-slate-400 underline underline-offset-2">notícia</a></p>`).join('')}
+      ${terceiro ? `<button data-action="mapa-terceiro" data-id="${esc(terceiro.id)}" type="button" class="flex items-center gap-2 text-left text-xs text-slate-300">${bola(REDE.TERCEIRO)}${tt('Usa o')} ${esc(terceiro.nome)} ${tt('para te enviar emails')}</button>` : ''}
+      ${incidentes.map((n) => `<p class="flex items-center gap-2 text-xs text-slate-300"><span class="text-slate-400">${icone('alerta', 'h-3.5 w-3.5')}</span>${n.tipo === 'fuga' ? tt('Teve uma fuga de dados') : tt('Foi usada numa burla')} ${tt('em')} ${n.data.slice(0, 4)} · <a href="${esc(n.fonte.url)}" target="_blank" rel="noopener noreferrer" data-action="abrir-fonte" data-id="${esc(n.id)}" class="text-slate-400 underline underline-offset-2">${tt('notícia')}</a></p>`).join('')}
     </div>` : '';
   // Os quatro direitos: cada um mostra se já há um pedido aberto
   const direitos = no.empresa ? `
-    <p class="mt-4 text-xs font-semibold text-slate-400">O que podes pedir</p>
+    <p class="mt-4 text-xs font-semibold text-slate-400">${tt('O que podes pedir')}</p>
     <div class="mt-2 grid grid-cols-2 gap-2">
       ${DIREITOS_NO_MAPA.map(({ right, titulo, frase }) => {
         const aberto = pedidosDaEmpresa.find((pedido) => pedido.right === right && pedido.status !== 'closed');
@@ -2657,12 +2623,12 @@ function detalheDoMapa(nos, rede) {
         </button>`;
       }).join('')}
     </div>` : '';
-  return `${cabecalho(bola((SEVERITY[no.gravidade] || SEVERITY.media).hex), esc(no.name), `${esc(setor.label)}${ev ? ` · ≈ ${ev.totalRecebidos ?? ev.count} emails` : ''}`)}
+  return `${cabecalho(bola((SEVERITY[no.gravidade] || SEVERITY.media).hex), esc(no.name), `${esc(setor.label)}${ev ? tt(' · ≈ {0} emails', [ev.totalRecebidos ?? ev.count]) : ''}`)}
     ${porque(no.gravidade, no.motivo)}
     ${ligacoes}
     ${direitos}
-    ${no.empresa?.dpo_email ? `<p class="mt-2 truncate text-[11px] text-slate-500">Contacto${no.empresa.contactExample ? ' por verificar' : ''}: ${esc(no.empresa.dpo_email)}</p>` : ''}
-    ${historico ? `<p class="mt-4 text-xs font-semibold text-slate-400">Os teus pedidos</p><div class="mt-1">${historico}</div>` : ''}`;
+    ${no.empresa?.dpo_email ? `<p class="mt-2 truncate text-[11px] text-slate-500">${no.empresa.contactExample ? tt('Contacto por verificar') : tt('Contacto')}: ${esc(no.empresa.dpo_email)}</p>` : ''}
+    ${historico ? `<p class="mt-4 text-xs font-semibold text-slate-400">${tt('Os teus pedidos')}</p><div class="mt-1">${historico}</div>` : ''}`;
 }
 
 function linhaDoMapa(no, mostrarArea) {
@@ -2670,12 +2636,12 @@ function linhaDoMapa(no, mostrarArea) {
   const semContacto = !no.empresa?.dpo_email;
   const texto = no.ultimo
     ? `${RIGHTS[no.ultimo.right].short}: ${descreverPedido(no.ultimo)}`
-    : semContacto ? 'Ainda sem pedido · contacto por verificar' : 'Ainda sem pedido';
+    : semContacto ? tt('Ainda sem pedido · contacto por verificar') : tt('Ainda sem pedido');
   let acao = '';
   if (no.ultimo) {
-    acao = `<button data-action="ver-pedido" data-id="${esc(no.ultimo.id)}" type="button" class="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-[11px] font-bold text-slate-200">Ver pedido</button>`;
+    acao = `<button data-action="ver-pedido" data-id="${esc(no.ultimo.id)}" type="button" class="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-[11px] font-bold text-slate-200">${tt('Ver pedido')}</button>`;
   } else if (no.empresa && !semContacto) {
-    acao = `<button data-action="mapa-empresa" data-id="${esc(no.id)}" type="button" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-[11px] font-bold text-ink">Ver opções</button>`;
+    acao = `<button data-action="mapa-empresa" data-id="${esc(no.id)}" type="button" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-[11px] font-bold text-ink">${tt('Ver opções')}</button>`;
   }
   const cor = SEVERITY[no.gravidade].hex;
   return `<div class="flex items-center gap-3 border-b border-slate-800 py-2.5 last:border-b-0">
@@ -2715,22 +2681,22 @@ function criarCartaoPedido(pedido) {
   let linhaPrazo = '';
   if (pedido.status === 'sent' && prazo !== null) {
     linhaPrazo = prazo >= 0
-      ? `<span class="text-slate-300">Prazo: ${formatarData(pedido.dueDate)} · ${prazo === 0 ? 'termina hoje' : `faltam ${prazo} ${prazo === 1 ? 'dia' : 'dias'}`}</span>`
-      : `<span class="font-semibold text-orange-300">Prazo terminou a ${formatarData(pedido.dueDate)} · há ${-prazo} ${prazo === -1 ? 'dia' : 'dias'}</span>`;
+      ? `<span class="text-slate-300">${tt('Prazo:')} ${formatarData(pedido.dueDate)} · ${prazo === 0 ? tt('termina hoje') : tt('faltam {0} {1}', [prazo, prazo === 1 ? tt('dia') : tt('dias')])}</span>`
+      : `<span class="font-semibold text-orange-300">${tt('Prazo terminou a {0} · há {1} {2}', [formatarData(pedido.dueDate), -prazo, prazo === -1 ? tt('dia') : tt('dias')])}</span>`;
   }
 
   const acoes = [];
   if (pedido.status === 'draft') {
-    acoes.push(botao('reabrir', pedido.id, 'Abrir na app de email', 'primary'), botao('apagar-rascunho', pedido.id, 'Apagar rascunho', 'ghost'));
+    acoes.push(botao('reabrir', pedido.id, tt('Abrir na app de email'), 'primary'), botao('apagar-rascunho', pedido.id, 'Apagar rascunho', 'ghost'));
   } else if (pedido.status === 'awaiting_confirmation') {
-    acoes.push(botao('confirmar-envio', pedido.id, 'Sim, enviei', 'primary'), botao('nao-enviado', pedido.id, 'Ainda não', 'secondary'));
+    acoes.push(botao('confirmar-envio', pedido.id, 'Sim, enviei', 'primary'), botao('nao-enviado', pedido.id, tt('Ainda não'), 'secondary'));
   } else if (pedido.status === 'sent') {
     acoes.push(botao('resposta', pedido.id, 'Registar resposta', 'primary'));
     if (prazo !== null && prazo < 0) {
-      acoes.push(botao('insistir', pedido.id, pedido.followUpAt ? 'Insistir de novo' : 'Enviar insistência', 'secondary'), botao('sem-resposta', pedido.id, 'Marcar sem resposta', 'ghost'));
+      acoes.push(botao('insistir', pedido.id, pedido.followUpAt ? tt('Insistir de novo') : tt('Enviar insistência'), 'secondary'), botao('sem-resposta', pedido.id, tt('Marcar sem resposta'), 'ghost'));
     }
   } else if (pedido.status === 'reply_received' && pedido.holdsData === null) {
-    acoes.push(botao('resposta', pedido.id, 'Registar o resultado', 'primary'));
+    acoes.push(botao('resposta', pedido.id, tt('Registar o resultado'), 'primary'));
   }
   if (balde === 'confirmado' && pedido.right !== 'erasure' && obterEmpresa(pedido.companyId)) {
     acoes.push(`<button data-action="pedido" data-id="${esc(pedido.companyId)}" data-right="erasure" type="button" class="rounded-lg bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-200">Pedir apagamento</button>`);
@@ -2748,9 +2714,9 @@ function criarCartaoPedido(pedido) {
     </div>
     <div class="mt-3 flex flex-col gap-1 text-[11px] text-mist">
       <span>${esc(STATUS_LABELS[pedido.status])}</span>
-      ${pedido.sentAt ? `<span>Enviado a ${formatarData(pedido.sentAt)}${pedido.followUpAt ? ` · insistência a ${formatarData(pedido.followUpAt)}` : ''}</span>` : ''}
+      ${pedido.sentAt ? `<span>${tt('Enviado a')} ${formatarData(pedido.sentAt)}${pedido.followUpAt ? tt(' · insistência a {0}', [formatarData(pedido.followUpAt)]) : ''}</span>` : ''}
       ${linhaPrazo}
-      ${pedido.replyAt && pedido.outcome !== 'no_reply' ? `<span>Resposta a ${formatarData(pedido.replyAt)}</span>` : ''}
+      ${pedido.replyAt && pedido.outcome !== 'no_reply' ? `<span>${tt('Resposta a')} ${formatarData(pedido.replyAt)}</span>` : ''}
     </div>
     ${acoes.length ? `<div class="mt-3 flex flex-wrap gap-2">${acoes.join('')}</div>` : ''}
   </article>`;
@@ -2766,10 +2732,10 @@ function botao(acao, id, texto, estilo) {
 }
 
 function descreverPedido(pedido) {
-  if (pedido.status === 'awaiting_confirmation') return 'à espera de confirmação';
+  if (pedido.status === 'awaiting_confirmation') return tt('à espera de confirmação');
   if (pedido.status === 'sent') {
     const dias = diasAte(pedido.dueDate);
-    return dias < 0 ? `em atraso há ${-dias} ${dias === -1 ? 'dia' : 'dias'}` : `enviado, prazo a ${formatarData(pedido.dueDate)}`;
+    return dias < 0 ? tt('em atraso há {0} {1}', [-dias, dias === -1 ? tt('dia') : tt('dias')]) : tt('enviado, prazo a {0}', [formatarData(pedido.dueDate)]);
   }
   if (pedido.outcome) return OUTCOMES[pedido.outcome].badge.toLowerCase();
   return STATUS_LABELS[pedido.status].toLowerCase();
@@ -2824,11 +2790,11 @@ function fecharFolha() {
 function renderPlus(tempoTotal) {
   const interesse = estado.plusInteresse;
   document.getElementById('plus-card-text').textContent = interesse
-    ? `Registámos o teu interesse no plano ${interesse.plano}. Obrigado!`
+    ? tt('Registámos o teu interesse no plano {0}. Obrigado!', [interesse.plano])
     : tempoTotal
-      ? `Estes emails já te custaram ≈ ${formatarDuracao(tempoTotal)}. O Plus limpa-os de uma vez.`
-      : 'Limpa a tua caixa de uma vez e acompanha cada pedido até à resposta.';
-  document.getElementById('plus-card-price').textContent = `${PLUS.MENSAL}/mês →`;
+      ? tt('Estes emails já te custaram ≈ {0}. O Plus limpa-os de uma vez.', [formatarDuracao(tempoTotal)])
+      : tt('Limpa a tua caixa de uma vez e acompanha cada pedido até à resposta.');
+  document.getElementById('plus-card-price').textContent = tt('{0}/mês →', [PLUS.MENSAL]);
 }
 
 // Uma vez por dispositivo: dá a base para calcular quantos dos que viram o cartão carregaram nele.
@@ -2841,14 +2807,14 @@ function registarPlusVisto() {
 function abrirPlus(onde = 'outro') {
   registarEvento('plus_aberto', { onde, demo: estado.demo });
   abrirFolha({
-    titulo: 'Veto+',
-    texto: 'Para deixares de perder tempo com os emails das empresas e teres os teus pedidos tratados até ao fim.',
+    titulo: tt('Veto+'),
+    texto: tt('Para deixares de perder tempo com os emails das empresas e teres os teus pedidos tratados até ao fim.'),
     lista: PLUS.FUNCOES,
-    nota: 'Em breve. O Veto+ ainda não está disponível e escolher um plano não cobra nada: estamos a medir quantas pessoas o querem antes de o construir.',
+    nota: tt('Em breve. O Veto+ ainda não está disponível e escolher um plano não cobra nada: estamos a medir quantas pessoas o querem antes de o construir.'),
     opcoes: [
-      { label: `Quero o mensal · ${PLUS.MENSAL}/mês`, estilo: 'primary', acao: () => quererPlus('mensal', onde) },
-      { label: `Quero o anual · ${PLUS.ANUAL}/ano (2 meses grátis)`, estilo: 'secondary', acao: () => quererPlus('anual', onde) },
-      { label: 'Agora não', estilo: 'ghost', acao: () => registarEvento('plus_agora_nao', { onde, demo: estado.demo }) }
+      { label: tt('Quero o mensal · {0}/mês', [PLUS.MENSAL]), estilo: 'primary', acao: () => quererPlus('mensal', onde) },
+      { label: tt('Quero o anual · {0}/ano (2 meses grátis)', [PLUS.ANUAL]), estilo: 'secondary', acao: () => quererPlus('anual', onde) },
+      { label: tt('Agora não'), estilo: 'ghost', acao: () => registarEvento('plus_agora_nao', { onde, demo: estado.demo }) }
     ]
   });
 }
@@ -2863,19 +2829,19 @@ function quererPlus(plano, onde) {
   // Quem já as recusou não volta a ser perguntado.
   const podePerguntar = !estado.teste?.consentimento && estado.decisaoTeste !== 'recusado';
   abrirFolha({
-    titulo: 'Obrigado! Registámos o teu interesse',
-    texto: 'O Veto+ ainda não existe e não pagaste nada. A tua escolha ajuda-nos a decidir se o construímos e a que preço.',
-    nota: podePerguntar ? 'Para a tua escolha contar no nosso teste, aceita as estatísticas anónimas. Nunca enviamos o teu email, as empresas nem o conteúdo dos emails.' : '',
+    titulo: tt('Obrigado! Registámos o teu interesse'),
+    texto: tt('O Veto+ ainda não existe e não pagaste nada. A tua escolha ajuda-nos a decidir se o construímos e a que preço.'),
+    nota: podePerguntar ? tt('Para a tua escolha contar no nosso teste, aceita as estatísticas anónimas. Nunca enviamos o teu email, as empresas nem o conteúdo dos emails.') : '',
     opcoes: podePerguntar
       ? [
-        { label: 'Aceitar estatísticas anónimas', estilo: 'primary', acao: () => {
+        { label: tt('Aceitar estatísticas anónimas'), estilo: 'primary', acao: () => {
           entrarNoTeste();
           registarEvento('plus_aberto', { onde, demo: estado.demo, depoisDeAceitar: true });
           registarEvento('plus_quero', { ...detalhes, depoisDeAceitar: true });
         } },
-        { label: 'Agora não', estilo: 'ghost', acao: () => {} }
+        { label: tt('Agora não'), estilo: 'ghost', acao: () => {} }
       ]
-      : [{ label: 'Fechar', estilo: 'primary', acao: () => {} }]
+      : [{ label: tt('Fechar'), estilo: 'primary', acao: () => {} }]
   });
 }
 
@@ -2969,16 +2935,16 @@ function definirDescartada(empresaId, valor) {
   empresa.dismissed = valor;
   guardarEstado();
   renderTudo();
-  mostrarToast(`${empresa.name} saiu da lista.`);
+  mostrarToast(tt('{0} saiu da lista.', [empresa.name]));
 }
 
 function confirmarApagarTudo() {
   abrirFolha({
-    titulo: 'Apagar tudo deste dispositivo?',
-    texto: 'Apaga as empresas encontradas e o histórico de pedidos. Os pedidos que já enviaste continuam no teu email enviado.',
+    titulo: tt('Apagar tudo deste dispositivo?'),
+    texto: tt('Apaga as empresas encontradas e o histórico de pedidos. Os pedidos que já enviaste continuam no teu email enviado.'),
     opcoes: [
-      { label: 'Apagar tudo', estilo: 'primary', acao: () => { limparTudo(); mostrarToast('Tudo apagado deste dispositivo.'); } },
-      { label: 'Cancelar', estilo: 'ghost', acao: () => {} }
+      { label: tt('Apagar tudo'), estilo: 'primary', acao: () => { limparTudo(); mostrarToast(tt('Tudo apagado deste dispositivo.')); } },
+      { label: tt('Cancelar'), estilo: 'ghost', acao: () => {} }
     ]
   });
 }
@@ -3048,7 +3014,7 @@ function proximoDiaLocal() {
 }
 
 function textoLimitePedidos() {
-  return `Podes enviar novamente amanhã, ${proximoDiaLocal().toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' })}.`;
+  return tt('Podes enviar novamente amanhã, {0}.', [proximoDiaLocal().toLocaleDateString(dateLocale(), { day: '2-digit', month: '2-digit' })]);
 }
 
 function mostrarLimitePedidosAtingido() {
@@ -3057,10 +3023,10 @@ function mostrarLimitePedidosAtingido() {
     enviadosHoje: enviosConfirmadosHoje()
   });
   abrirFolha({
-    titulo: 'Limite de hoje atingido',
-    texto: `Já confirmaste o envio de ${PEDIDOS_GRATIS_POR_DIA} pedidos hoje. ${textoLimitePedidos()}`,
-    nota: 'Os pedidos que já começaste continuam disponíveis e nunca são interrompidos.',
-    opcoes: [{ label: 'Fechar', estilo: 'primary', acao: () => {} }]
+    titulo: tt('Limite de hoje atingido'),
+    texto: tt('Já confirmaste o envio de {0} pedidos hoje. {1}', [PEDIDOS_GRATIS_POR_DIA, textoLimitePedidos()]),
+    nota: tt('Os pedidos que já começaste continuam disponíveis e nunca são interrompidos.'),
+    opcoes: [{ label: tt('Fechar'), estilo: 'primary', acao: () => {} }]
   });
 }
 
@@ -3069,8 +3035,8 @@ function renderLimitePedidos() {
   if (!el) return;
   const restantes = pedidosRestantesHoje();
   el.textContent = restantes
-    ? `${restantes} de ${PEDIDOS_GRATIS_POR_DIA} pedidos hoje`
-    : `0 de ${PEDIDOS_GRATIS_POR_DIA} pedidos hoje · ${textoLimitePedidos()}`;
+    ? tt('{0} de {1} pedidos hoje', [restantes, PEDIDOS_GRATIS_POR_DIA])
+    : tt('0 de {0} pedidos hoje · {1}', [PEDIDOS_GRATIS_POR_DIA, textoLimitePedidos()]);
   el.classList.toggle('text-rose-200', restantes === 0);
   el.classList.toggle('text-slate-500', restantes > 0);
 }
@@ -3110,10 +3076,10 @@ function alternarMenu(fechado = !document.body.classList.contains('menu-fechado'
   document.body.classList.toggle('menu-fechado', fechado);
   const botao = document.querySelector('[data-action="alternar-menu"]');
   if (botao) {
-    const texto = fechado ? 'Mostrar o menu' : 'Esconder o menu';
+    const texto = fechado ? tt('Mostrar o menu') : tt('Esconder o menu');
     botao.setAttribute('aria-label', texto);
     botao.title = texto;
-    botao.querySelector('.nav-rotulo').textContent = fechado ? 'Mostrar menu' : 'Esconder menu';
+    botao.querySelector('.nav-rotulo').textContent = fechado ? tt('Mostrar menu') : tt('Esconder menu');
   }
   try { localStorage.setItem('veto-menu-fechado', fechado ? '1' : '0'); } catch (erro) { /* sem armazenamento: só vale nesta visita */ }
   if (vistaAtual() === 'pedidos') setTimeout(renderPedidos, 50); // o mapa ocupa o espaço novo
@@ -3122,32 +3088,32 @@ try { if (localStorage.getItem('veto-menu-fechado') === '1') alternarMenu(true);
 
 function pedirAcessoAoTeste() {
   abrirFolha({
-    titulo: 'Pedir acesso ao teste',
-    texto: 'Enquanto o Veto está em teste, o Google só deixa entrar contas que a equipa acrescenta à mão. Deixa o teu endereço Gmail e avisamos-te quando estiver pronto (normalmente no próprio dia).',
-    nota: 'O endereço fica numa folha de cálculo só da equipa, serve apenas para te dar acesso ao teste e é apagado no fim do ano letivo. Não fica ligado às tuas estatísticas.',
+    titulo: tt('Pedir acesso ao teste'),
+    texto: tt('Enquanto o Veto está em teste, o Google só deixa entrar contas que a equipa acrescenta à mão. Deixa o teu endereço Gmail e avisamos-te quando estiver pronto (normalmente no próprio dia).'),
+    nota: tt('O endereço fica numa folha de cálculo só da equipa, serve apenas para te dar acesso ao teste e é apagado no fim do ano letivo. Não fica ligado às tuas estatísticas.'),
     opcoes: [
-      { label: 'Continuar', estilo: 'primary', acao: () => setTimeout(pedirEmailDeAcesso, 50) },
-      { label: 'Agora não', estilo: 'ghost', acao: () => {} }
+      { label: tt('Continuar'), estilo: 'primary', acao: () => setTimeout(pedirEmailDeAcesso, 50) },
+      { label: tt('Agora não'), estilo: 'ghost', acao: () => {} }
     ]
   });
 }
 
 async function pedirEmailDeAcesso() {
-  const email = (window.prompt('O teu endereço Gmail:') || '').trim().toLowerCase();
+  const email = (window.prompt(tt('O teu endereço Gmail:')) || '').trim().toLowerCase();
   if (!email) return;
   if (!/^[^\s@]+@(gmail|googlemail)\.com$/.test(email)) {
-    mostrarToast('Escreve um endereço Gmail (termina em @gmail.com).');
+    mostrarToast(tt('Escreve um endereço Gmail (termina em @gmail.com).'));
     return;
   }
   if (!TESTE.URL) {
-    mostrarToast('O pedido de acesso ainda não está configurado.');
+    mostrarToast(tt('O pedido de acesso ainda não está configurado.'));
     return;
   }
   try {
     await fetch(TESTE.URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ pedidoAcesso: { email, quando: new Date().toISOString(), versao: VERSAO } }) });
-    mostrarToast('Pedido enviado. Avisamos-te por email quando tiveres acesso.');
+    mostrarToast(tt('Pedido enviado. Avisamos-te por email quando tiveres acesso.'));
   } catch (erro) {
-    mostrarToast('Não foi possível enviar. Verifica a ligação e tenta outra vez.');
+    mostrarToast(tt('Não foi possível enviar. Verifica a ligação e tenta outra vez.'));
   }
 }
 
@@ -3176,7 +3142,7 @@ function entrarNoTeste() {
   guardarEstado();
   esconderPerguntaConsentimento();
   renderTeste();
-  mostrarToast('Obrigado! Estás a ajudar no teste do Veto.');
+  mostrarToast(tt('Obrigado! Estás a ajudar no teste do Veto.'));
 }
 
 function recusarTeste() {
@@ -3202,7 +3168,7 @@ function sairDoTeste() {
   estado.decisaoTeste = 'recusado';
   guardarEstado();
   renderTeste();
-  mostrarToast('Estatísticas anónimas desligadas. Não enviamos mais nada.');
+  mostrarToast(tt('Estatísticas anónimas desligadas. Não enviamos mais nada.'));
 }
 
 function enviarOpiniao() {
@@ -3210,7 +3176,7 @@ function enviarOpiniao() {
   const nota = Number(painel.dataset.nota || 0);
   const comentario = document.getElementById('feedback-text').value.trim().slice(0, 1000);
   if (!nota && !comentario) {
-    mostrarToast('Escolhe uma nota ou escreve um comentário.');
+    mostrarToast(tt('Escolhe uma nota ou escreve um comentário.'));
     return;
   }
   // A opinião é enviada porque a pessoa a escreveu e carregou em enviar, mesmo fora do teste.
@@ -3219,7 +3185,7 @@ function enviarOpiniao() {
   painel.dataset.nota = '';
   marcarNota(0);
   document.getElementById('feedback-done').classList.remove('hidden');
-  mostrarToast('Obrigado pela tua opinião!');
+  mostrarToast(tt('Obrigado pela tua opinião!'));
 }
 
 function marcarNota(nota) {
@@ -3235,32 +3201,32 @@ function marcarNota(nota) {
 // Estado das estatísticas anónimas, na linha da secção de privacidade do Início
 function renderTeste() {
   const ligadas = Boolean(estado.teste?.consentimento);
-  document.getElementById('stats-state').textContent = ligadas ? 'ligadas' : 'desligadas';
-  document.getElementById('stats-toggle').textContent = ligadas ? 'Deixar de participar' : 'Ligar';
+  document.getElementById('stats-state').textContent = ligadas ? tt('ligadas') : tt('desligadas');
+  document.getElementById('stats-toggle').textContent = ligadas ? tt('Deixar de participar') : tt('Ligar');
 }
 
 // "O que é enviado?": a lista completa numa folha, com a decisão logo ali
 function mostrarOQueEEnviado() {
   const ligadas = Boolean(estado.teste?.consentimento);
   abrirFolha({
-    titulo: 'Estatísticas anónimas',
-    texto: 'Para sabermos se o Veto é útil, contamos de forma anónima o que fazes na app. Podes mudar de ideias quando quiseres, no fim do Início.',
+    titulo: tt('Estatísticas anónimas'),
+    texto: tt('Para sabermos se o Veto é útil, contamos de forma anónima o que fazes na app. Podes mudar de ideias quando quiseres, no fim do Início.'),
     lista: [
-      ['Um identificador aleatório', 'Um código deste dispositivo, que não te identifica, e de onde vieste (por exemplo, LinkedIn).'],
-      ['A análise', 'Quantos emails e quantas empresas encontrámos, por área e por gravidade.'],
-      ['Os pedidos', 'O tipo de pedido que preparas, envias ou registas, e a área da empresa.'],
-      ['Outras ações', 'Quando abres a app, cancelas uma subscrição, abres uma notícia ou uma pergunta do guia, ou vês o Veto+.']
+      [tt('Um identificador aleatório'), tt('Um código deste dispositivo, que não te identifica, e de onde vieste (por exemplo, LinkedIn).')],
+      [tt('A análise'), tt('Quantos emails e quantas empresas encontrámos, por área e por gravidade.')],
+      [tt('Os pedidos'), tt('O tipo de pedido que preparas, envias ou registas, e a área da empresa.')],
+      [tt('Outras ações'), tt('Quando abres a app, cancelas uma subscrição, abres uma notícia ou uma pergunta do guia, ou vês o Veto+.')]
     ],
-    nota: 'Nunca enviamos o teu endereço de email, os nomes das empresas, os assuntos nem o conteúdo dos emails.',
+    nota: tt('Nunca enviamos o teu endereço de email, os nomes das empresas, os assuntos nem o conteúdo dos emails.'),
     opcoes: ligadas
       ? [
-        { label: 'Fechar', estilo: 'primary', acao: () => {} },
-        { label: 'Deixar de participar', estilo: 'ghost', acao: () => sairDoTeste() }
+        { label: tt('Fechar'), estilo: 'primary', acao: () => {} },
+        { label: tt('Deixar de participar'), estilo: 'ghost', acao: () => sairDoTeste() }
       ]
       : [
         // Os dois botões com o mesmo peso: o consentimento tem de ser livre
-        { label: 'Aceitar', estilo: 'secondary', acao: () => entrarNoTeste() },
-        { label: 'Não, obrigado', estilo: 'secondary', acao: () => recusarTeste() }
+        { label: tt('Aceitar'), estilo: 'secondary', acao: () => entrarNoTeste() },
+        { label: tt('Não, obrigado'), estilo: 'secondary', acao: () => recusarTeste() }
       ]
   });
 }
@@ -3294,14 +3260,14 @@ function dataLocalISO(data) {
 function formatarData(iso) {
   if (!iso) return '';
   const data = iso.length === 10 ? new Date(`${iso}T00:00:00`) : new Date(iso);
-  return data.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return data.toLocaleDateString(dateLocale(), { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 function descreverDia(iso) {
   const dias = -diasAte(dataLocalISO(new Date(iso)));
-  if (dias <= 0) return 'hoje';
-  if (dias === 1) return 'ontem';
-  return `há ${dias} dias`;
+  if (dias <= 0) return tt('hoje');
+  if (dias === 1) return tt('ontem');
+  return tt('há {0} dias', [dias]);
 }
 
 function esc(valor) {

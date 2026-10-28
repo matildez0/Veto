@@ -845,13 +845,13 @@ const OUTCOMES_BY_RIGHT = {
    para o risco se ver logo. Nada a piscar, e sempre com as barras (como o sinal do telemóvel) e a palavra,
    para não depender só da cor. O texto usa tons mais claros do mesmo vermelho, para se ler no fundo escuro.
    No mapa, mais sensível = ponto maior e de um vermelho mais forte.
-   O verde fica para a ação principal e para o que já fizeste; o âmbar só para pedidos atrasados.
+   O verde fica para a ação principal e para o que já fizeste; o amarelo para os pedidos a decorrer, o verde escuro para os concluídos e o vermelho de risco para o que correu mal.
    ========================================================================== */
 const SEVERITY = {
-  critica: { label: 'Muito alta', nivel: 4, hex: '#f0423a', r: 7.5, texto: 'text-senst-4', fundo: 'bg-sens-4', borda: 'border-sens-4/60' },
-  alta: { label: 'Alta', nivel: 3, hex: '#c42b2b', r: 6.5, texto: 'text-senst-3', fundo: 'bg-sens-3', borda: 'border-sens-3/60' },
-  media: { label: 'Média', nivel: 2, hex: '#942325', r: 5.5, texto: 'text-senst-2', fundo: 'bg-sens-2', borda: 'border-sens-2/70' },
-  baixa: { label: 'Baixa', nivel: 1, hex: '#6a2228', r: 4.5, texto: 'text-slate-300', fundo: 'bg-sens-1', borda: 'border-slate-700/70' }
+  critica: { label: 'Muito alta', nivel: 4, hex: '#810A0A', r: 7.5, texto: 'text-white', fundo: 'bg-risco', borda: 'border-risco' },
+  alta: { label: 'Alta', nivel: 3, hex: '#810A0A', r: 6.5, texto: 'text-white', fundo: 'bg-risco', borda: 'border-risco' },
+  media: { label: 'Média', nivel: 2, hex: '#a39ca7', r: 5.5, texto: 'text-slate-200', fundo: 'bg-slate-500', borda: 'border-slate-700' },
+  baixa: { label: 'Baixa', nivel: 1, hex: '#807785', r: 4.5, texto: 'text-slate-300', fundo: 'bg-slate-600', borda: 'border-slate-700/70' }
 };
 const SEVERITY_ORDER = ['critica', 'alta', 'media', 'baixa'];
 
@@ -869,9 +869,9 @@ function gravidadeDe(empresa) {
 }
 
 // Ícone de barras (1 a 4), para a gravidade não depender só da cor
-function iconeGravidade(chave, altura = 10) {
+function iconeGravidade(chave, altura = 12) {
   const g = SEVERITY[chave];
-  const barras = [0, 1, 2, 3].map((i) => `<rect x="${i * 3.5}" y="${9 - (i + 1) * 2.25}" width="2.5" height="${(i + 1) * 2.25}" rx="0.6" fill="${i < g.nivel ? g.hex : '#4d4354'}"/>`).join('');
+  const barras = [0, 1, 2, 3].map((i) => `<rect x="${i * 3.5}" y="${9 - (i + 1) * 2.25}" width="2.5" height="${(i + 1) * 2.25}" rx="0.6" fill="${i < g.nivel ? g.hex : '#463c4c'}"/>`).join('');
   return `<svg viewBox="0 0 13.5 9" width="${Math.round(altura * 1.5)}" height="${altura}" aria-hidden="true" class="inline-block shrink-0">${barras}</svg>`;
 }
 
@@ -890,15 +890,15 @@ function legendaDeSensibilidade(niveis) {
 }
 
 function seloGravidade(chave, prefixo = 'Sensibilidade') {
-  return `<span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-300">${iconeGravidade(chave)}${prefixo ? `${prefixo} ` : ''}${prefixo ? SEVERITY[chave].label.toLowerCase() : SEVERITY[chave].label}</span>`;
+  return `<span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300">${iconeGravidade(chave)}${prefixo ? `${prefixo} ` : ''}${prefixo ? SEVERITY[chave].label.toLowerCase() : SEVERITY[chave].label}</span>`;
 }
 
 // Estados de cada empresa no mapa de exposição. "sempedido" = encontrada na análise, ainda sem pedido.
 const BUCKETS = {
-  confirmado: { label: 'Têm os teus dados', dot: 'bg-slate-200', hex: '#e4e0e6' },
-  atraso: { label: 'Em atraso', dot: 'bg-amber-300', hex: '#fcd34d' },
-  espera: { label: 'À espera', dot: 'bg-slate-400', hex: '#a39ca7' },
-  resolvido: { label: 'Já não têm', dot: 'bg-lime', hex: '#c2ea5d' },
+  confirmado: { label: 'Têm os teus dados', dot: 'bg-concluido', hex: '#32480C' },
+  atraso: { label: 'Em atraso', dot: 'bg-risco', hex: '#810A0A' },
+  espera: { label: 'À espera', dot: 'bg-pendente', hex: '#945D0A' },
+  resolvido: { label: 'Já não têm', dot: 'bg-concluido', hex: '#32480C' },
   sempedido: { label: 'Ainda sem pedido', dot: 'bg-slate-600', hex: '#655b6c' }
 };
 const MAP_ORDER = ['confirmado', 'atraso', 'espera', 'resolvido', 'sempedido'];
@@ -939,11 +939,11 @@ const MODOS_RESULTADOS = [
 const REDE = {
   EMPRESA: '#c2ea5d',   // verde do logo
   TERCEIRO: '#b9a2f5',  // lilás, a condizer com o fundo
-  PORMENOR: '#c2ea5d',  // anel das empresas a quem já fizeste um pedido
+  PORMENOR: '#c2ea5d',  // verde do logo (pormenores do mapa)
   NUCLEO: '#807785',    // centro de cada área
-  PASSO: 11,            // distância entre empresas vizinhas (unidades do desenho)
+  PASSO: 14,            // distância entre empresas vizinhas (unidades do desenho)
   FOLGA: 22,            // espaço entre áreas, onde cabe o nome da área
-  LETRA: 10.5,          // tamanho dos nomes em píxeis, igual com qualquer zoom
+  LETRA: 12,            // tamanho dos nomes em píxeis, igual com qualquer zoom
   SATELITE: 44          // distância, em píxeis, da empresa escolhida aos seus terceiros
 };
 // Zoom do mapa (k = escala; x, y = deslocação, em unidades do desenho). Mantém-se ao escolher pontos.
@@ -951,7 +951,18 @@ let zoomMapa = { k: 1, x: 0, y: 0, assinatura: '' };
 let redeDesenhada = null; // posições e nomes do último desenho, para o zoom
 let pedidoDeZoom = 0;
 let animacaoDeZoom = 0;
-const RAIO_EMPRESA = { critica: 4.6, alta: 4, media: 3.5, baixa: 3 };
+const RAIO_EMPRESA = { critica: 6.2, alta: 5.7, media: 5.2, baixa: 4.8 };
+// No mapa, a sensibilidade alta e muito alta ficam com o vermelho de risco; a média e a baixa em cinzentos
+const COR_NO_MAPA = { critica: '#810A0A', alta: '#810A0A', media: '#b3abb7', baixa: '#7d7482' };
+// A inicial dentro do ícone, legível sobre cada cor
+const LETRA_NO_MAPA = { critica: '#ffffff', alta: '#ffffff', media: '#1d1620', baixa: '#ffffff' };
+// A cor do ícone de cada empresa (no mapa, na lista e nos pedidos): vermelho se algo correu mal,
+// amarelo se há um pedido a decorrer, verde se o pedido está concluído. Sem nada disto, fica neutro.
+const ESTADOS_EMPRESA = {
+  concluido: { label: 'Pedido concluído', hex: '#32480C', fundo: 'bg-concluido' },
+  pendente: { label: 'Pedido a decorrer', hex: '#945D0A', fundo: 'bg-pendente' },
+  atencao: { label: 'Algo correu mal', hex: '#810A0A', fundo: 'bg-risco' }
+};
 
 // Serviços de envio de email conhecidos (domínio do link de cancelamento → nome)
 const TERCEIROS = {
@@ -2170,6 +2181,32 @@ function baldeDoPedido(pedido) {
   return null;
 }
 
+// O último pedido feito a uma empresa (os rascunhos não contam)
+function ultimoPedidoDe(empresaId) {
+  return estado.pedidos
+    .filter((pedido) => pedido.companyId === empresaId && pedido.status !== 'draft')
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] || null;
+}
+
+// O estado de uma empresa, para a cor do seu ícone. Vermelho se algo correu mal (um pedido sem resposta no prazo
+// ou recusado, ou uma fuga de dados, burla ou multa nas Notícias); verde se o pedido está concluído;
+// amarelo se está a decorrer. Senão, nada (o ícone fica neutro).
+function estadoDaEmpresa(empresa, ultimo) {
+  if (ultimo) return estadoDoPedido(ultimo);
+  const noticia = empresa ? noticiasDaEmpresa(empresa)[0] : null;
+  if (noticia) return { chave: 'atencao', texto: `${TIPOS_NOTICIA[noticia.tipo].label} em ${noticia.data.slice(0, 4)}` };
+  return null;
+}
+
+// O estado de um pedido, com as mesmas cores no mapa, na lista e na página Pedidos
+function estadoDoPedido(pedido) {
+  const balde = baldeDoPedido(pedido);
+  if (balde === 'atraso') return { chave: 'atencao', texto: 'O prazo do pedido terminou sem resposta' };
+  if (pedido.outcome === 'company_refused') return { chave: 'atencao', texto: 'A empresa recusou o pedido' };
+  if (balde === 'resolvido' || balde === 'confirmado') return { chave: 'concluido', texto: 'O pedido está concluído' };
+  return { chave: 'pendente', texto: 'O pedido está a decorrer' };
+}
+
 // Só entram as empresas a quem foi enviado pelo menos um pedido (os rascunhos não contam).
 function empresasComPedidos() {
   const mapa = new Map();
@@ -2244,7 +2281,7 @@ function renderNoticias() {
         <span class="flex-1 text-sm font-semibold leading-5">${esc(item.pergunta)}</span>
         <svg viewBox="0 0 16 16" class="guia-seta h-4 w-4 shrink-0 text-slate-500 transition" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
       </summary>
-      <div class="flex flex-col gap-2.5 px-4 pb-4 text-[13px] leading-5 text-slate-300">
+      <div class="flex flex-col gap-2.5 px-4 pb-4 text-[0.8125rem] leading-5 text-slate-300">
         ${item.blocos.map((bloco) => (Array.isArray(bloco)
           ? `<ul class="flex flex-col gap-1.5">${bloco.map((linha) => `<li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-500"></span><span>${esc(linha)}</span></li>`).join('')}</ul>`
           : `<p>${esc(bloco)}</p>`)).join('')}
@@ -2261,7 +2298,7 @@ function renderNoticias() {
         <span class="flex-1 text-sm font-semibold leading-5">${esc(item.pergunta)}</span>
         <svg viewBox="0 0 16 16" class="guia-seta h-4 w-4 shrink-0 text-slate-500 transition" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
       </summary>
-      <div class="flex flex-col gap-2.5 px-4 pb-4 text-[13px] leading-5 text-slate-300">
+      <div class="flex flex-col gap-2.5 px-4 pb-4 text-[0.8125rem] leading-5 text-slate-300">
         ${item.blocos.map((bloco) => (Array.isArray(bloco)
           ? `<ul class="flex flex-col gap-1.5">${bloco.map((linha) => `<li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-500"></span><span>${esc(linha)}</span></li>`).join('')}</ul>`
           : `<p>${esc(bloco)}</p>`)).join('')}
@@ -2289,7 +2326,7 @@ function criarCartaoNoticia(noticia) {
   const areaComum = !afetadas.length && (noticia.setores || []).find((setor) => visiveis().some((empresa) => empresa.sector === setor));
   const dominio = noticia.fonte.url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
   return `<article class="rounded-2xl border ${afetadas.length ? 'border-slate-600' : 'border-slate-800'} bg-slate-900/60 p-4">
-    <div class="flex flex-wrap items-center gap-2 text-[11px]">
+    <div class="flex flex-wrap items-center gap-2 text-xs">
       <span class="rounded-full px-2 py-0.5 font-bold ${tipo.style}">${tipo.label}</span>
       ${noticia.estado === 'por_confirmar' ? '<span class="rounded-full bg-slate-700/60 px-2 py-0.5 font-bold text-slate-300">Por confirmar</span>' : ''}
       <span class="text-mist">${esc(noticia.empresa)} · ${formatarData(noticia.data)}</span>
@@ -2299,15 +2336,15 @@ function criarCartaoNoticia(noticia) {
     <p class="mt-2 text-xs leading-5 text-mist"><span class="font-semibold text-slate-200">Porque importa:</span> ${esc(noticia.importa)}</p>
     ${afetadas.length ? `
       <div class="mt-3 flex items-center justify-between gap-3 rounded-xl bg-ink/60 px-3 py-2">
-        <span class="text-[11px] font-semibold text-slate-200">Tens dados nesta empresa</span>
-        <button data-action="gerir" data-id="${esc(afetadas[0].id)}" type="button" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-[11px] font-bold text-ink">Ver a empresa →</button>
+        <span class="text-xs font-semibold text-slate-200">Tens dados nesta empresa</span>
+        <button data-action="gerir" data-id="${esc(afetadas[0].id)}" type="button" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-ink">Ver a empresa →</button>
       </div>` : ''}
     ${areaComum ? `
       <div class="mt-3 flex items-center justify-between gap-3 rounded-xl bg-ink/60 px-3 py-2">
-        <span class="text-[11px] font-semibold text-slate-200">Tens empresas na área ${esc(SECTORS[areaComum].label)}</span>
-        <button data-action="ver-area" data-sector="${areaComum}" type="button" class="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-[11px] font-bold text-slate-200">Ver a área →</button>
+        <span class="text-xs font-semibold text-slate-200">Tens empresas na área ${esc(SECTORS[areaComum].label)}</span>
+        <button data-action="ver-area" data-sector="${areaComum}" type="button" class="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-200">Ver a área →</button>
       </div>` : ''}
-    <a href="${esc(noticia.fonte.url)}" target="_blank" rel="noopener noreferrer" data-action="abrir-fonte" data-id="${esc(noticia.id)}" class="mt-3 inline-block text-[11px] font-semibold text-lime underline decoration-lime/40 underline-offset-4">Ler em ${esc(noticia.fonte.nome)} (${esc(dominio)}) ↗</a>
+    <a href="${esc(noticia.fonte.url)}" target="_blank" rel="noopener noreferrer" data-action="abrir-fonte" data-id="${esc(noticia.id)}" class="mt-3 inline-block text-xs font-semibold text-lime underline decoration-lime/40 underline-offset-4">Ler em ${esc(noticia.fonte.nome)} (${esc(dominio)}) ↗</a>
   </article>`;
 }
 
@@ -2337,9 +2374,9 @@ function destaqueDeRisco(niveis) {
   const pedido = 'o Veto escreve por ti o pedido para apagarem os teus dados.';
   const areas = (nivel) => listaDeNomes(nivel.areas.map((setor) => SECTORS[setor].short.toLowerCase()));
   const nomes = (nivel) => (nivel.nomes.length > 3 ? `${nivel.nomes.slice(0, 3).join(', ')} e mais ${nivel.nomes.length - 3}` : listaDeNomes(nivel.nomes));
-  const numero = (n, cor, texto) => `<div class="min-w-0 border-l border-slate-700 pl-4">
-      <p class="font-display text-5xl font-semibold leading-none ${cor}">${n}</p>
-      <p class="mt-2 text-sm leading-5 text-slate-100">${texto}</p>
+  const numero = (n, cor, texto) => `<div class="min-w-0 rounded-2xl px-4 py-3 ${cor === SEVERITY.critica.texto ? 'bg-risco' : 'border border-slate-700'}">
+      <p class="font-display text-5xl font-semibold leading-none text-white">${n}</p>
+      <p class="mt-2 text-sm leading-5 text-white">${texto}</p>
     </div>`;
   if (muito.n) {
     return {
@@ -2394,7 +2431,7 @@ function renderResumoInicio(lista) {
     ${noticias.length ? `<p class="mt-3 flex gap-2.5 text-sm leading-6 text-slate-200"><span class="mt-1 shrink-0 text-slate-300">${icone('jornal', 'h-4 w-4')}</span>
       <span>${noticias.length} ${plural(noticias.length, 'notícia envolve', 'notícias envolvem')} empresas tuas: ${esc(comNoticiasCurto)}.</span></p>` : ''}
 
-    <a href="#resultados" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-lime px-4 py-3.5 text-[15px] font-bold text-ink transition hover:brightness-95 active:scale-[.98]">Ver ${total === 1 ? 'a empresa' : `as ${total} empresas`}</a>
+    <a href="#resultados" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-lime px-4 py-3.5 text-[0.9375rem] font-bold text-ink transition hover:brightness-95 active:scale-[.98]">Ver ${total === 1 ? 'a empresa' : `as ${total} empresas`}</a>
     ${enviados ? `<a href="#pedidos" class="mt-2 flex w-full items-center justify-between rounded-xl border border-slate-700 px-4 py-3 text-sm font-semibold text-slate-100"><span>Os teus pedidos <span class="text-slate-300">(${enviados})</span></span>${icone('seta', 'h-4 w-4')}</a>` : ''}
     <button data-action="nova-analise" class="mt-4 w-full text-xs font-semibold text-slate-300 underline decoration-slate-600 underline-offset-4" type="button">Analisar de novo</button>`;
 }
@@ -2456,7 +2493,7 @@ function renderPainel() {
   // Explicação
   document.getElementById('kind-legend').innerHTML = `
     <p>Olhamos só para quem te enviou emails, o assunto e a data. Cada empresa fica numa área (estimada pelo nome, quando não está no nosso catálogo) e numa de quatro categorias:</p>
-    ${KIND_ORDER.map((chave) => `<p><span class="mr-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${KINDS[chave].style}">${KINDS[chave].label}</span>${esc(KINDS[chave].help)}</p>`).join('')}
+    ${KIND_ORDER.map((chave) => `<p><span class="mr-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-bold ${KINDS[chave].style}">${KINDS[chave].label}</span>${esc(KINDS[chave].help)}</p>`).join('')}
     <p>A sensibilidade vem da área: dados de saúde, finanças ou encontros são os mais sensíveis. Se só recebes publicidade, desce um nível.</p>
     <p>Se uma empresa não for tua, abre-a e escolhe "Não tenho dados aqui".</p>`;
 
@@ -2572,21 +2609,21 @@ function linhaEmpresa(empresa) {
   const setor = SECTORS[empresa.sector] || SECTORS.outros;
   const gravidade = gravidadeDe(empresa).chave;
   const recebidos = ev.totalRecebidos ?? ev.count ?? 0;
-  const ultimo = estado.pedidos
-    .filter((pedido) => pedido.companyId === empresa.id && pedido.status !== 'draft')
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  const ultimo = ultimoPedidoDe(empresa.id);
+  const situacao = estadoDaEmpresa(empresa, ultimo);
   const aberta = selecaoMapa?.tipo === 'empresa' && selecaoMapa.chave === empresa.id;
   const tipos = tiposDe(empresa).map((chave) => KINDS[chave].label).join(', ');
-  return `<button data-action="abrir-empresa" data-id="${esc(empresa.id)}" type="button" aria-current="${aberta}" aria-label="${esc(empresa.name)}: sensibilidade ${SEVERITY[gravidade].label.toLowerCase()}. Abrir"
+  return `<button data-action="abrir-empresa" data-id="${esc(empresa.id)}" type="button" aria-current="${aberta}" aria-label="${esc(empresa.name)}: sensibilidade ${SEVERITY[gravidade].label.toLowerCase()}${situacao ? `. ${esc(situacao.texto)}` : ''}. Abrir"
     class="flex w-full items-center gap-3 px-4 py-3 text-left transition ${aberta ? 'bg-slate-800/70' : 'hover:bg-slate-800/40'}">
-    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-sm font-bold text-slate-100">${esc(empresa.icon)}</span>
+    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${situacao ? `${ESTADOS_EMPRESA[situacao.chave].fundo} text-white` : 'bg-slate-800 text-slate-100'}"${situacao ? ` title="${esc(situacao.texto)}"` : ''}>${esc(empresa.icon)}</span>
     <span class="min-w-0 flex-1">
       <span class="block truncate text-sm font-semibold">${esc(empresa.name)}</span>
       <span class="mt-0.5 block truncate text-xs text-mist">${esc(setor.short)} · ${esc(tipos)} · ≈ ${recebidos} ${plural(recebidos, 'email', 'emails')}</span>
-      ${ultimo ? `<span class="mt-1 flex items-center gap-1.5 truncate text-[11px] text-slate-300"><span class="h-1.5 w-1.5 shrink-0 rounded-full ${BUCKETS[baldeDoPedido(ultimo)]?.dot || 'bg-slate-500'}"></span><span class="truncate">${esc(RIGHTS[ultimo.right].short)}: ${esc(descreverPedido(ultimo))}</span></span>` : ''}
-      ${empresa.unsubscribedAt ? '<span class="mt-1 block text-[11px] text-slate-400">Subscrição cancelada</span>' : ''}
+      ${ultimo ? `<span class="mt-1 flex items-center gap-1.5 truncate text-xs text-slate-200"><span class="truncate">${esc(RIGHTS[ultimo.right].short)}: ${esc(descreverPedido(ultimo))}</span></span>`
+        : situacao ? `<span class="mt-1 flex items-center gap-1.5 truncate text-xs text-slate-200"><span class="truncate">${esc(situacao.texto)}</span></span>` : ''}
+      ${empresa.unsubscribedAt ? '<span class="mt-1 block text-xs text-slate-400">Subscrição cancelada</span>' : ''}
     </span>
-    <span class="flex shrink-0 items-center gap-1.5 text-[11px] font-semibold ${SEVERITY[gravidade].texto}">${iconeGravidade(gravidade)}<span class="hidden w-[4.5rem] sm:inline">${SEVERITY[gravidade].label}</span></span>
+    <span class="flex shrink-0 items-center gap-1.5 text-xs font-semibold ${SEVERITY[gravidade].texto}">${iconeGravidade(gravidade)}<span class="hidden w-[4.5rem] sm:inline">${SEVERITY[gravidade].label}</span></span>
     <span class="shrink-0 text-slate-600">${icone('seta', 'h-4 w-4')}</span>
   </button>`;
 }
@@ -2955,7 +2992,7 @@ function desenharRede(rede) {
   const proporcaoMax = computador ? Math.min(1.2, Math.max(0.5, (window.innerHeight - 230) / larguraPx)) : 1.3;
   const proporcaoMin = computador ? 0.45 : 0.8;
   const pesoX = Math.min(1.05, Math.max(0.6, proporcaoMax * 0.85));
-  const letra = computador ? 12 : REDE.LETRA;
+  const letra = computador ? 13.5 : REDE.LETRA;
 
   // 2. As áreas arrumam-se lado a lado, as mais sensíveis primeiro (ao centro).
   //    Cada nova área encosta-se às que já estão, no sítio livre mais perto do centro.
@@ -3004,7 +3041,7 @@ function desenharRede(rede) {
     raios.set(`s:${g.chave}`, 2.6);
     g.pontos.forEach(({ no, dx, dy }) => {
       pos.set(no.id, { x: g.x - cx + dx, y: g.y - cy + dy, grupo: g.chave });
-      raios.set(no.id, (RAIO_EMPRESA[no.gravidade] || 3.5) + (no.balde !== 'sempedido' ? 2.2 : 0));
+      raios.set(no.id, RAIO_EMPRESA[no.gravidade] || 4);
     });
   });
 
@@ -3016,7 +3053,7 @@ function desenharRede(rede) {
 
   // 4. O que se escolhe: uma empresa mostra os seus terceiros à volta dela;
   //    um terceiro mostra todas as empresas que o usam. O resto esbate-se.
-  //    As fugas e burlas não entram no mapa: aparecem só no bloco da empresa.
+  //    As fugas, burlas e multas pintam o ícone de vermelho; o pormenor fica no bloco da empresa.
   let acesos = null;
   const satelites = [];
   const relacoes = [];
@@ -3074,25 +3111,33 @@ function desenharRede(rede) {
   const linhasRel = relacoes.map((l) => linha(l.de, l.para, REDE.TERCEIRO, 1, 0.9, true)).join('');
 
   let ordem2 = 0;
-  const ponto = ({ id, r, cor, brilho, acao, titulo, anel, pulsar }) => {
+  const ponto = ({ id, r, cor, brilho, acao, titulo, anel, pulsar, letra, corLetra, contorno }) => {
     const ligado = aceso(id);
     const entrada = animarMapa ? ` class="dot-in" style="animation-delay:${Math.min(ordem2++ * 6, 700)}ms"` : '';
     return `<g data-no="${esc(id)}" opacity="${ligado ? 1 : 0.22}"><g${entrada}>
       ${brilho ? `<circle r="${r1(r * 2.6)}" fill="url(#${brilho})" pointer-events="none"/>` : ''}
       ${pulsar ? `<circle r="${r}" fill="none" stroke="${cor}" stroke-width="1.2" class="ponto-radar" pointer-events="none"/>` : ''}
-      ${anel ? `<circle r="${r1(r + 2.2)}" fill="none" stroke="${REDE.PORMENOR}" stroke-width="1.4" pointer-events="none"/>` : ''}
-      <circle r="${r}" fill="${cor}" stroke="${sel.chave === id ? '#ffffff' : 'none'}" stroke-width="1.6" pointer-events="none"/>
+      ${anel ? `<circle r="${r1(r + 2.2)}" fill="none" stroke="${anel}" stroke-width="1.4" pointer-events="none"/>` : ''}
+      <circle r="${r}" fill="${cor}" stroke="#ffffff" stroke-opacity="${sel.chave === id ? 1 : contorno ? 0.28 : 0}" stroke-width="${sel.chave === id ? 1.6 : 0.7}" pointer-events="none"/>
+      ${letra ? `<text data-letra data-r="${r}" text-anchor="middle" dy="0.36em" font-size="${r1(r * 1.15)}" font-weight="700" fill="${corLetra}" pointer-events="none">${esc(letra)}</text>` : ''}
       <circle ${acao} r="${r1(Math.max(r + 3, 7 * u))}" fill="transparent" class="cursor-pointer"><title>${esc(titulo)}</title></circle>
     </g></g>`;
   };
-  const nucleos = grupos.map((g) => `<g data-no="s:${g.chave}" opacity="${aceso(`s:${g.chave}`) ? 1 : 0.35}">
-      <circle r="2.6" fill="${REDE.NUCLEO}" pointer-events="none"/>
-      <circle data-action="mapa-setor" data-sector="${g.chave}" r="${r1(Math.max(6, 8 * u))}" fill="transparent" class="cursor-pointer"><title>${esc(SECTORS[g.chave].label)}</title></circle>
-    </g>`).join('');
+  // No centro de cada área, o símbolo da área (o mesmo das listas), num distintivo redondo
+  const nucleos = grupos.map((g) => {
+    const escolhida = sel.tipo === 'setor' && sel.chave === g.chave;
+    return `<g data-no="s:${g.chave}" opacity="${aceso(`s:${g.chave}`) ? 1 : 0.35}">
+      <circle r="7.6" fill="#1d1620" stroke="${escolhida ? '#ffffff' : '#5d5462'}" stroke-width="${escolhida ? 1.2 : 0.8}" pointer-events="none"/>
+      ${iconeNoMapa(g.chave, 0, 0, 9, escolhida ? '#ffffff' : '#d3ccd6')}
+      <circle data-action="mapa-setor" data-sector="${g.chave}" r="${r1(Math.max(8, 9 * u))}" fill="transparent" class="cursor-pointer"><title>${esc(SECTORS[g.chave].label)}</title></circle>
+    </g>`;
+  }).join('');
   const pontosEmpresas = grupos.flatMap((g) => g.nos).map((no) => ponto({
-    id: no.id, r: RAIO_EMPRESA[no.gravidade] || 3.5, cor: SEVERITY[no.gravidade].hex, brilho: null,
-    acao: `data-action="mapa-empresa" data-id="${esc(no.id)}"`, titulo: `${no.name}: sensibilidade ${SEVERITY[no.gravidade].label.toLowerCase()}`,
-    anel: no.balde !== 'sempedido'
+    id: no.id, r: RAIO_EMPRESA[no.gravidade] || 4, cor: no.situacao ? ESTADOS_EMPRESA[no.situacao.chave].hex : COR_NO_MAPA[no.gravidade] || COR_NO_MAPA.media, brilho: null,
+    acao: `data-action="mapa-empresa" data-id="${esc(no.id)}"`,
+    titulo: `${no.name}: sensibilidade ${SEVERITY[no.gravidade].label.toLowerCase()}${no.situacao ? `. ${no.situacao.texto}` : ''}`,
+    anel: null, contorno: true,
+    letra: (no.empresa?.icon || no.name[0] || '?').toUpperCase(), corLetra: no.situacao ? '#ffffff' : LETRA_NO_MAPA[no.gravidade] || LETRA_NO_MAPA.media
   })).join('');
   const nomeDe = (s) => rede.terceiros.find((x) => x.id === s.id);
   const pontosSatelites = satelites.map((s) => ponto({
@@ -3129,7 +3174,7 @@ function desenharRede(rede) {
       <g>${textos}</g>
     </svg>
     <div class="mt-2 flex items-center justify-between gap-3">
-      <p id="map-zoom-hint" class="text-[11px] leading-4 text-mist">Aproxima para veres os nomes.</p>
+      <p id="map-zoom-hint" class="text-xs leading-4 text-mist">Aproxima para veres os nomes.</p>
       <div class="flex shrink-0 gap-1.5">
         ${botao('menos', 'Afastar', traco('M4 8h8'))}
         ${botao('mais', 'Aproximar', traco('M4 8h8M8 4v8'))}
@@ -3177,6 +3222,10 @@ function aplicarZoom() {
   svg.querySelectorAll('g[data-no]').forEach((g) => {
     const p = posicoes.get(g.dataset.no);
     g.setAttribute('transform', `translate(${r1(p.x)} ${r1(p.y)}) scale(${Math.round(s * 100) / 100})`);
+  });
+  // A inicial dentro de cada ícone só aparece quando o ícone tem tamanho para ela (com muitas empresas, ao aproximar)
+  svg.querySelectorAll('text[data-letra]').forEach((t) => {
+    t.setAttribute('display', (Number(t.dataset.r) * s) / u >= 6.5 ? 'inline' : 'none');
   });
 
   // Nomes: os mais importantes primeiro; um nome que tape outro (ou um ponto) fica escondido
@@ -3378,8 +3427,21 @@ function ligarZoomDoMapa() {
 
 function legendaDaRede(rede) {
   const areas = new Set(rede.empresas.map((no) => no.sector)).size;
+  // Cada exemplo é desenhado como o ícone no mapa: a cor diz o risco ou o estado do pedido
+  const exemplo = (fundo, letra, anel = null) => `<svg viewBox="0 0 22 22" width="22" height="22" class="shrink-0" aria-hidden="true">
+      ${anel ? `<circle cx="11" cy="11" r="9.6" fill="none" stroke="${anel}" stroke-width="1.6"/>` : ''}
+      <circle cx="11" cy="11" r="8" fill="${fundo}" stroke="#ffffff" stroke-opacity="0.28" stroke-width="0.8"/>
+      <text x="11" y="11" dy="0.36em" text-anchor="middle" font-size="9" font-weight="700" fill="${letra}">A</text>
+    </svg>`;
+  const item = (icone, texto) => `<li class="flex items-center gap-2">${icone}<span>${texto}</span></li>`;
   return `<p class="text-xs text-slate-300"><span class="font-semibold text-white">${rede.empresas.length}</span> ${plural(rede.empresas.length, 'empresa', 'empresas')} em <span class="font-semibold text-white">${areas}</span> ${plural(areas, 'área', 'áreas')}</p>
-    <p class="mt-2 text-[11px] leading-4 text-mist">Cada ponto é uma empresa, junto das outras da mesma área. Pontos maiores e de um vermelho mais forte guardam dados mais sensíveis. Um anel verde marca as empresas a quem já fizeste um pedido. <span class="lg:hidden">Toca</span><span class="hidden lg:inline">Clica</span> num ponto para veres o que podes pedir.</p>`;
+    <ul class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs leading-4 text-slate-200">
+      ${item(exemplo(ESTADOS_EMPRESA.atencao.hex, '#ffffff'), 'Risco: sensibilidade alta ou muito alta, ou algo correu mal')}
+      ${item(exemplo(COR_NO_MAPA.media, LETRA_NO_MAPA.media), 'Menos sensíveis, sem pedidos')}
+      ${item(exemplo(ESTADOS_EMPRESA.pendente.hex, '#ffffff'), 'Pedido a decorrer')}
+      ${item(exemplo(ESTADOS_EMPRESA.concluido.hex, '#ffffff'), 'Pedido concluído')}
+    </ul>
+    <p class="mt-3 text-xs leading-4 text-mist"><span class="lg:hidden">Toca</span><span class="hidden lg:inline">Clica</span> numa empresa para veres o que se passa e o que lhe podes pedir.</p>`;
 }
 
 // Todas as empresas da análise, mais as que têm pedidos mas já não estão na lista.
@@ -3391,13 +3453,14 @@ function nosDoMapa() {
     const gravidade = gravidadeDe(empresa);
     return {
       id: empresa.id, name: empresa.name, sector: empresa.sector || 'outros', balde: item?.balde || 'sempedido',
-      ultimo: item?.ultimo || null, empresa, gravidade: gravidade.chave, motivo: gravidade.motivo
+      ultimo: item?.ultimo || null, empresa, gravidade: gravidade.chave, motivo: gravidade.motivo,
+      situacao: estadoDaEmpresa(empresa, item?.ultimo || null)
     };
   });
   comPedidos.forEach((item) => {
     const empresa = obterEmpresa(item.id) || null;
     const gravidade = gravidadeDe(empresa || { sector: item.sector || 'outros' });
-    nos.push({ ...item, sector: item.sector || 'outros', empresa, gravidade: gravidade.chave, motivo: gravidade.motivo });
+    nos.push({ ...item, sector: item.sector || 'outros', empresa, gravidade: gravidade.chave, motivo: gravidade.motivo, situacao: estadoDaEmpresa(empresa || { domain: item.id }, item.ultimo) });
   });
   return nos;
 }
@@ -3419,10 +3482,10 @@ function detalheDoMapa(nos, rede) {
       </div>
       ${fechar}
     </div>`;
-  const avatar = (conteudo) => `<span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-800 font-display text-xl font-semibold text-white lg:h-11 lg:w-11">${conteudo}</span>`;
+  const avatar = (conteudo, situacao = null) => `<span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${situacao ? ESTADOS_EMPRESA[situacao.chave].fundo : 'bg-slate-800'} font-display text-xl font-semibold text-white lg:h-11 lg:w-11"${situacao ? ` title="${esc(situacao.texto)}"` : ''}>${conteudo}</span>`;
   // A sensibilidade numa caixa própria: o nível e o que a empresa costuma guardar
   const sensibilidade = (chave, texto) => `
-    <div class="mt-5 rounded-2xl border ${SEVERITY[chave].borda} bg-slate-900 p-4 lg:mt-4 lg:p-3.5">
+    <div class="mt-5 rounded-2xl border ${SEVERITY[chave].borda} ${['critica', 'alta'].includes(chave) ? 'bg-risco/25' : 'bg-slate-900'} p-4 lg:mt-4 lg:p-3.5">
       <p class="flex items-center gap-2 text-sm font-semibold ${SEVERITY[chave].texto}">${iconeGravidade(chave, 11)}Sensibilidade ${SEVERITY[chave].label.toLowerCase()}</p>
       <p class="mt-1.5 text-sm leading-6 text-slate-100">${esc(texto)}</p>
     </div>`;
@@ -3438,7 +3501,7 @@ function detalheDoMapa(nos, rede) {
   // Uma linha de uma lista de opções: o nome, uma frase (só no computador, se não for essencial) e a seta
   // Uma linha de uma lista de opções: o nome, uma frase só quando é precisa (as outras ficam na dica) e a seta
   const opcao = (atributos, nome, frase = '', extra = '', fraseSempre = false) => `<button ${atributos} type="button"${frase && !fraseSempre ? ` title="${frase}"` : ''} class="flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-slate-800/50 lg:py-3">
-      <span class="min-w-0 flex-1"><span class="flex items-center gap-2 text-[15px] font-semibold text-slate-100">${nome}${extra}</span>${frase && fraseSempre ? `<span class="mt-0.5 block text-xs leading-5 text-slate-300">${frase}</span>` : ''}</span>
+      <span class="min-w-0 flex-1"><span class="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-100">${nome}${extra}</span>${frase && fraseSempre ? `<span class="mt-0.5 block text-xs leading-5 text-slate-300">${frase}</span>` : ''}</span>
       <span class="shrink-0 text-slate-400">${icone('seta', 'h-4 w-4')}</span>
     </button>`;
   const caixa = (conteudo) => `<div class="mt-3 divide-y divide-slate-800 overflow-hidden rounded-2xl border border-slate-700/70 bg-slate-900">${conteudo}</div>`;
@@ -3454,7 +3517,7 @@ function detalheDoMapa(nos, rede) {
     const t = rede.terceiros.find((item) => item.id === sel.chave);
     const uma = t.ligados.length === 1;
     return `${cabecalho(esc(t.nome), `Terceiro · ${esc(t.dominio)}`, avatar(esc((t.nome[0] || '?').toUpperCase())))}
-      <p class="mt-5 text-[15px] leading-6 text-slate-100">${esc(nomes(t.ligados))} ${uma ? 'usa' : 'usam'} o ${esc(t.nome)} para te enviar emails. O ${esc(t.nome)} recebe o teu endereço em nome ${uma ? 'dela' : 'delas'} e pode registar quando abres as mensagens.</p>
+      <p class="mt-5 text-[0.9375rem] leading-6 text-slate-100">${esc(nomes(t.ligados))} ${uma ? 'usa' : 'usam'} o ${esc(t.nome)} para te enviar emails. O ${esc(t.nome)} recebe o teu endereço em nome ${uma ? 'dela' : 'delas'} e pode registar quando abres as mensagens.</p>
       <p class="mt-2 text-sm leading-6 text-slate-300">Não comprou os teus dados: trabalha por conta ${uma ? 'da empresa' : 'das empresas'}. Se pedires o apagamento, ${uma ? 'ela tem' : 'elas têm'} de avisar o ${esc(t.nome)} (artigo 19.º do RGPD).</p>
       <div class="mt-7">${titulo(uma ? 'A empresa' : 'As empresas')}${linhas(t.ligados, true)}</div>`;
   }
@@ -3498,10 +3561,10 @@ function detalheDoMapa(nos, rede) {
     principal = `<div class="sticky bottom-0 z-10 -mx-5 mt-6 lg:mt-5 border-t border-slate-800 bg-ink/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
       ${apagamento
         ? `<button data-action="ver-pedido" data-id="${esc(apagamento.id)}" type="button" class="flex w-full items-center gap-3 rounded-xl border border-slate-600 bg-slate-900 px-4 py-3 text-left">
-            <span class="min-w-0 flex-1"><span class="block text-[15px] font-semibold text-white">Pediste que apaguem os teus dados</span><span class="mt-0.5 block truncate text-xs ${corDoPedido(apagamento)}">${esc(descreverPedido(apagamento))}</span></span>
+            <span class="min-w-0 flex-1"><span class="block text-[0.9375rem] font-semibold text-white">Pediste que apaguem os teus dados</span><span class="mt-0.5 block truncate text-xs ${corDoPedido(apagamento)}">${marcaDoPedido(apagamento)}${esc(descreverPedido(apagamento))}</span></span>
             <span class="shrink-0 text-sm font-semibold text-slate-100">Ver</span>
           </button>`
-        : `<button data-action="pedido" data-id="${esc(no.id)}" data-right="erasure" type="button" class="flex w-full items-center justify-center rounded-xl bg-lime px-4 py-3.5 text-[15px] font-bold text-ink transition hover:brightness-95 active:scale-[.98]">Pedir que apaguem os meus dados</button>
+        : `<button data-action="pedido" data-id="${esc(no.id)}" data-right="erasure" type="button" class="flex w-full items-center justify-center rounded-xl bg-lime px-4 py-3.5 text-[0.9375rem] font-bold text-ink transition hover:brightness-95 active:scale-[.98]">Pedir que apaguem os meus dados</button>
           <p class="mt-2 text-center text-xs leading-5 text-slate-300">${no.empresa.dpo_email ? 'O Veto escreve o pedido e envia-o pelo teu Gmail, se aceitares.' : 'O Veto escreve o pedido e tu envias.'} Têm um mês para responder.</p>`}
     </div>`;
     const frases = { access: 'Saber que dados têm e receber uma cópia', portability: 'Num formato que podes levar para outro serviço', objection: 'Deixam de usar os teus dados para publicidade' };
@@ -3510,7 +3573,7 @@ function detalheDoMapa(nos, rede) {
         ${caixa(['access', 'portability', 'objection'].map((right) => {
           const pedido = aberto(right);
           return pedido
-            ? opcao(`data-action="ver-pedido" data-id="${esc(pedido.id)}"`, esc(RIGHTS[right].label), `<span class="${corDoPedido(pedido)}">${esc(descreverPedido(pedido))}</span>`, '', true)
+            ? opcao(`data-action="ver-pedido" data-id="${esc(pedido.id)}"`, esc(RIGHTS[right].label), `<span class="${corDoPedido(pedido)}">${marcaDoPedido(pedido)}${esc(descreverPedido(pedido))}</span>`, '', true)
             : opcao(`data-action="pedido" data-id="${esc(no.id)}" data-right="${right}"`, esc(RIGHTS[right].label), esc(frases[right]));
         }).join(''))}
       </section>`;
@@ -3527,7 +3590,7 @@ function detalheDoMapa(nos, rede) {
     ...pedidosDaEmpresa.filter((pedido) => pedido.status === 'closed').map((pedido) => opcao(`data-action="ver-pedido" data-id="${esc(pedido.id)}"`, `Pedido anterior: ${esc(RIGHTS[pedido.right].short.toLowerCase())}`, esc(descreverPedido(pedido)), '', true))
   ].join('');
   const mais = no.empresa ? `<details data-mais="${esc(no.id)}" class="guia mt-6 lg:mt-5 overflow-hidden rounded-2xl border border-slate-700/70 bg-slate-900"${renderPainelEmpresa.maisAberto === no.id ? ' open' : ''}>
-      <summary class="flex cursor-pointer items-center justify-between gap-3 px-4 py-3.5 text-[15px] font-semibold text-slate-100 lg:py-3">Mais opções
+      <summary class="flex cursor-pointer items-center justify-between gap-3 px-4 py-3.5 text-[0.9375rem] font-semibold text-slate-100 lg:py-3">Mais opções
         <svg viewBox="0 0 16 16" class="guia-seta h-4 w-4 shrink-0 text-slate-400 transition" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
       </summary>
       <div class="divide-y divide-slate-800 border-t border-slate-800">
@@ -3543,7 +3606,7 @@ function detalheDoMapa(nos, rede) {
 
   // No computador, se a empresa não couber na coluna, um esbatido em baixo mostra que há mais (em vez de um corte seco)
   const fimDoPainel = '<div class="pointer-events-none sticky -bottom-5 -mx-5 -mb-5 hidden h-8 bg-gradient-to-t from-[#262028] to-transparent lg:block" aria-hidden="true"></div>';
-  return `${cabecalho(esc(no.name), `${esc(setor.label)}${ev ? ` · ≈ ${ev.totalRecebidos ?? ev.count} emails` : ''}`, avatar(esc(no.empresa?.icon || (no.name[0] || '?').toUpperCase())))}
+  return `${cabecalho(esc(no.name), `${esc(setor.label)}${ev ? ` · ≈ ${ev.totalRecebidos ?? ev.count} emails` : ''}`, avatar(esc(no.empresa?.icon || (no.name[0] || '?').toUpperCase()), no.situacao))}
     ${sensibilidade(no.gravidade, no.motivo)}
     ${noticias}
     ${principal}
@@ -3554,8 +3617,13 @@ function detalheDoMapa(nos, rede) {
 }
 
 // A cor do estado de um pedido: âmbar se está atrasado, verde se já foi enviado (é algo que fizeste)
-function corDoPedido(pedido) {
-  return baldeDoPedido(pedido) === 'atraso' ? 'text-amber-300' : 'text-lime';
+function corDoPedido() {
+  return 'text-slate-200';
+}
+
+// Um quadrado pequeno da cor do estado do pedido, antes do texto
+function marcaDoPedido(pedido) {
+  return `<span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm align-[-1px] ${ESTADOS_EMPRESA[estadoDoPedido(pedido).chave].fundo}"></span>`;
 }
 
 // Uma notícia na empresa: o título e porque importa, com dois botões à vista:
@@ -3566,7 +3634,7 @@ function itemDeNoticia(noticia, comEmpresa = false) {
   const aberta = noticiasAbertas.has(noticia.id);
   return `<article class="rounded-2xl border border-slate-700/70 bg-slate-900 p-4 lg:p-3.5">
     <p class="text-xs font-semibold text-slate-300">${esc(tipo)}${proprio} · ${formatarData(noticia.data)} · ${esc(noticia.fonte.nome)}${noticia.estado === 'por_confirmar' ? ' · por confirmar' : ''}</p>
-    <p class="mt-1.5 text-[15px] font-semibold leading-snug text-white">${esc(noticia.titulo)}</p>
+    <p class="mt-1.5 text-[0.9375rem] font-semibold leading-snug text-white">${esc(noticia.titulo)}</p>
     ${aberta
       ? `<p class="mt-2 text-sm leading-6 text-slate-200">${esc(noticia.resumo)}</p>
          <p class="mt-2 text-sm leading-6 text-slate-200"><span class="font-semibold text-white">Porque importa:</span> ${esc(noticia.importa)}</p>`
@@ -3589,7 +3657,7 @@ function linhaDoMapa(no, mostrarArea) {
   return `<button data-action="abrir-empresa" data-id="${esc(no.id)}" type="button" class="flex w-full items-center gap-3 py-2.5 text-left">
     <span class="min-w-0 flex-1">
       <span class="block truncate text-sm font-semibold">${esc(no.name)}</span>
-      <span class="mt-0.5 flex items-center gap-1.5 truncate text-[11px] text-mist">${iconeGravidade(no.gravidade, 8)}<span>${SEVERITY[no.gravidade].label}</span>${mostrarArea ? `<span>·</span><span>${esc(setor.short)}</span>` : ''}<span>·</span><span class="truncate">${esc(texto)}</span></span>
+      <span class="mt-0.5 flex items-center gap-1.5 truncate text-xs text-mist">${iconeGravidade(no.gravidade, 8)}<span>${SEVERITY[no.gravidade].label}</span>${mostrarArea ? `<span>·</span><span>${esc(setor.short)}</span>` : ''}<span>·</span><span class="truncate">${esc(texto)}</span></span>
     </span>
     <span class="shrink-0 text-slate-500">${icone('seta', 'h-4 w-4')}</span>
   </button>`;
@@ -3629,7 +3697,7 @@ function criarCartaoPedido(pedido) {
   if (pedido.status === 'sent' && prazo !== null) {
     linhaPrazo = prazo >= 0
       ? `<span class="text-slate-300">Prazo: ${formatarData(pedido.dueDate)} · ${prazo === 0 ? 'termina hoje' : `faltam ${prazo} ${prazo === 1 ? 'dia' : 'dias'}`}</span>`
-      : `<span class="font-semibold text-amber-300">Prazo terminou a ${formatarData(pedido.dueDate)} · há ${-prazo} ${prazo === -1 ? 'dia' : 'dias'}</span>`;
+      : `<span class="font-semibold text-white">Prazo terminou a ${formatarData(pedido.dueDate)} · há ${-prazo} ${prazo === -1 ? 'dia' : 'dias'}</span>`;
   }
 
   const acoes = [];
@@ -3649,17 +3717,22 @@ function criarCartaoPedido(pedido) {
     acoes.push(`<button data-action="pedido" data-id="${esc(pedido.companyId)}" data-right="erasure" type="button" class="rounded-lg bg-white px-3 py-2 text-xs font-bold text-ink">Pedir apagamento</button>`);
   }
 
-  const resultado = pedido.outcome ? `<span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${balde === 'confirmado' ? 'bg-slate-800 text-slate-200' : balde === 'atraso' ? 'bg-amber-300/10 text-amber-200' : 'bg-lime/10 text-lime'}">${esc(OUTCOMES[pedido.outcome].badge)}</span>` : '';
+  // "Enviar novamente" em todos os pedidos ainda abertos (também com uma resposta por registar)
+  const reenviar = pedido.email && (['sent', 'awaiting_confirmation'].includes(pedido.status) || (pedido.status === 'reply_received' && pedido.holdsData === null));
+  const resultado = pedido.outcome ? `<span class="shrink-0 rounded-full bg-slate-800 px-2 py-0.5 text-[0.6875rem] font-bold text-slate-200">${esc(OUTCOMES[pedido.outcome].badge)}</span>` : '';
 
   return `<article id="pedido-${esc(pedido.id)}" class="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 transition">
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
-        <p class="flex items-center gap-2 font-semibold"><span class="h-2 w-2 shrink-0 rounded-full ${balde ? BUCKETS[balde].dot : 'bg-slate-500'}"></span>${esc(pedido.companyName)} <span class="text-slate-500" title="${esc(setor.label)}">${icone(pedido.companySector || 'outros', 'h-3.5 w-3.5')}</span></p>
+        <p class="flex items-center gap-2 font-semibold"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white ${['critica', 'alta'].includes(gravidadeDe(obterEmpresa(pedido.companyId) || { sector: pedido.companySector || 'outros' }).chave) ? 'bg-risco' : 'bg-slate-800'}" aria-hidden="true">${esc((pedido.companyName[0] || '?').toUpperCase())}</span>${esc(pedido.companyName)} <span class="text-slate-500" title="${esc(setor.label)}">${icone(pedido.companySector || 'outros', 'h-3.5 w-3.5')}</span></p>
         <p class="mt-0.5 text-xs text-mist">${esc(direito.short)} · ${esc(direito.article)}</p>
       </div>
-      ${resultado || (['sent', 'awaiting_confirmation'].includes(pedido.status) && pedido.email ? `<button data-action="enviar-novamente" data-id="${esc(pedido.id)}" type="button" class="shrink-0 rounded-lg border border-slate-700 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 hover:border-slate-500">Enviar novamente</button>` : '')}
+      ${(reenviar) || resultado ? `<div class="flex shrink-0 flex-col items-end gap-1.5">
+        ${reenviar ? `<button data-action="enviar-novamente" data-id="${esc(pedido.id)}" type="button" class="rounded-lg border border-slate-700 px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:border-slate-500">Enviar novamente</button>` : ''}
+        ${resultado}
+      </div>` : ''}
     </div>
-    <div class="mt-3 flex flex-col gap-1 text-[11px] text-mist">
+    <div class="mt-3 flex flex-col gap-1 text-xs text-mist">
       <span>${esc(pedido.via === 'veto' && pedido.status === 'sent' ? 'Enviado pelo Veto, do teu Gmail' : STATUS_LABELS[pedido.status])}</span>
       ${pedido.sentAt ? `<span>Enviado a ${formatarData(pedido.sentAt)}${pedido.email ? ` para ${esc(pedido.email.replace(/^https?:\/\/(www\.)?/, '').split(/[/?#]/)[0])}` : ''}${pedido.followUpAt ? ` · insistência a ${formatarData(pedido.followUpAt)}` : ''}</span>` : ''}
       ${linhaPrazo}
@@ -3878,7 +3951,7 @@ function renderLote() {
         <input type="checkbox" data-lote-empresa="${esc(empresa.id)}" class="h-4 w-4 shrink-0 accent-lime"${lote.selecionadas.has(empresa.id) ? ' checked' : ''}>
         <span class="min-w-0 flex-1">
           <span class="flex items-center gap-1.5 text-sm font-semibold"><span class="truncate">${esc(empresa.name)}</span><span class="text-slate-500" title="${esc((SECTORS[empresa.sector] || SECTORS.outros).label)}">${icone(empresa.sector || 'outros', 'h-3.5 w-3.5')}</span></span>
-          <span class="mt-0.5 flex items-center gap-1.5 text-[11px] text-mist">${iconeGravidade(gravidade, 8)}<span class="truncate">${esc(empresa.dpo_email)}</span></span>
+          <span class="mt-0.5 flex items-center gap-1.5 text-xs text-mist">${iconeGravidade(gravidade, 8)}<span class="truncate">${esc(empresa.dpo_email)}</span></span>
         </span>
       </label>`;
     const motivos = {
@@ -3890,9 +3963,9 @@ function renderLote() {
       <div class="flex items-center gap-3 border-b border-slate-800 py-2.5 last:border-b-0">
         <span class="min-w-0 flex-1">
           <span class="block truncate text-sm font-semibold text-slate-300">${esc(empresa.name)}</span>
-          <span class="mt-0.5 block text-[11px] text-mist">${motivos[motivo]}</span>
+          <span class="mt-0.5 block text-xs text-mist">${motivos[motivo]}</span>
         </span>
-        ${motivo === 'sem_contacto' ? `<button data-action="lote-indicar" data-id="${esc(empresa.id)}" type="button" class="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-[11px] font-bold text-slate-200">Indicar email</button>` : ''}
+        ${motivo === 'sem_contacto' ? `<button data-action="lote-indicar" data-id="${esc(empresa.id)}" type="button" class="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-200">Indicar email</button>` : ''}
       </div>`;
     painel.innerHTML = `
       ${topo(`Pedir a várias empresas ${SELO_PLUS}`, `O mesmo pedido, um email a cada empresa, enviado do teu Gmail${conta ? ` (${esc(conta)})` : ''}. Antes de sair, vês tudo o que vai ser enviado.`)}
@@ -3904,13 +3977,13 @@ function renderLote() {
             <button data-action="lote-direito" data-right="${right}" type="button" aria-pressed="${right === lote.right}"
               class="flex flex-col rounded-xl border p-3 text-left transition ${right === lote.right ? 'border-lime bg-lime/10' : 'border-slate-800 bg-ink/60 hover:border-slate-600'}">
               <span class="text-sm font-semibold">${titulo}</span>
-              <span class="mt-1 text-[11px] leading-4 text-mist">${frase}</span>
+              <span class="mt-1 text-xs leading-4 text-mist">${frase}</span>
             </button>`).join('')}
         </div>
         <!-- O texto que vai sair, visível antes de escolher a quem -->
         <details data-lote-texto class="mt-3 rounded-xl border border-slate-800 px-3"${textoAberto ? ' open' : ''}>
           <summary class="cursor-pointer py-2.5 text-xs font-semibold text-slate-300">Ver o texto do email</summary>
-          <p class="text-[11px] leading-4 text-mist">Assunto: ${esc(direito.subject)}</p>
+          <p class="text-xs leading-4 text-mist">Assunto: ${esc(direito.subject)}</p>
           <div class="mb-3 mt-2 max-h-56 overflow-y-auto whitespace-pre-wrap rounded-lg bg-ink/70 p-3 text-xs leading-5 text-slate-200">${esc(direito.body('[nome da empresa]'))}</div>
         </details>
         <div class="mt-6 flex items-end justify-between gap-3">
@@ -3945,7 +4018,7 @@ function renderLote() {
             ${unica
               ? `<span class="font-semibold">${esc(primeira.email)}</span>`
               : `<ul class="max-h-40 overflow-y-auto rounded-xl border border-slate-800 px-3">
-              ${envios.map((envio) => `<li class="flex items-baseline justify-between gap-3 border-b border-slate-800 py-2 last:border-b-0"><span class="truncate font-semibold">${esc(envio.nome)}</span><span class="truncate text-[11px] text-mist">${esc(envio.email)}</span></li>`).join('')}
+              ${envios.map((envio) => `<li class="flex items-baseline justify-between gap-3 border-b border-slate-800 py-2 last:border-b-0"><span class="truncate font-semibold">${esc(envio.nome)}</span><span class="truncate text-xs text-mist">${esc(envio.email)}</span></li>`).join('')}
             </ul>`}
           </dd>
           <dt class="text-mist">Assunto</dt><dd class="font-semibold leading-5">${esc(direito.subject)}</dd>
@@ -3956,7 +4029,7 @@ function renderLote() {
         <p class="mt-4 flex gap-2.5 rounded-xl bg-ink/70 px-3 py-2.5 text-xs leading-5 text-slate-300"><span class="mt-0.5 text-lime">${icone('cadeado', 'h-4 w-4')}</span><span>O Google vai pedir-te autorização para enviar emails em teu nome. O Veto usa-a só para ${envios.length === 1 ? 'este email' : `estes ${envios.length} emails`} e cancela-a logo a seguir. As cópias ficam na tua pasta Enviados e as respostas chegam à tua caixa de entrada.</span></p>
         <p class="mt-5 text-xs font-semibold text-slate-400">Texto do email${envios.length > 1 ? ` à ${esc(primeira.nome)}` : ''}</p>
         <div class="mt-2 max-h-64 overflow-y-auto whitespace-pre-wrap rounded-xl bg-ink/70 p-3.5 text-xs leading-5 text-slate-200">${esc(direito.body(primeira.nome))}</div>
-        ${envios.length > 1 ? '<p class="mt-2 text-[11px] leading-4 text-mist">Em cada email muda só o nome da empresa.</p>' : ''}
+        ${envios.length > 1 ? '<p class="mt-2 text-xs leading-4 text-mist">Em cada email muda só o nome da empresa.</p>' : ''}
       </div>
       ${rodape(unica
         ? `${botaoLote('lote-manual', 'Abrir no meu email', 'secondary')}${botaoLote('lote-enviar', 'Aceitar e enviar', 'primary')}`
@@ -3968,15 +4041,15 @@ function renderLote() {
   const enviados = lote.envios.filter((envio) => envio.estado === 'enviado').length;
   const falhados = lote.envios.filter((envio) => envio.estado === 'falhou');
   const estadoDoEnvio = {
-    espera: '<span class="text-[11px] text-slate-500">Na fila</span>',
-    a_enviar: '<span class="text-[11px] font-semibold text-slate-200"><span class="animate-pulse">A enviar</span></span>',
-    enviado: '<span class="flex items-center gap-1 text-[11px] font-semibold text-lime"><svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Enviado</span>',
-    falhou: '<span class="text-[11px] font-semibold text-rose-200">Não enviado</span>'
+    espera: '<span class="text-xs text-slate-500">Na fila</span>',
+    a_enviar: '<span class="text-xs font-semibold text-slate-200"><span class="animate-pulse">A enviar</span></span>',
+    enviado: '<span class="flex items-center gap-1 text-xs font-semibold text-lime"><svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Enviado</span>',
+    falhou: '<span class="text-xs font-semibold text-rose-200">Não enviado</span>'
   };
   const lista = `<ul class="mt-4 rounded-xl border border-slate-800 px-3" aria-live="polite">
     ${lote.envios.map((envio) => `<li class="border-b border-slate-800 py-2.5 last:border-b-0">
       <div class="flex items-center justify-between gap-3"><span class="truncate text-sm font-semibold">${esc(envio.nome)}</span>${estadoDoEnvio[envio.estado]}</div>
-      ${envio.motivo ? `<p class="mt-1 text-[11px] leading-4 text-rose-100/80">${esc(envio.motivo)}</p>` : ''}
+      ${envio.motivo ? `<p class="mt-1 text-xs leading-4 text-rose-100/80">${esc(envio.motivo)}</p>` : ''}
     </li>`).join('')}
   </ul>`;
 

@@ -74,7 +74,8 @@ const NOMES = {
     plus_agora_nao: 'Disse «agora não» ao Veto+', lote_aberto: 'Abriu «Pedir a várias empresas»', lote_revisto: 'Reviu o envio a várias empresas',
     lote_enviado: 'Enviou pedidos a várias empresas', lote_interrompido: 'Parou o envio a várias empresas',
     apagar_aberto: 'Abriu «Apagar os emails» de uma empresa', apagar_no_gmail: 'Preferiu apagar os emails à mão no Gmail',
-    emails_apagados: 'Moveu emails para o Lixo', apagar_interrompido: 'A limpeza de emails não terminou', opiniao: 'Deixou uma opinião'
+    emails_apagados: 'Moveu emails para o Lixo', apagar_interrompido: 'A limpeza de emails não terminou', opiniao: 'Deixou uma opinião',
+    resultados_vista: 'Mudou a forma de ver os resultados', empresa_aberta: 'Abriu uma empresa nos resultados'
   },
   areas: {
     saude: 'Saúde', financas: 'Finanças e seguros', encontros: 'Encontros', comida: 'Comida e entregas', viagens: 'Transportes e viagens',
@@ -91,10 +92,12 @@ const NOMES = {
   contacto: { veto: 'contacto verificado pela equipa', datenanfragen: 'contacto do Datenanfragen.de', utilizador: 'contacto escrito pela pessoa', exemplo: 'contacto de exemplo' },
   canal: { email: 'por email', formulario: 'pelo formulário da empresa' },
   app: { gmail: 'no Gmail', outlook: 'no Outlook', sistema: 'na app de email do dispositivo', veto_lote: 'enviado pelo Veto, a várias empresas' },
-  vistas: { inicio: 'Início', resultados: 'Resultados', pedidos: 'Mapa', noticias: 'Notícias' },
-  vistasEm: { inicio: 'no Início', resultados: 'nos Resultados', pedidos: 'no Mapa', noticias: 'nas Notícias' },
+  // Até à versão 0.8, a página «pedidos» era o Mapa; a partir da 0.9 é a página Pedidos (o mapa passou para os Resultados)
+  vistas: { inicio: 'Início', resultados: 'Resultados', pedidos: 'Pedidos (antes, Mapa)', noticias: 'Notícias' },
+  vistasEm: { inicio: 'no Início', resultados: 'nos Resultados', pedidos: 'em Pedidos (antes, no Mapa)', noticias: 'nas Notícias' },
+  modos: { lista: 'Lista', areas: 'Por área', mapa: 'Mapa', noticias: 'Notícias' },
   ondePlus: { inicio: 'no cartão do Início', topo: 'no botão do topo' },
-  ondeLote: { mapa: 'no topo do mapa', sem_pedidos: 'no mapa, ainda sem pedidos' },
+  ondeLote: { mapa: 'no topo do mapa', sem_pedidos: 'ainda sem pedidos', resultados: 'no resumo dos Resultados', pedidos: 'no topo de Pedidos' },
   ecra: { telemovel: 'Telemóvel ou tablet', computador: 'Computador' },
   motivoLogin: {
     janela_fechada: 'fechou a janela do Google', janela_bloqueada: 'o browser bloqueou a janela do Google',
@@ -205,6 +208,8 @@ function pormenores(ev) {
     case 'apagar_interrompido': return nome('areas', d.area);
     case 'emails_apagados': return juntar(quantos(d.quantos, 'email', 'emails'), nome('areas', d.area), d.metodo === 'um_a_um' ? 'um a um' : 'de uma vez');
     case 'opiniao': return juntar(d.nota ? `nota ${d.nota} de 5` : '', d.comentario ? `«${String(d.comentario).slice(0, 300)}»` : '');
+    case 'resultados_vista': return `separador ${nome('modos', d.modo)}`;
+    case 'empresa_aberta': return juntar(nome('areas', d.area), d.gravidade ? `gravidade ${nome('gravidade', d.gravidade)}` : '', d.modo ? `no separador ${nome('modos', d.modo)}` : '');
     default: {
       const resto = Object.keys(d).filter((k) => !['origem', 'ecra', 'demo'].includes(k)).map((k) => `${k}: ${JSON.stringify(d[k])}`);
       return resto.join(' · ');
@@ -213,7 +218,7 @@ function pormenores(ev) {
 }
 
 // Aparece no Resumo, para saber que versão deste ficheiro está a correr
-const VERSAO_SCRIPT = 'v3 (barras de texto)';
+const VERSAO_SCRIPT = 'v4 (separadores dos resultados)';
 const CORES = { cabecalho: '#e3edc9', secao: '#efecf1', explicacao: '#6f6676', barra: '#719b08' };
 // Nenhuma célula destas folhas é uma fórmula: só texto e números, para funcionar em qualquer língua da folha
 
@@ -334,6 +339,8 @@ function escreverResumo(livro, eventos, fuso) {
   const origens = {};       // origem -> pessoas
   const perguntas = {};     // pergunta frequente -> pessoas
   const paginas = {};       // página -> pessoas
+  const modosVistos = {};   // separador dos resultados -> pessoas que o abriram
+  const abriramPorModo = {}; // separador -> pessoas que abriram uma empresa a partir dele
   const motivosLogin = {};  // motivo -> pessoas
   const motivosAnalise = {};
   const minutosAteEnviar = [];
@@ -356,6 +363,8 @@ function escreverResumo(livro, eventos, fuso) {
       if (evento === 'login_google_interrompido') juntarA(motivosLogin, d.motivo || 'sem_motivo', id);
       if (evento === 'analise_falhou') juntarA(motivosAnalise, d.motivo || 'sem_motivo', id);
       if (evento === 'analise_concluida') ultimaAnalise[id] = d;
+      if (evento === 'resultados_vista') juntarA(modosVistos, d.modo || '?', id);
+      if (evento === 'empresa_aberta') juntarA(abriramPorModo, d.modo || '?', id);
     }
     if (evento === 'pedido_enviado') {
       somar(pedidosPorDireito, d.direito || '?');
@@ -493,6 +502,11 @@ function escreverResumo(livro, eventos, fuso) {
     .forEach((r) => { const t = nome('resultados', r); linha(t.charAt(0).toUpperCase() + t.slice(1), respostas[r], totalRespostas, '', true); });
   if (!totalRespostas) linha('Ainda nenhuma resposta registada', null, null);
   linha('Dias até a empresa responder', mediana(diasAteResposta), null, 'A meio das respostas (mediana). O RGPD dá um mês.');
+
+  secao('Como usam os resultados?');
+  linha('Abriram pelo menos uma empresa', n('empresa_aberta'), total, 'Para ver o que podem pedir. Desde a versão 0.9.', true);
+  ['lista', 'areas', 'mapa', 'noticias'].forEach((m) => linha(`   a partir do separador ${nome('modos', m)}`, tamanho(abriramPorModo[m]), total));
+  ['areas', 'mapa', 'noticias'].forEach((m) => linha(`Abriram o separador ${nome('modos', m)}`, tamanho(modosVistos[m]), total, m === 'areas' ? 'A Lista abre sempre primeiro.' : '', true));
 
   secao('O que leem?');
   ['inicio', 'resultados', 'pedidos', 'noticias'].forEach((v) => linha(`Abriram a página ${nome('vistas', v)}`, tamanho(paginas[v]), total, '', true));

@@ -1,0 +1,5 @@
+# Changes to these paths need the approval of one of these people
+# (turn on "Require review from Code Owners" in the rule for main).
+/mvp/catalogo/ @matildez0 @baixoo @rcg08 @ritaguiimaraes
+/mvp/prototipo/app.js @matildez0 @baixoo @rcg08 @ritaguiimaraes
+/.github/ @matildez0 @baixoo @rcg08 @ritaguiimaraes

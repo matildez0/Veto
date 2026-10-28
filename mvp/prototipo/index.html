@@ -10,7 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Login do Google. Se o browser o bloquear (bloqueador de anúncios, proteção contra rastreio), a app fica a saber e explica -->
+  <script src="https://accounts.google.com/gsi/client" async defer onload="window.vetoGoogle = 'carregou'" onerror="window.vetoGoogle = 'falhou'"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -21,6 +22,11 @@
             oliva: '#719b08', // pormenores (seleções, navegação, destaques)
             lime: '#c2ea5d',  // verde do logo e botões principais
             mist: '#a39ca7',
+            // Sensibilidade dos dados: de vermelho escuro (baixa) a vermelho forte (muito alta), só para a sensibilidade.
+            // sens = preenchimentos (barras, pontos); senst = texto, mais claro para se ler bem no fundo escuro
+            sens: { 1: '#6a2228', 2: '#942325', 3: '#c42b2b', 4: '#f0423a' },
+            senst: { 2: '#e0a39d', 3: '#f2877e', 4: '#ff6b61' },
+            risco: { fundo: '#3b1216', borda: '#6b1f24' },
             // Cinzentos com o tom do fundo
             slate: { 100: '#f3f1f4', 200: '#e4e0e6', 300: '#c9c4cc', 400: '#a39ca7', 500: '#807785', 600: '#655b6c', 700: '#4d4354', 800: '#3a3040', 900: '#2c2330', 950: '#19131b' }
           }
@@ -33,7 +39,7 @@
     .guia > summary { list-style: none; }
     .guia > summary::-webkit-details-marker { display: none; }
     .guia[open] .guia-seta { transform: rotate(180deg); }
-    /* Os pontos do mapa aparecem um a um ao entrar na página */
+    /* Os pontos do mapa aparecem um a um ao abrir o separador Mapa */
     @keyframes dot-in { from { opacity: 0; transform: scale(0.2); } to { opacity: 1; transform: scale(1); } }
     .dot-in { transform-box: fill-box; transform-origin: center; animation: dot-in 0.45s cubic-bezier(0.2, 0.8, 0.3, 1.25) both; }
     /* As fugas e burlas emitem um sinal no mapa */
@@ -60,8 +66,11 @@
     }
     /* No computador, tudo um pouco maior (o Tailwind usa rem) */
     @media (min-width: 1024px) { html { font-size: 16.5px; } }
+    /* No telemóvel, a empresa escolhida entra da direita, como uma página nova */
+    @keyframes painel-entra { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+    @media (max-width: 1023px) { .painel-entra { animation: painel-entra 0.22s ease-out; } }
     @media (prefers-reduced-motion: reduce) {
-      .dot-in, .ponto-radar { animation: none; }
+      .dot-in, .ponto-radar, .painel-entra { animation: none; }
       .ponto-radar { display: none; }
     }
   </style>
@@ -71,8 +80,8 @@
   <div id="erro-app" hidden style="position:sticky;top:0;z-index:50;background:#fb7185;color:#211923;padding:12px 16px;font:600 14px/1.4 system-ui,sans-serif;text-align:center">
     A app não arrancou: não encontrei o ficheiro <b>app.js</b>. Põe-no na mesma pasta que este index.html, com o nome exatamente <b>app.js</b>.
   </div>
-  <main class="mx-auto min-h-screen w-full max-w-md overflow-hidden bg-ink pb-28 lg:ml-56 lg:w-auto lg:max-w-none lg:px-8 lg:pb-16 xl:px-12">
-    <header class="px-5 pt-8 lg:max-w-[82rem]">
+  <main class="mx-auto min-h-screen w-full max-w-md overflow-x-clip bg-ink pb-28 lg:ml-56 lg:w-auto lg:max-w-none lg:px-8 lg:pb-16 xl:px-12">
+    <header class="px-5 pt-8">
       <div class="flex items-center justify-between gap-3 lg:justify-end">
         <a href="#inicio" aria-label="Veto, início" class="block shrink-0 lg:hidden">
           <svg viewBox="0 0 446 74" class="h-[19px] w-auto" role="img" aria-hidden="true">
@@ -85,36 +94,36 @@
           </svg>
         </a>
         <!-- Veto Plus: sempre visível no topo, em todas as páginas -->
-        <button data-action="plus" data-onde="topo" class="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-lime px-3 py-1.5 text-xs font-bold text-ink transition active:scale-95" type="button" aria-label="Veto+">
+        <button data-action="plus" data-onde="topo" class="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-lime/70 px-3 py-1.5 text-xs font-bold text-lime transition hover:bg-lime hover:text-ink active:scale-95" type="button" aria-label="Veto+">
           Veto +
         </button>
       </div>
     </header>
 
     <!-- ===================== INÍCIO ===================== -->
-    <div id="view-inicio" data-view="inicio" class="lg:max-w-[82rem]">
+    <div id="view-inicio" data-view="inicio">
       <div class="px-5 pb-5 pt-8">
-        <h1 class="font-display text-3xl font-semibold leading-tight lg:text-5xl">A tua pegada digital,<br><span class="text-slate-400">sob o teu controlo.</span></h1>
+        <h1 id="inicio-titulo" class="font-display text-3xl font-semibold leading-tight lg:text-5xl">A tua pegada digital,<br><span class="text-slate-400">sob o teu controlo.</span></h1>
       </div>
 
       <!-- No computador: à esquerda o teste e os resultados, à direita o Plus, a opinião e a privacidade -->
       <div class="lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-start lg:gap-6 lg:px-5">
       <div>
       <!-- Teste: o primeiro bloco do Início, com os passos e o botão para ligar o Gmail -->
-      <section id="intro-panel" class="mx-5 lg:mx-0 rounded-3xl border border-lime/30 bg-slate-900/60 p-5">
+      <section id="intro-panel" class="mx-5 lg:mx-0 rounded-3xl border border-slate-800 bg-slate-900/60 p-5">
         <h2 class="font-display text-xl font-semibold leading-tight lg:text-2xl">Descobre quem tem os teus dados</h2>
         <p class="mt-2 text-sm leading-6 text-slate-300">Cada conta que crias, cada compra online e cada newsletter deixa os teus dados numa empresa. Com o tempo, perdes a conta a quantas os têm. O Veto encontra-as nos teus emails e ajuda-te a pedir que os apaguem.</p>
         <ol class="mt-5 flex flex-col gap-3.5">
           <li class="flex gap-3">
-            <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lime text-xs font-bold text-ink">1</span>
+            <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-bold text-slate-100">1</span>
             <span><span class="block text-sm font-semibold text-white">Liga o teu Gmail</span><span class="mt-0.5 block text-xs leading-5 text-mist">Só de leitura. O acesso é cancelado assim que a análise termina.</span></span>
           </li>
           <li class="flex gap-3">
-            <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lime text-xs font-bold text-ink">2</span>
-            <span><span class="block text-sm font-semibold text-white">Vê que empresas têm os teus dados</span><span class="mt-0.5 block text-xs leading-5 text-mist">Agrupadas por área e pela gravidade de uma fuga, com terceiros e fugas conhecidas.</span></span>
+            <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-bold text-slate-100">2</span>
+            <span><span class="block text-sm font-semibold text-white">Vê que empresas têm os teus dados</span><span class="mt-0.5 block text-xs leading-5 text-mist">Por área e pela sensibilidade dos dados que guardam, com as notícias que as envolvem.</span></span>
           </li>
           <li class="flex gap-3">
-            <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-lime text-xs font-bold text-ink">3</span>
+            <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-bold text-slate-100">3</span>
             <span><span class="block text-sm font-semibold text-white">Decide o que lhes pedir</span><span class="mt-0.5 block text-xs leading-5 text-mist">Acesso, apagamento ou fim do marketing. O Veto escreve o pedido; tu só o envias.</span></span>
           </li>
         </ol>
@@ -126,8 +135,8 @@
         <button id="analyze-button" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-lime py-3.5 text-sm font-bold text-ink transition hover:brightness-95 active:scale-[.98]" type="button">
           Ligar Gmail e começar <span>→</span>
         </button>
-        <p class="mt-3 text-[11px] leading-4 text-slate-400">Lemos só o remetente, o assunto e a data, e demora poucos minutos. O Google vai avisar que a app está em teste: carrega em «Continuar».</p>
-        <button data-action="pedir-acesso" type="button" class="mt-2 text-[11px] font-semibold text-lime underline underline-offset-4">Ainda não tens acesso ao teste? Pede aqui</button>
+        <p class="mt-3 text-[11px] leading-4 text-slate-400">Lemos só o remetente, o assunto e a data dos teus últimos 1000 emails. Demora uns 4 minutos: o Gmail só deixa ler cerca de 300 por minuto. O Google vai avisar que a app está em teste: carrega em «Continuar».</p>
+        <button data-action="pedir-acesso" type="button" class="mt-2 text-[11px] font-semibold text-slate-200 underline decoration-slate-500 underline-offset-4">Ainda não tens acesso ao teste? Pede aqui</button>
         <div id="analysis-progress" class="mt-4 hidden h-1.5 w-full overflow-hidden rounded-full bg-slate-800" role="progressbar" aria-label="Progresso da análise"><div class="h-full rounded-full bg-lime transition-all duration-300" style="width:0%"></div></div>
         <!-- Registo da análise: o que a app está a fazer, passo a passo -->
         <ol id="analysis-log" class="mt-3 hidden max-h-60 overflow-y-auto rounded-xl border border-slate-800 bg-ink/70 px-3 py-2.5 text-xs leading-5" aria-live="polite" aria-label="O que está a acontecer"></ol>
@@ -140,85 +149,58 @@
         </div>
       </section>
 
-      <!-- Resumo: só aparece depois da primeira análise -->
-      <section id="home-summary" class="mx-5 hidden lg:mx-0 rounded-3xl bg-lime p-5 text-ink">
-        <p class="font-display text-5xl font-semibold"><span id="service-count">0</span> <span id="service-noun" class="text-2xl">empresas</span></p>
-        <p id="service-verb" class="mt-1 text-sm font-semibold text-ink/75">têm provavelmente os teus dados</p>
-        <div class="mt-4 flex items-center justify-between border-t border-ink/10 pt-3 text-xs font-semibold">
-          <span><span id="risk-count">0</span> em áreas sensíveis</span>
-          <span id="analysis-date">ainda não analisado</span>
-        </div>
-      </section>
-
-      <section id="next-steps" class="mx-5 mt-5 hidden lg:mx-0 rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
-        <a href="#resultados" class="flex w-full items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-bold text-ink">Ver resultados <span>→</span></a>
-        <a href="#pedidos" class="mt-2 flex w-full items-center justify-between rounded-xl border border-slate-700 px-4 py-3 text-sm font-semibold text-slate-200"><span>Abrir o mapa <span id="next-steps-requests" class="text-slate-500"></span></span><span>→</span></a>
-        <button data-action="nova-analise" class="mt-3 w-full text-xs font-semibold text-slate-500 underline decoration-slate-700 underline-offset-4" type="button">Analisar de novo</button>
-      </section>
-
-      <!-- Terceiros e fugas: o que aparece no mapa ao tocar numa empresa -->
-      <section id="relations-info" class="mx-5 mt-5 hidden lg:mx-0 rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
-        <h2 class="font-semibold">Terceiros e fugas</h2>
-        <dl class="mt-3 flex flex-col gap-3">
-          <div class="flex gap-3">
-            <span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full" style="background:#b9a2f5;box-shadow:0 0 8px #b9a2f5"></span>
-            <div>
-              <dt class="text-sm font-semibold">Terceiros <span id="relations-terceiros" class="font-normal text-mist"></span></dt>
-              <dd class="mt-0.5 text-xs leading-5 text-mist">Serviços que tratam os teus dados por conta de uma empresa. Por exemplo, o Mailchimp envia os emails de muitas lojas. Não compraram os teus dados, mas também os têm.</dd>
-            </div>
-          </div>
-          <div class="flex gap-3">
-            <svg viewBox="0 0 24 24" class="mt-0.5 h-4 w-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4.5M12 17.2v.1"/></svg>
-            <div>
-              <dt class="text-sm font-semibold">Fugas e burlas <span id="relations-fugas" class="font-normal text-mist"></span></dt>
-              <dd class="mt-0.5 text-xs leading-5 text-mist">Casos noticiados em que os dados de clientes de uma empresa foram expostos ou usados para enganar pessoas.</dd>
-            </div>
-          </div>
-        </dl>
-        <a href="#pedidos" class="mt-4 inline-block text-xs font-semibold text-lime">No mapa, <span class="lg:hidden">toca</span><span class="hidden lg:inline">clica</span> numa empresa para veres os terceiros e se teve fugas →</a>
-      </section>
+      <!-- Resumo: aparece no fim da análise (e depois, sempre que se volta ao Início).
+           Quantas empresas, a sensibilidade dos dados que guardam, as notícias e o botão para os resultados. -->
+      <section id="home-summary" tabindex="-1" aria-labelledby="home-summary-total" class="mx-5 hidden rounded-3xl border border-slate-700/60 bg-slate-900 p-5 outline-none lg:mx-0 lg:p-6"></section>
 
       </div>
       <div>
       <!-- Veto Plus: no Início, antes e depois da análise -->
-      <section id="plus-card" class="mx-5 mt-5 lg:mx-0 lg:mt-0 rounded-2xl bg-oliva p-4 text-ink">
-        <div class="flex items-center justify-between">
-          <p class="font-display text-base font-semibold">Veto+</p>
-          <span class="rounded-full border border-ink/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Em breve</span>
+      <section id="plus-card" class="relative mx-5 mt-5 overflow-hidden rounded-2xl bg-gradient-to-br from-lime via-[#a9d43f] to-oliva p-5 text-ink lg:mx-0 lg:mt-0">
+        <!-- O V do logo, grande e discreto, no canto do cartão -->
+        <svg viewBox="40 61 104 75" class="pointer-events-none absolute -bottom-5 -right-3 h-28 w-auto text-ink/10" aria-hidden="true"><path fill="currentColor" d="M40.76 61.5H54.43L79.79 117.85Q81.43 121.5 85.43 121.5H98.58Q102.58 121.5 104.22 117.85L129.58 61.5H141.5V68.33L115.79 125.47Q111.28 135.5 100.28 135.5H83.21Q72.21 135.5 67.91 125.38Z"/></svg>
+        <div class="relative flex items-center justify-between">
+          <p class="font-display text-lg font-semibold">Veto+</p>
+          <span class="rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-bold">Em breve</span>
         </div>
-        <p id="plus-card-text" class="mt-1.5 text-sm leading-5 text-ink/85"></p>
-        <button data-action="plus" data-onde="inicio" class="mt-3 flex w-full items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-bold text-ink transition hover:bg-slate-100 active:scale-[.98]" type="button">
-          <span>Ver o Veto+</span><span id="plus-card-price" class="text-ink/60"></span>
+        <p id="plus-card-text" class="relative mt-1.5 text-sm leading-5 text-ink/85"></p>
+        <button data-action="plus" data-onde="inicio" class="relative mt-4 flex w-full items-center justify-between rounded-xl bg-ink px-4 py-3 text-sm font-bold text-lime transition hover:bg-slate-950 active:scale-[.98]" type="button">
+          <span>Ver o Veto+</span><span id="plus-card-price" class="text-lime/70"></span>
         </button>
       </section>
 
       <!-- Opinião: o passo 3 do teste, depois da análise -->
-      <section id="feedback-panel" class="mx-5 mt-5 hidden lg:mx-0 rounded-2xl border border-slate-800 bg-slate-900/50 p-5" data-nota="">
-        <h2 class="font-semibold">O Veto foi útil para ti?</h2>
-        <div id="feedback-stars" class="mt-3 flex gap-2" role="group" aria-label="Nota de 1 a 5">
-          <button data-action="nota" data-value="1" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">1</button>
-          <button data-action="nota" data-value="2" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">2</button>
-          <button data-action="nota" data-value="3" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">3</button>
-          <button data-action="nota" data-value="4" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">4</button>
-          <button data-action="nota" data-value="5" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">5</button>
+      <details id="feedback-panel" class="guia mx-5 mt-5 hidden rounded-2xl border border-slate-800 bg-slate-900/40 lg:mx-0" data-nota="">
+        <summary class="flex cursor-pointer items-center justify-between gap-3 px-5 py-4">
+          <span><span class="block font-semibold text-slate-100">O Veto foi útil para ti?</span><span class="mt-0.5 block text-xs text-slate-300">Dá-nos a tua opinião, em 30 segundos</span></span>
+          <svg viewBox="0 0 16 16" class="guia-seta h-4 w-4 shrink-0 text-slate-400 transition" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+        </summary>
+        <div class="px-5 pb-5">
+          <div id="feedback-stars" class="flex gap-2" role="group" aria-label="Nota de 1 a 5">
+            <button data-action="nota" data-value="1" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">1</button>
+            <button data-action="nota" data-value="2" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">2</button>
+            <button data-action="nota" data-value="3" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">3</button>
+            <button data-action="nota" data-value="4" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">4</button>
+            <button data-action="nota" data-value="5" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">5</button>
+          </div>
+          <div class="mt-1 flex justify-between text-[10px] text-slate-400"><span>Nada útil</span><span>Muito útil</span></div>
+          <textarea id="feedback-text" rows="3" maxlength="1000" class="mt-3 w-full rounded-xl border border-slate-700 bg-ink px-3 py-2 text-sm outline-none placeholder:text-slate-500 focus:border-lime" placeholder="O que te surpreendeu? O que mudavas?"></textarea>
+          <button data-action="enviar-opiniao" class="mt-3 w-full rounded-xl border border-slate-700 py-2.5 text-sm font-bold text-slate-200" type="button">Enviar opinião</button>
+          <p id="feedback-done" class="mt-2 hidden text-center text-xs text-lime">Recebemos a tua opinião. Obrigado!</p>
         </div>
-        <div class="mt-1 flex justify-between text-[10px] text-slate-500"><span>Nada útil</span><span>Muito útil</span></div>
-        <textarea id="feedback-text" rows="3" maxlength="1000" class="mt-3 w-full rounded-xl border border-slate-700 bg-ink px-3 py-2 text-sm outline-none placeholder:text-slate-600 focus:border-lime" placeholder="O que te surpreendeu? O que mudavas?"></textarea>
-        <button data-action="enviar-opiniao" class="mt-3 w-full rounded-xl border border-slate-700 py-2.5 text-sm font-bold text-slate-200" type="button">Enviar opinião</button>
-        <p id="feedback-done" class="mt-2 hidden text-center text-xs text-lime">Recebemos a tua opinião. Obrigado!</p>
-      </section>
+      </details>
 
-      <section class="mx-5 mt-7 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 lg:mx-0 lg:mt-5">
+      <section class="mx-5 mt-5 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 lg:mx-0 lg:mt-5">
         <div class="flex gap-3">
           <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ink text-slate-200"><svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg></span>
           <div>
             <h3 class="text-sm font-semibold">Privacidade por conceção</h3>
             <p class="mt-1 text-xs leading-5 text-mist">Os emails são analisados neste dispositivo. O Veto não recebe nem guarda os teus emails nos seus servidores. Não há conta, e podes apagar os resultados quando quiseres.</p>
-            <a href="privacidade.html" class="mt-2 inline-block text-xs font-semibold text-lime">Ler a política de privacidade →</a>
+            <a href="privacidade.html" class="mt-2 inline-block text-xs font-semibold text-slate-100 underline decoration-slate-500 underline-offset-4">Ler a política de privacidade</a>
             <!-- Estatísticas anónimas: o consentimento pede-se no pop-up; aqui só se vê o estado e se muda de ideias -->
             <p class="mt-3 border-t border-slate-800 pt-3 text-xs leading-5 text-mist">
               Estatísticas anónimas: <span id="stats-state" class="font-semibold text-slate-200">desligadas</span>
-              · <button id="stats-toggle" data-action="alternar-estatisticas" class="font-semibold text-lime underline underline-offset-4" type="button">Ligar</button>
+              · <button id="stats-toggle" data-action="alternar-estatisticas" class="font-semibold text-slate-100 underline decoration-slate-500 underline-offset-4" type="button">Ligar</button>
               · <button data-action="saber-mais-teste" class="font-semibold text-slate-300 underline underline-offset-4" type="button">O que é enviado?</button>
             </p>
           </div>
@@ -228,130 +210,120 @@
       </div>
     </div>
 
-    <!-- ===================== RESULTADOS (depois da análise) ===================== -->
-    <div id="view-resultados" data-view="resultados" class="lg:max-w-[82rem] hidden">
-      <section class="px-5 pt-8">
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Resultado da análise</p>
-        <h1 class="mt-1 font-display text-2xl font-semibold leading-tight">Quem pode ter os teus dados</h1>
-      </section>
+    <!-- ===================== RESULTADOS: o que a análise encontrou, de quatro formas ===================== -->
+    <div id="view-resultados" data-view="resultados" class="hidden">
+      <!-- No computador: à esquerda o título e as empresas; à direita, desde o topo da página, a empresa escolhida -->
+      <div id="res-grelha" class="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-start lg:gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
+        <div class="min-w-0">
+          <section class="px-5 pt-8">
+            <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Resultado da análise</p>
+            <h1 class="mt-1 font-display text-2xl font-semibold leading-tight lg:text-3xl">Quem tem os teus dados</h1>
+            <p id="res-resumo" class="mt-1 text-sm text-slate-300"></p>
+          </section>
 
-      <div id="results-empty" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-6 text-center">
-        <p class="text-sm text-mist">Ainda não analisaste o teu email.</p>
-        <a href="#inicio" class="mt-3 inline-block rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink">Analisar agora</a>
-      </div>
+          <div id="results-empty" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-6 text-center">
+            <p class="text-sm text-mist">Ainda não analisaste o teu email.</p>
+            <a href="#inicio" class="mt-3 inline-block rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink">Analisar agora</a>
+          </div>
 
-      <div id="results-content">
-        <div class="lg:grid lg:grid-cols-2 lg:gap-x-5 lg:px-5">
-        <section class="mx-5 mt-4 rounded-3xl bg-lime p-5 text-ink lg:mx-0">
-          <p class="font-display text-4xl font-semibold"><span id="dash-total">0</span> <span class="text-xl">empresas</span></p>
-          <p id="dash-source" class="mt-1 text-sm font-semibold text-ink/70">provavelmente têm os teus dados.</p>
-          <div id="dash-sensitive" class="mt-4 flex items-center gap-2 rounded-xl bg-ink/10 px-3 py-2 text-xs font-semibold"></div>
-        </section>
+          <div id="results-content" class="px-5">
+            <!-- Separadores: as mesmas empresas, vistas de outra forma -->
+            <div class="sticky top-0 z-10 -mx-5 mt-4 bg-ink/95 px-5 py-2 backdrop-blur lg:static lg:mx-0 lg:bg-transparent lg:px-0 lg:backdrop-blur-none">
+              <div id="res-abas" role="tablist" aria-label="Formas de ver os resultados" class="flex gap-1 rounded-xl border border-slate-800 p-1 lg:inline-flex"></div>
+            </div>
+            <div id="res-legenda" class="mt-3"></div>
 
-        <section class="mx-5 mt-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-4 lg:mx-0">
-          <p class="text-sm font-semibold">Gravidade se estes dados se perderem</p>
-          <div id="severity-bar" class="mt-3 flex h-2.5 w-full gap-[2px]" role="img" aria-label="Empresas por gravidade"></div>
-          <div id="severity-legend" class="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[11px] font-semibold"></div>
-          <a href="#pedidos" class="mt-3 inline-block text-xs font-semibold text-lime">Ver no mapa de exposição →</a>
-        </section>
+            <div class="mt-4 min-w-0">
+              <!-- Lista: o que fazer primeiro -->
+              <section id="res-lista" data-modo="lista">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <label class="relative block flex-1">
+                    <span class="sr-only">Pesquisar empresas</span>
+                    <input id="search-input" class="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-2.5 text-sm outline-none placeholder:text-slate-600 focus:border-slate-500" placeholder="Pesquisar empresa..." type="search">
+                    <span class="pointer-events-none absolute right-4 top-3 text-slate-500"><svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.4-4.4"/></svg></span>
+                  </label>
+                  <div class="flex gap-2">
+                    <label class="sr-only" for="filtro-tipo">Mostrar</label>
+                    <select id="filtro-tipo" class="min-w-0 flex-1 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2.5 text-sm text-slate-200 outline-none focus:border-slate-500 sm:flex-none"></select>
+                    <label class="sr-only" for="ordem-lista">Ordenar</label>
+                    <select id="ordem-lista" class="min-w-0 flex-1 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2.5 text-sm text-slate-200 outline-none focus:border-slate-500 sm:flex-none">
+                      <option value="gravidade">Mais sensíveis</option>
+                      <option value="emails">Mais emails</option>
+                    </select>
+                  </div>
+                </div>
+                <div id="companies-container" class="mt-4"></div>
+                <div id="dismissed-row" class="mt-4 hidden text-center"></div>
+                <div id="res-lote" class="mt-4 hidden text-center"></div>
+              </section>
 
-        <section id="frequency-section" class="mx-5 mt-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-4 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:p-6">
-          <p class="text-sm font-semibold">Quem mais te envia emails</p>
-          <p class="mt-1 text-xs leading-4 text-mist">Nos últimos 30 dias, entre os emails analisados.</p>
-          <div id="frequency-list" class="mt-3 flex flex-col gap-2"></div>
-        </section>
+              <!-- Por área -->
+              <section id="res-areas" data-modo="areas" class="hidden">
+                <div id="sector-grid" class="grid grid-cols-2 gap-2 sm:grid-cols-3"></div>
+                <div id="area-lista" class="mt-5"></div>
+              </section>
+
+              <!-- Mapa: cada ponto é uma empresa, agrupada por área -->
+              <section id="res-mapa" data-modo="mapa" class="hidden">
+                <div id="map-card" class="rounded-3xl border border-slate-800 bg-slate-950/60 p-4 lg:p-6">
+                  <div id="dot-map"></div>
+                  <div id="map-legend" class="mt-3"></div>
+                </div>
+              </section>
+
+              <details class="mt-7 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+                <summary class="cursor-pointer text-sm font-semibold text-slate-200">Como chegámos a esta lista?</summary>
+                <div id="kind-legend" class="mt-3 flex flex-col gap-2 text-xs leading-5 text-mist"></div>
+              </details>
+            </div>
+          </div>
         </div>
 
-        <section class="mt-7">
-          <div class="flex items-end justify-between px-5">
-            <h2 class="font-display text-lg font-semibold">Por área</h2>
-            <button id="sector-reset" data-action="setor" data-sector="todos" class="hidden text-xs font-semibold text-lime" type="button">Ver todas</button>
-          </div>
-          <div id="sector-grid" class="mt-3 grid grid-cols-2 gap-2 px-5 lg:grid-cols-4 xl:grid-cols-6"></div>
-        </section>
-
-        <section class="mt-7">
-          <div class="flex items-end justify-between px-5">
-            <h2 id="list-title" class="font-display text-lg font-semibold">Todas as empresas</h2>
-            <span id="service-total" class="text-xs text-mist"></span>
-          </div>
-          <div id="kind-filters" class="mt-3 flex gap-2 overflow-x-auto px-5 pb-1"></div>
-          <div class="mt-3 px-5">
-            <label class="relative block lg:max-w-md">
-              <span class="sr-only">Pesquisar empresas</span>
-              <input id="search-input" class="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm outline-none placeholder:text-slate-600 focus:border-lime" placeholder="Pesquisar empresa..." type="search">
-              <span class="pointer-events-none absolute right-4 top-3.5 text-slate-500"><svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.4-4.4"/></svg></span>
-            </label>
-          </div>
-          <div id="companies-container" class="mt-4 flex flex-col gap-3 px-5 lg:grid lg:grid-cols-2 lg:items-start xl:grid-cols-3"></div>
-          <div id="dismissed-row" class="mt-4 hidden px-5 text-center"></div>
-        </section>
-
-        <details class="mx-5 mt-7 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
-          <summary class="cursor-pointer text-sm font-semibold text-slate-200">Como chegámos a esta lista?</summary>
-          <div id="kind-legend" class="mt-3 flex flex-col gap-2 text-xs leading-5 text-mist"></div>
-        </details>
+        <!-- A empresa escolhida: coluna ao lado no computador; no telemóvel, um ecrã próprio com «Resultados» para voltar -->
+        <aside id="painel-empresa" tabindex="-1" aria-live="polite" aria-label="Empresa escolhida" class="fixed inset-0 z-30 overflow-y-auto bg-ink px-5 outline-none max-lg:hidden lg:sticky lg:inset-auto lg:top-4 lg:z-auto lg:mt-8 lg:max-h-[calc(100vh-2rem)] lg:rounded-2xl lg:border lg:border-slate-800 lg:bg-slate-900/40 lg:p-5"></aside>
       </div>
     </div>
 
-    <!-- ===================== PEDIDOS: MAPA DE EXPOSIÇÃO (depois de enviar) ===================== -->
-    <div id="view-pedidos" data-view="pedidos" class="lg:max-w-[82rem] hidden">
+    <!-- ===================== PEDIDOS: acompanhar o que já pediste ===================== -->
+    <div id="view-pedidos" data-view="pedidos" class="hidden">
       <section class="px-5 pt-8">
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Mapa de exposição</p>
-        <h1 class="mt-1 font-display text-2xl font-semibold leading-tight">Onde estão os teus dados</h1>
-        <p class="mt-2 text-sm leading-5 text-mist">Cada ponto é uma empresa, agrupada por área. <span class="lg:hidden">Toca</span><span class="hidden lg:inline">Clica</span> numa para veres quem trata os dados dela e o que podes pedir.</p>
-        <button id="lote-entrada" data-action="lote" data-onde="mapa" type="button" class="mt-4 hidden items-center gap-2 rounded-xl border border-slate-700 px-3.5 py-2.5 text-xs font-bold text-slate-100 transition hover:border-slate-500">
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Pedidos</p>
+        <h1 class="mt-1 font-display text-2xl font-semibold leading-tight lg:text-3xl">Os teus pedidos</h1>
+        <p class="mt-2 text-sm leading-5 text-mist">As empresas têm um mês para responder. Quando responderem, indica aqui o que disseram.</p>
+        <button id="lote-entrada" data-action="lote" data-onde="pedidos" type="button" class="mt-4 hidden items-center gap-2 rounded-xl border border-slate-700 px-3.5 py-2.5 text-xs font-bold text-slate-100 transition hover:border-slate-500">
           <svg viewBox="0 0 24 24" class="h-4 w-4 text-lime" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="14" height="11" rx="2"/><path d="m3.5 8 6.5 5 6.5-5"/><path d="M7 4h12a2 2 0 0 1 2 2v8"/></svg>
           Pedir a várias empresas
           <span class="rounded-full bg-lime/10 px-1.5 py-0.5 text-[9px] font-bold text-lime">Veto+</span>
         </button>
       </section>
 
-      <div id="map-empty" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-6 text-center">
-        <p class="text-sm text-mist">O mapa aparece depois de analisares o teu email.</p>
-        <a href="#inicio" class="mt-3 inline-block rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink">Analisar agora</a>
+      <div id="no-requests" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-5 text-center lg:max-w-xl">
+        <p class="text-sm text-mist">Ainda não fizeste nenhum pedido. Nos resultados, <span class="lg:hidden">toca</span><span class="hidden lg:inline">clica</span> numa empresa e escolhe o que lhe queres pedir.</p>
+        <a href="#resultados" class="mt-3 inline-block rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink">Ver os resultados</a>
+        <button data-action="lote" data-onde="sem_pedidos" type="button" class="mt-3 block w-full text-xs font-semibold text-lime underline decoration-lime/40 underline-offset-4">Ou pede o mesmo a várias empresas de uma vez</button>
+        <p class="mt-3 text-xs leading-5 text-slate-500">Os contactos vêm de páginas de privacidade publicadas pelas empresas. Se uma empresa não estiver no catálogo, confirmas tu o email antes de enviar.</p>
       </div>
 
-      <div id="map-content" class="hidden">
-        <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start lg:gap-5 lg:px-5">
-          <section id="map-card" class="mx-5 mt-5 rounded-3xl border border-slate-800 bg-slate-950/60 p-4 lg:mx-0 lg:p-6">
-            <div id="dot-map"></div>
-            <div id="map-legend" class="mt-3"></div>
-          </section>
-
-          <section id="map-detail" class="mx-5 mt-4 scroll-mb-24 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 lg:sticky lg:top-6 lg:mx-0 lg:mt-5 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto" aria-live="polite"></section>
-        </div>
-
-        <div id="no-requests" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-5 text-center">
-          <p class="text-sm text-mist">Ainda não enviaste nenhum pedido. Começa pelas empresas de gravidade crítica: <span class="lg:hidden">toca</span><span class="hidden lg:inline">clica</span> num ponto e pede os teus dados.</p>
-          <button data-action="lote" data-onde="sem_pedidos" type="button" class="mt-3 text-xs font-semibold text-lime underline decoration-lime/40 underline-offset-4">Ou pede o mesmo a várias empresas de uma vez</button>
-          <p class="mt-3 text-xs leading-5 text-slate-500">Os contactos vêm de páginas de privacidade publicadas pelas empresas. Se uma empresa não estiver no catálogo, confirmas tu o email antes de enviar.</p>
-        </div>
-
-        <div id="requests-section">
-          <h2 class="mx-5 mt-9 font-display text-xl font-semibold">Os teus pedidos</h2>
-          <div class="lg:grid lg:grid-cols-2 lg:items-start lg:gap-5 lg:px-5">
-          <section id="group-waiting" class="mx-5 mt-4 lg:mx-0">
-            <h3 class="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">À espera de resposta</h3>
-            <div class="mt-3 flex flex-col gap-3"></div>
-          </section>
-          <section id="group-done" class="mx-5 mt-6 lg:mx-0 lg:mt-4">
-            <h3 class="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Concluídos</h3>
-            <div class="mt-3 flex flex-col gap-3"></div>
-          </section>
-          </div>
-        </div>
+      <div id="requests-section" class="lg:grid lg:grid-cols-2 lg:items-start lg:gap-5 lg:px-5">
+        <section id="group-waiting" class="mx-5 mt-6 lg:mx-0">
+          <h2 class="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">À espera de resposta</h2>
+          <div class="mt-3 flex flex-col gap-3"></div>
+        </section>
+        <section id="group-done" class="mx-5 mt-6 lg:mx-0">
+          <h2 class="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Concluídos</h2>
+          <div class="mt-3 flex flex-col gap-3"></div>
+        </section>
       </div>
 
       <section class="mx-5 mt-8 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-xs leading-5 text-mist lg:max-w-xl">
         O Veto não lê as respostas das empresas: és tu que indicas o que responderam. Tudo fica guardado só neste dispositivo.
-        <button data-action="apagar-tudo" class="mt-3 block w-full rounded-lg border border-rose-400/30 py-2.5 text-xs font-bold text-rose-200" type="button">Apagar tudo deste dispositivo</button>
+        <button data-action="apagar-tudo" class="mt-3 block w-full rounded-lg border border-slate-700 py-2.5 text-xs font-bold text-slate-200" type="button">Apagar tudo deste dispositivo</button>
       </section>
     </div>
     <!-- ===================== NOTÍCIAS ===================== -->
-    <div id="view-noticias" data-view="noticias" class="lg:max-w-[82rem] hidden">
+    <div id="view-noticias" data-view="noticias" class="hidden">
       <section class="px-5 pt-8">
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Notícias</p>
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Notícias</p>
         <h1 class="mt-1 font-display text-2xl font-semibold leading-tight">O que as empresas fazem com os teus dados</h1>
         <button data-action="ir-faq" type="button" class="mt-2 text-xs font-semibold text-slate-300 underline decoration-slate-600 underline-offset-4">Dúvidas sobre o Veto? Perguntas frequentes</button>
       </section>
@@ -401,9 +373,9 @@
       <span class="nav-rotulo text-[10px] font-semibold lg:text-sm">Resultados</span>
     </a>
     <a href="#pedidos" data-nav="pedidos" class="nav-button relative flex flex-col items-center gap-1 px-3 py-1.5 text-slate-500 transition lg:flex-row lg:gap-3 lg:rounded-xl lg:py-2.5 lg:hover:bg-slate-900">
-      <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="8" r="3.5"/><circle cx="17" cy="7" r="2.5"/><circle cx="15" cy="17" r="4"/><circle cx="6" cy="17.5" r="1.8"/></svg>
-      <span class="nav-rotulo text-[10px] font-semibold lg:text-sm">Mapa</span>
-      <span id="nav-badge" class="absolute -right-2 -top-1 hidden lg:static lg:ml-auto min-w-[16px] rounded-full bg-rose-400 px-1 text-center text-[10px] font-bold leading-4 text-ink"></span>
+      <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>
+      <span class="nav-rotulo text-[10px] font-semibold lg:text-sm">Pedidos</span>
+      <span id="nav-badge" class="absolute -right-2 -top-1 hidden lg:static lg:ml-auto min-w-[16px] rounded-full bg-slate-200 px-1 text-center text-[10px] font-bold leading-4 text-ink"></span>
     </a>
     <a href="#noticias" data-nav="noticias" class="nav-button flex flex-col items-center gap-1 px-3 py-1.5 text-slate-500 transition lg:flex-row lg:gap-3 lg:rounded-xl lg:py-2.5 lg:hover:bg-slate-900">
       <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h13v14a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2Z"/><path d="M17 9h3v10a2 2 0 0 1-2 2"/><path d="M7.5 9h6M7.5 12.5h6M7.5 16h4"/></svg>

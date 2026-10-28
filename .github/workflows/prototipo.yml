@@ -1,0 +1,33 @@
+# The prototype is published from main: check that its files are valid before they get there
+name: Prototype checks
+
+on:
+  pull_request:
+    paths:
+      - 'mvp/prototipo/**'
+      - 'mvp/catalogo/**'
+      - '.github/workflows/prototipo.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'mvp/prototipo/**'
+      - 'mvp/catalogo/**'
+      - '.github/workflows/prototipo.yml'
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: JavaScript syntax
+        run: node --check mvp/prototipo/app.js
+      - name: Apps Script syntax
+        run: node -e "new Function(require('fs').readFileSync('mvp/prototipo/app_script.gs', 'utf8'))"
+      - name: Catalogue is valid JSON
+        run: |
+          if [ -f mvp/catalogo/catalogo.json ]; then
+            node -e "const c = JSON.parse(require('fs').readFileSync('mvp/catalogo/catalogo.json', 'utf8')); if (!Array.isArray(c.companies) || !c.companies.length) throw new Error('catalogo.json has no companies'); console.log(c.companies.length + ' companies')"
+          fi

@@ -562,6 +562,220 @@
    "notes": "A Endesa pede nome completo, morada para notificação e documento de identificação. Também pelo formulário em endesa.pt ou na área My Endesa.",
    "verifiedAt": "2026-10-20",
    "origin": "veto"
+  },
+  {
+   "id": "creditoagricola.pt",
+   "name": "Crédito Agrícola",
+   "legalName": "Caixa Central de Crédito Agrícola Mútuo, C.R.L.",
+   "domains": [
+    "creditoagricola.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "protecaodedados@creditoagricola.pt",
+   "privacyUrl": "https://www.creditoagricola.pt/-/media/cabullet/institucional/rgpd/deveres-de-informao-v022022.pdf",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email indicado para exercer direitos. Encarregado de Proteção de Dados: dpo@creditoagricola.pt."
+  },
+  {
+   "id": "goldenergy.pt",
+   "name": "Goldenergy",
+   "legalName": "Gold Energy – Comercializadora de Energia, S.A.",
+   "domains": [
+    "goldenergy.pt"
+   ],
+   "sector": "servicos",
+   "channel": "email",
+   "privacyEmail": "protecaodedados@goldenergy.pt",
+   "privacyUrl": "https://goldenergy.pt/politica-de-privacidade/",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email indicado para exercer direitos. Encarregado de Proteção de Dados: dpo@goldenergy.pt."
+  },
+  {
+   "id": "leroymerlin.pt",
+   "name": "Leroy Merlin",
+   "legalName": "BCM – Bricolage, S.A.",
+   "domains": [
+    "leroymerlin.pt"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "epd@leroymerlin.pt",
+   "privacyUrl": "https://www.leroymerlin.pt/politicas-e-condicoes/politica-de-privacidade-e-cookies/",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados."
+  },
+  {
+   "id": "generalitranquilidade.pt",
+   "name": "Generali Tranquilidade",
+   "legalName": "Generali Seguros, S.A.",
+   "domains": [
+    "generalitranquilidade.pt",
+    "tranquilidade.pt",
+    "generali.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "protecaodados.DPO@generali.pt",
+   "privacyUrl": "https://generalitranquilidade.pt/-/media/files/privacidade/politica-privacidade.pdf",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados. Política em vigor desde 2 de outubro de 2020."
+  },
+  {
+   "id": "repsol.pt",
+   "name": "Repsol",
+   "legalName": "Repsol Portuguesa, Lda.",
+   "domains": [
+    "repsol.pt"
+   ],
+   "sector": "servicos",
+   "channel": "email",
+   "privacyEmail": "privacidade@repsol.com",
+   "privacyUrl": "https://www.repsol.pt/politica-de-privacidade/",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email indicado na política de privacidade da Repsol em Portugal."
+  },
+  {
+   "id": "bancoctt.pt",
+   "name": "Banco CTT",
+   "legalName": "Banco CTT, S.A.",
+   "domains": [
+    "bancoctt.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "protecao.dados@bancoctt.pt",
+   "privacyUrl": "https://www.bancoctt.pt/contentAsset/raw-data/95d0f739-fec8-44d7-a1aa-b7025b6dc3e2/ficheiro/export/Politica%20de%20Privacidade.pdf",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Política de setembro de 2024."
+  },
+  {
+   "id": "unibanco.pt",
+   "name": "Unibanco",
+   "legalName": "UNICRE – Instituição Financeira de Crédito, S.A.",
+   "domains": [
+    "unibanco.pt",
+    "unicre.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "dpo@unicre.pt",
+   "privacyUrl": "https://www.unicre.pt/media/2023/03/Politica-Privacidade-e-Protecao-Dados-Pessoais-UNIBANCO.pdf",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados. Política de 23 de março de 2023."
+  },
+  {
+   "id": "radiopopular.pt",
+   "name": "Radio Popular",
+   "legalName": "Radio Popular – Electrodomésticos, S.A.",
+   "domains": [
+    "radiopopular.pt"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "encarregadoprotecaodados@radiopopular.pt",
+   "privacyUrl": "https://www.radiopopular.pt/actualizacaodados/info.php",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados."
+  },
+  {
+   "id": "wizink.pt",
+   "name": "WiZink",
+   "legalName": "WiZink Bank, S.A.U. – Sucursal em Portugal",
+   "domains": [
+    "wizink.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "protecaodedados@wizink.pt",
+   "privacyUrl": "https://www.wizink.pt/public/content/dam/wizink-web-pt/documents/legal/protecao-de-dados/Politica_de_protecao_de_dados_do_WiZink_Bank_SAU.pdf",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados."
+  },
+  {
+   "id": "vinted.pt",
+   "name": "Vinted",
+   "legalName": "Vinted, UAB",
+   "domains": [
+    "vinted.pt",
+    "vinted.com"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "privacysupport@vinted.com",
+   "privacyUrl": "https://www.vinted.com/old-privacy-policy",
+   "verifiedAt": "2026-10-28",
+   "origin": "veto",
+   "notes": "Email de privacidade da política da Vinted em vigor até 15/09/2025. A política atual remete para um formulário no Centro de Ajuda: se o email não responder, usa esse formulário."
+  },
+  {
+   "id": "hm.com",
+   "name": "H&M",
+   "legalName": "H & M Hennes & Mauritz Unipessoal, Lda.",
+   "domains": [
+    "hm.com"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "dataprotection.pt@hm.com",
+   "privacyUrl": "https://www2.hm.com/content/dam/Customer-Service/Legal/privacy-notice-pdf/PT_HM%20Group%20Customer%20Privacy%20Notice.pdf",
+   "verifiedAt": "2026-10-28",
+   "origin": "veto",
+   "notes": "Email para exercer direitos em Portugal. Para falar com o Encarregado de Proteção de Dados, a H&M pede «DPO» no assunto."
+  },
+  {
+   "id": "bershka.com",
+   "name": "Bershka",
+   "legalName": "Bershka (Grupo Inditex)",
+   "domains": [
+    "bershka.com"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "dataprotection@bershka.com",
+   "privacyUrl": "https://static.bershka.net/4/static/itxwebstandard/docs/privacypolicy/privacy_policy_es_ES.pdf",
+   "verifiedAt": "2026-10-28",
+   "origin": "veto",
+   "notes": "Email da Delegada de Proteção de Dados e para exercer direitos, na política de privacidade da Bershka (versão de Espanha)."
+  },
+  {
+   "id": "lefties.com",
+   "name": "Lefties",
+   "legalName": "Lefties Portugal e Nikole (Grupo Inditex)",
+   "domains": [
+    "lefties.com"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "dataprotection@lefties.com",
+   "privacyUrl": "https://static.lefties.com/9/static2/itxwebstandard/pdfs/PT/privacy-policy/privacy-policy-pt_PT.pdf",
+   "verifiedAt": "2026-10-28",
+   "origin": "veto",
+   "notes": "Email do Responsável pela Proteção de Dados e para exercer direitos, na política de privacidade de Portugal."
+  },
+  {
+   "id": "mango.com",
+   "name": "Mango",
+   "domains": [
+    "mango.com",
+    "mangooutlet.com"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "personaldata@mango.com",
+   "privacyUrl": "https://shop.mango.com/mz/pt/privacy-policy",
+   "verifiedAt": "2026-10-28",
+   "origin": "veto",
+   "notes": "Email indicado para exercer direitos (política de privacidade da Mango em português). O Encarregado de Proteção de Dados tem outro endereço: dpo@mango.com."
   }
  ]
 }

@@ -445,22 +445,22 @@ const SUBJECT_RULES = [
 
 const RIGHTS = {
   access: {
-    get label() { return tt('Pedir os meus dados'); }, get short() { return tt('Acesso'); }, article: 'artigo 15.º',
+    get label() { return tt('Pedir os meus dados'); }, get short() { return tt('Acesso'); }, get article() { return tt('artigo 15.º'); },
     get subject() { return tt('Pedido de acesso aos dados pessoais (artigo 15.º do RGPD)'); },
     body: (nome) => tt('Exmos. Senhores da {0},\n\nAo abrigo do artigo 15.º do RGPD, solicito:\n1. A confirmação de que tratam dados pessoais que me dizem respeito;\n2. Uma cópia desses dados;\n3. Informação sobre as finalidades do tratamento, os destinatários, o prazo de conservação e a origem dos dados.\n\nOs dados estão associados ao endereço de email a partir do qual envio este pedido.\n\nAguardo resposta no prazo de um mês, nos termos do artigo 12.º, n.º 3, do RGPD.\n\nCom os melhores cumprimentos.', [nome])
   },
   erasure: {
-    get label() { return tt('Apagar os meus dados'); }, get short() { return tt('Apagamento'); }, article: 'artigo 17.º',
+    get label() { return tt('Apagar os meus dados'); }, get short() { return tt('Apagamento'); }, get article() { return tt('artigo 17.º'); },
     get subject() { return tt('Pedido de apagamento de dados pessoais (artigo 17.º do RGPD)'); },
     body: (nome) => tt('Exmos. Senhores da {0},\n\nAo abrigo do artigo 17.º do RGPD, solicito o apagamento de todos os dados pessoais que me dizem respeito, associados ao endereço de email a partir do qual envio este pedido. Caso tenha dado consentimento para algum tratamento, retiro-o (artigo 7.º, n.º 3).\n\nPeço confirmação por escrito do apagamento, no prazo de um mês (artigo 12.º, n.º 3, do RGPD).\n\nCom os melhores cumprimentos.', [nome])
   },
   objection: {
-    get label() { return tt('Parar o marketing'); }, get short() { return tt('Oposição'); }, article: 'artigo 21.º',
+    get label() { return tt('Parar o marketing'); }, get short() { return tt('Oposição'); }, get article() { return tt('artigo 21.º'); },
     get subject() { return tt('Oposição ao marketing direto e à definição de perfis (artigo 21.º do RGPD)'); },
     body: (nome) => tt('Exmos. Senhores da {0},\n\nAo abrigo do artigo 21.º, n.ºs 2 e 3, do RGPD, oponho-me ao tratamento dos meus dados pessoais para marketing direto, incluindo a definição de perfis relacionada com esse marketing. Retiro também qualquer consentimento que tenha dado para personalização ou publicidade (artigo 7.º, n.º 3).\n\nSolicito ainda:\n1. O apagamento dos dados tratados apenas para esse fim (artigo 17.º, n.º 1, alínea c));\n2. Informação sobre se tomam decisões automatizadas a meu respeito e sobre a lógica envolvida (artigo 15.º, n.º 1, alínea h)).\n\nPeço confirmação por escrito no prazo de um mês (artigo 12.º, n.º 3, do RGPD).\n\nCom os melhores cumprimentos.', [nome])
   },
   portability: {
-    get label() { return tt('Receber os dados num ficheiro'); }, get short() { return tt('Portabilidade'); }, article: 'artigo 20.º',
+    get label() { return tt('Receber os dados num ficheiro'); }, get short() { return tt('Portabilidade'); }, get article() { return tt('artigo 20.º'); },
     get subject() { return tt('Pedido de portabilidade dos dados pessoais (artigo 20.º do RGPD)'); },
     body: (nome) => tt('Exmos. Senhores da {0},\n\nAo abrigo do artigo 20.º do RGPD, solicito que me enviem os dados pessoais que me dizem respeito e que vos forneci, incluindo os dados resultantes da utilização do vosso serviço, num formato estruturado, de uso corrente e de leitura automática (por exemplo, CSV ou JSON).\n\nOs dados estão associados ao endereço de email a partir do qual envio este pedido.\n\nAguardo resposta no prazo de um mês, nos termos do artigo 12.º, n.º 3, do RGPD.\n\nCom os melhores cumprimentos.', [nome])
   }
@@ -547,7 +547,7 @@ const STATUS_LABELS = {
   get awaiting_confirmation() { return tt('À espera de confirmação: enviaste?'); },
   get sent() { return tt('Enviado (indicado por ti)'); },
   get reply_received() { return tt('Resposta recebida (indicada por ti)'); },
-  closed: 'Fechado'
+  get closed() { return tt('Fechado'); }
 };
 
 /* ==========================================================================
@@ -1588,7 +1588,7 @@ function renderNoticias() {
       </div>
     </details>`).join('');
 
-  const filtros = [['todas', 'Todas'], ['minhas', tt('As minhas empresas · {0}', [minhas.length])], ['fuga', tt('Fugas de dados')], ['multa', 'Multas'], ['fraude', 'Burlas']];
+  const filtros = [['todas', tt('Todas')], ['minhas', tt('As minhas empresas · {0}', [minhas.length])], ['fuga', tt('Fugas de dados')], ['multa', tt('Multas')], ['fraude', tt('Burlas')]];
   document.getElementById('news-filters').innerHTML = filtros.map(([chave, texto]) => `
     <button data-action="filtro-noticias" data-filter="${chave}" type="button" class="shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${filtroNoticias === chave ? 'border-oliva bg-oliva text-ink' : 'border-slate-700 text-slate-300'}">${esc(texto)}</button>`).join('');
 
@@ -1612,9 +1612,9 @@ function criarCartaoNoticia(noticia) {
       ${noticia.estado === 'por_confirmar' ? `<span class="rounded-full bg-slate-700/60 px-2 py-0.5 font-bold text-slate-300">${tt('Por confirmar')}</span>` : ''}
       <span class="text-mist">${esc(noticia.empresa)} · ${formatarData(noticia.data)}</span>
     </div>
-    <h3 class="mt-2 font-semibold leading-snug">${esc(noticia.titulo)}</h3>
-    <p class="mt-1.5 text-xs leading-5 text-slate-300">${esc(noticia.resumo)}</p>
-    <p class="mt-2 text-xs leading-5 text-mist"><span class="font-semibold text-slate-200">Porque importa:</span> ${esc(noticia.importa)}</p>
+    <h3 class="mt-2 font-semibold leading-snug">${esc(tt(noticia.titulo))}</h3>
+    <p class="mt-1.5 text-xs leading-5 text-slate-300">${esc(tt(noticia.resumo))}</p>
+    <p class="mt-2 text-xs leading-5 text-mist"><span class="font-semibold text-slate-200">${tt('Porque importa:')}</span> ${esc(tt(noticia.importa))}</p>
     ${afetadas.length ? `
       <div class="mt-3 flex items-center justify-between gap-3 rounded-xl bg-ink/60 px-3 py-2">
         <span class="text-[11px] font-semibold text-rose-200">${tt('Tens dados nesta empresa')}</span>
@@ -1703,7 +1703,7 @@ function renderPainel() {
     const setor = SECTORS[chave];
     const ativo = filtroSetor === chave;
     return `<button data-action="setor" data-sector="${chave}" type="button"
-      aria-label="${esc(setor.label)}: ${empresas.length} ${plural(empresas.length, tt('empresa'), tt('empresas'))}, gravidade ${SEVERITY[setor.gravidade].label.toLowerCase()}"
+      aria-label="${tt('{0}: {1} {2}, gravidade {3}', [setor.label, empresas.length, plural(empresas.length, tt('empresa'), tt('empresas')), SEVERITY[setor.gravidade].label.toLowerCase()])}"
       class="flex items-center gap-2.5 rounded-2xl border px-3 py-2.5 text-left transition ${ativo ? 'border-lime bg-lime/10' : setor.sensitive ? 'border-rose-400/30 bg-rose-400/5' : 'border-slate-800 bg-slate-900/60'}">
       <span class="text-slate-300">${icone(chave, 'h-5 w-5')}</span>
       <span class="min-w-0 flex-1">
@@ -1717,7 +1717,7 @@ function renderPainel() {
 
   // Filtros pelo que os emails indicam
   const naArea = lista.filter((empresa) => filtroSetor === 'todos' || empresa.sector === filtroSetor);
-  const filtros = [['todas', `Todas · ${naArea.length}`], ...KIND_ORDER.map((chave) => [chave, `${KINDS[chave].filtro} · ${naArea.filter((empresa) => tiposDe(empresa).includes(chave)).length}`])];
+  const filtros = [['todas', tt('Todas · {0}', [naArea.length])], ...KIND_ORDER.map((chave) => [chave, `${KINDS[chave].filtro} · ${naArea.filter((empresa) => tiposDe(empresa).includes(chave)).length}`])];
   document.getElementById('kind-filters').innerHTML = filtros.map(([chave, texto]) => `
     <button data-action="filtro" data-kind="${chave}" type="button" class="shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${filtroTipo === chave ? 'border-oliva bg-oliva text-ink' : 'border-slate-700 text-slate-300'}">${esc(texto)}</button>`).join('');
 
@@ -1821,9 +1821,9 @@ function criarCard(empresa) {
       <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-base font-bold text-ink">${esc(empresa.icon)}</div>
       <div class="min-w-0 flex-1">
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1"><h4 class="truncate font-semibold">${esc(empresa.name)}</h4>${tiposDe(empresa).map((chave) => `<span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${KINDS[chave].style}">${KINDS[chave].label}</span>`).join('')}</div>
-        <p class="mt-0.5 truncate text-xs text-mist">≈ ${recebidos} emails · ${duracaoCurta(tempoPerdidoS(empresa))} gastos</p>
+        <p class="mt-0.5 truncate text-xs text-mist">${tt('≈ {0} emails · {1} gastos', [recebidos, duracaoCurta(tempoPerdidoS(empresa))])}</p>
       </div>
-      <span class="mt-1 shrink-0" title="Gravidade ${SEVERITY[gravidade].label.toLowerCase()}" aria-label="Gravidade ${SEVERITY[gravidade].label.toLowerCase()}" role="img">${iconeGravidade(gravidade)}</span>
+      <span class="mt-1 shrink-0" title="${tt('Gravidade {0}', [SEVERITY[gravidade].label.toLowerCase()])}" aria-label="${tt('Gravidade {0}', [SEVERITY[gravidade].label.toLowerCase()])}" role="img">${iconeGravidade(gravidade)}</span>
     </div>
     ${estadoPedido}
     ${cancelada}
@@ -2541,7 +2541,7 @@ function nosDoMapa() {
 
 function detalheDoMapa(nos, rede) {
   const sel = selecaoMapa;
-  const fechar = '<button data-action="mapa-limpar" type="button" class="shrink-0 text-xs font-semibold text-slate-400">Fechar</button>';
+  const fechar = `<button data-action="mapa-limpar" type="button" class="shrink-0 text-xs font-semibold text-slate-400">${tt('Fechar')}</button>`;
   const cabecalho = (marca, titulo, subtitulo) => `
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
@@ -2554,7 +2554,7 @@ function detalheDoMapa(nos, rede) {
   const porque = (chave, texto) => `
     <div class="mt-3 flex gap-2.5 rounded-xl bg-ink/60 px-3 py-2.5 text-xs leading-5 text-slate-300">
       <span class="mt-1">${iconeGravidade(chave)}</span>
-      <p><span class="font-semibold text-white">Gravidade ${SEVERITY[chave].label.toLowerCase()}.</span> ${esc(texto)}</p>
+      <p><span class="font-semibold text-white">${tt('Gravidade {0}.', [SEVERITY[chave].label.toLowerCase()])}</span> ${esc(texto)}</p>
     </div>`;
   const ordenar = (lista) => [...lista].sort((a, b) => SEVERITY_ORDER.indexOf(a.gravidade) - SEVERITY_ORDER.indexOf(b.gravidade)
     || MAP_ORDER.indexOf(a.balde) - MAP_ORDER.indexOf(b.balde) || a.name.localeCompare(b.name));
@@ -2568,14 +2568,14 @@ function detalheDoMapa(nos, rede) {
   // Nada escolhido: uma frase e as três empresas mais graves
   if (!sel) {
     const primeiras = ordenar(nos).slice(0, 3);
-    return `<p class="text-sm text-slate-300"><span class="lg:hidden">Toca</span><span class="hidden lg:inline">Clica</span> ${tt('num ponto para veres o que podes fazer.')}</p>
+    return `<p class="text-sm text-slate-300"><span class="lg:hidden">${tt('Toca')}</span><span class="hidden lg:inline">${tt('Clica')}</span> ${tt('num ponto para veres o que podes fazer.')}</p>
       ${primeiras.length ? `<p class="mt-3 text-xs font-semibold text-slate-400">${tt('Começa pelas mais graves')}</p>${linhas(primeiras, true)}` : ''}`;
   }
 
   if (sel.tipo === 'terceiro') {
     const t = rede.terceiros.find((item) => item.id === sel.chave);
     const uma = t.ligados.length === 1;
-    return `${cabecalho(bola(REDE.TERCEIRO), esc(t.nome), `Terceiro · ${esc(t.dominio)}`)}
+    return `${cabecalho(bola(REDE.TERCEIRO), esc(t.nome), `${tt('Terceiro')} · ${esc(t.dominio)}`)}
       <p class="mt-3 text-sm leading-5 text-slate-300">${esc(nomes(t.ligados))} ${uma ? tt('usa') : tt('usam')} ${tt('o')} ${esc(t.nome)} ${tt('para te enviar emails. O')} ${esc(t.nome)} ${tt('recebe o teu endereço em nome')} ${uma ? tt('dela') : tt('delas')} ${tt('e pode registar quando abres as mensagens.')}</p>
       <p class="mt-2 text-xs leading-5 text-mist">${tt('Não comprou os teus dados: trabalha por conta')} ${uma ? tt('da empresa') : tt('das empresas')}${tt('. Se pedires o apagamento,')} ${uma ? tt('ela tem') : tt('elas têm')} ${tt('de avisar o')} ${esc(t.nome)} ${tt('(artigo 19.º do RGPD).')}</p>
       ${linhas(t.ligados, true)}`;
@@ -2689,11 +2689,11 @@ function criarCartaoPedido(pedido) {
 
   const acoes = [];
   if (pedido.status === 'draft') {
-    acoes.push(botao('reabrir', pedido.id, tt('Abrir na app de email'), 'primary'), botao('apagar-rascunho', pedido.id, 'Apagar rascunho', 'ghost'));
+    acoes.push(botao('reabrir', pedido.id, tt('Abrir na app de email'), 'primary'), botao('apagar-rascunho', pedido.id, tt('Apagar rascunho'), 'ghost'));
   } else if (pedido.status === 'awaiting_confirmation') {
-    acoes.push(botao('confirmar-envio', pedido.id, 'Sim, enviei', 'primary'), botao('nao-enviado', pedido.id, tt('Ainda não'), 'secondary'));
+    acoes.push(botao('confirmar-envio', pedido.id, tt('Sim, enviei'), 'primary'), botao('nao-enviado', pedido.id, tt('Ainda não'), 'secondary'));
   } else if (pedido.status === 'sent') {
-    acoes.push(botao('resposta', pedido.id, 'Registar resposta', 'primary'));
+    acoes.push(botao('resposta', pedido.id, tt('Registar resposta'), 'primary'));
     if (prazo !== null && prazo < 0) {
       acoes.push(botao('insistir', pedido.id, pedido.followUpAt ? tt('Insistir de novo') : tt('Enviar insistência'), 'secondary'), botao('sem-resposta', pedido.id, tt('Marcar sem resposta'), 'ghost'));
     }
@@ -2701,7 +2701,7 @@ function criarCartaoPedido(pedido) {
     acoes.push(botao('resposta', pedido.id, tt('Registar o resultado'), 'primary'));
   }
   if (balde === 'confirmado' && pedido.right !== 'erasure' && obterEmpresa(pedido.companyId)) {
-    acoes.push(`<button data-action="pedido" data-id="${esc(pedido.companyId)}" data-right="erasure" type="button" class="rounded-lg bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-200">Pedir apagamento</button>`);
+    acoes.push(`<button data-action="pedido" data-id="${esc(pedido.companyId)}" data-right="erasure" type="button" class="rounded-lg bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-200">${tt('Pedir apagamento')}</button>`);
   }
 
   const resultado = pedido.outcome ? `<span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${balde === 'confirmado' ? 'bg-rose-400/10 text-rose-200' : balde === 'atraso' ? 'bg-orange-400/10 text-orange-200' : 'bg-lime/10 text-lime'}">${esc(OUTCOMES[pedido.outcome].badge)}</span>` : '';
@@ -2712,7 +2712,7 @@ function criarCartaoPedido(pedido) {
         <p class="flex items-center gap-2 font-semibold"><span class="h-2 w-2 shrink-0 rounded-full ${balde ? BUCKETS[balde].dot : 'bg-slate-500'}"></span>${esc(pedido.companyName)} <span class="text-slate-500" title="${esc(setor.label)}">${icone(pedido.companySector || 'outros', 'h-3.5 w-3.5')}</span></p>
         <p class="mt-0.5 text-xs text-mist">${esc(direito.short)} · ${esc(direito.article)}</p>
       </div>
-      ${resultado || (['sent', 'awaiting_confirmation'].includes(pedido.status) && pedido.email ? `<button data-action="enviar-novamente" data-id="${esc(pedido.id)}" type="button" class="shrink-0 rounded-lg border border-slate-700 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 hover:border-slate-500">Enviar novamente</button>` : '')}
+      ${resultado || (['sent', 'awaiting_confirmation'].includes(pedido.status) && pedido.email ? `<button data-action="enviar-novamente" data-id="${esc(pedido.id)}" type="button" class="shrink-0 rounded-lg border border-slate-700 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 hover:border-slate-500">${tt('Enviar novamente')}</button>` : '')}
     </div>
     <div class="mt-3 flex flex-col gap-1 text-[11px] text-mist">
       <span>${esc(STATUS_LABELS[pedido.status])}</span>

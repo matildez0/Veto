@@ -518,6 +518,8 @@ const PHRASES_EN = {
   "Terceiros": "Third parties",
   "Fugas conhecidas": "Known breaches",
   "Prazo:": "Deadline:",
+  "Gravidade {0}.": "{0} severity.",
+  "Terceiro": "Third party",
   "termina hoje": "ends today",
   "faltam {0} {1}": "{0} {1} left",
   "Prazo terminou a {0} · há {1} {2}": "Deadline passed on {0} · {1} {2} ago",

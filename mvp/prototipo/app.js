@@ -694,6 +694,8 @@ mostrarPerguntaConsentimento();
 // Mudar de idioma: volta a desenhar tudo o que o app.js escreve
 document.addEventListener('veto:languagechange', () => {
   if (document.body.classList.contains('menu-fechado')) alternarMenu(true);
+  // A mudança de idioma não inicia uma nova análise: mantém os cards visíveis.
+  renderResumo.novaAnalise = false;
   renderTudo();
   renderTeste();
   registo.desenhar();

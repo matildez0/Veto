@@ -44,11 +44,15 @@
           </g>
         </svg>
       </a>
-      <a href="./">← Voltar à app</a>
+      <div style="display:flex;align-items:center;gap:14px">
+        <button id="language-toggle" type="button" aria-label="Idioma" style="border:1px solid var(--lima);border-radius:999px;background:transparent;color:var(--lima);padding:5px 10px;font:700 12px 'DM Sans',sans-serif;cursor:pointer">EN</button>
+        <a id="privacy-back-link" href="./">← Voltar à app</a>
+      </div>
     </header>
 
-    <h1>Política de privacidade</h1>
-    <p class="data">Última atualização: 19 de outubro de 2026</p>
+    <div id="privacy-content">
+    <h1 id="privacy-title">Política de privacidade</h1>
+    <p class="data" id="privacy-date">Última atualização: 19 de outubro de 2026</p>
 
     <div class="resumo">
       <p>Em resumo</p>
@@ -110,6 +114,9 @@
 
     <h2>9. Alterações</h2>
     <p>Se mudarmos a forma como tratamos os dados, atualizamos esta página e a data no topo.</p>
+    </div>
   </main>
+  <script src="i18n.js"></script>
+  <script src="privacidade.js"></script>
 </body>
 </html>

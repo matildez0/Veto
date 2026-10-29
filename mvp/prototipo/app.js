@@ -1555,7 +1555,7 @@ function precisaDeAtencao(pedido) {
    ========================================================================== */
 function vistaAtual() {
   const vista = location.hash.replace('#', '');
-  return ['inicio', 'resultados', 'pedidos', 'noticias'].includes(vista) ? vista : 'inicio';
+  return ['inicio', 'resultados', 'pedidos', 'noticias', 'definicoes'].includes(vista) ? vista : 'inicio';
 }
 
 function renderTudo() {
@@ -3042,11 +3042,14 @@ async function enviarFila() {
 function modoClaro() { return document.documentElement.classList.contains('light'); }
 function atualizarBotaoTema() {
   const botao = document.getElementById('tema-botao');
-  if (!botao) return;
   const texto = modoClaro() ? 'Ativar o modo escuro' : 'Ativar o modo claro';
-  botao.setAttribute('aria-label', texto);
-  botao.setAttribute('aria-pressed', modoClaro() ? 'true' : 'false');
-  botao.title = texto;
+  if (botao) {
+    botao.setAttribute('aria-label', texto);
+    botao.setAttribute('aria-pressed', modoClaro() ? 'true' : 'false');
+    botao.title = texto;
+  }
+  const estado = document.getElementById('tema-definicoes-estado');
+  if (estado) estado.textContent = modoClaro() ? 'Tema claro ativo' : 'Tema escuro ativo';
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', modoClaro() ? '#f1ecf6' : '#211923');
 }
 function alternarTema(claro = !modoClaro()) {

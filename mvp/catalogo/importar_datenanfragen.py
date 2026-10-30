@@ -31,6 +31,7 @@ EXTRA_DOMINIOS = {
 }
 # Empresas de publicidade não enviam emails às pessoas: não aparecem numa análise da caixa
 SO_PUBLICIDADE = {'ads'}
+EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
 
 # Áreas: primeiro as regras do protótipo (nome e domínios), depois as categorias do Datenanfragen
 REGRAS_AREA = [
@@ -119,6 +120,40 @@ def area(principal, secundario, categorias):
     return 'outros'
 
 
+def validar_registos(empresas, origem):
+    """Falha cedo quando um contacto importado não cumpre o contrato do catálogo."""
+    ids, dominios = set(), set()
+    for empresa in empresas:
+        identificador = empresa.get('id')
+        if not isinstance(identificador, str) or not identificador:
+            raise ValueError(f'{origem}: id em falta')
+        if identificador in ids:
+            raise ValueError(f'{origem}: id duplicado: {identificador}')
+        ids.add(identificador)
+        empresa_dominios = empresa.get('domains')
+        if not isinstance(empresa_dominios, list) or not empresa_dominios:
+            raise ValueError(f'{origem} {identificador}: domains em falta')
+        for dominio in empresa_dominios:
+            if not isinstance(dominio, str) or not re.fullmatch(r'[\w.-]+\.[a-z]{2,}', dominio, re.I):
+                raise ValueError(f'{origem} {identificador}: domínio inválido: {dominio}')
+            if dominio.lower() in dominios:
+                raise ValueError(f'{origem}: domínio duplicado: {dominio}')
+            dominios.add(dominio.lower())
+        canal = empresa.get('channel')
+        if canal not in {'email', 'formulario', 'ambos'}:
+            raise ValueError(f'{origem} {identificador}: canal inválido: {canal}')
+        email = (empresa.get('privacyEmail') or '').strip()
+        formulario = (empresa.get('webFormUrl') or '').strip()
+        if canal in {'email', 'ambos'} and not EMAIL_RE.fullmatch(email):
+            raise ValueError(f'{origem} {identificador}: email inválido ou em falta')
+        if canal in {'formulario', 'ambos'} and not re.fullmatch(r'https://\S+', formulario, re.I):
+            raise ValueError(f'{origem} {identificador}: formulário inválido ou em falta')
+        if not re.fullmatch(r'https?://\S+', str(empresa.get('privacyUrl') or ''), re.I):
+            raise ValueError(f'{origem} {identificador}: privacyUrl inválido ou em falta')
+        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}(?:T\S*)?', str(empresa.get('verifiedAt') or '')):
+            raise ValueError(f'{origem} {identificador}: verifiedAt inválido')
+
+
 def datas_dos_ficheiros(repo):
     """Data do último commit de cada registo, numa só passagem pelo histórico."""
     saida = subprocess.run(['git', '-C', str(repo), 'log', '--format=@%cI', '--name-only', '--', 'companies'],
@@ -192,6 +227,8 @@ def main():
     repo, pt, saida = sys.argv[1], Path(sys.argv[2]), Path(sys.argv[3])
     importadas, ignoradas = converter(repo)
     portuguesas = json.loads(pt.read_text(encoding='utf-8'))['companies']
+    validar_registos(portuguesas, 'Veto')
+    validar_registos(importadas, 'Datenanfragen')
     # As empresas verificadas pela equipa têm prioridade sobre um registo importado com o mesmo domínio
     dominios_pt = {dominio for empresa in portuguesas for dominio in empresa['domains']}
     importadas = [e for e in importadas if not dominios_pt & set(e['domains'])]
@@ -202,6 +239,7 @@ def main():
             continue
         vistos.add(empresa['id'])
         unicas.append(empresa)
+    validar_registos(unicas, 'Catálogo')
     commit = subprocess.run(['git', '-C', repo, 'log', '-1', '--format=%H'], capture_output=True, text=True).stdout.strip()
     catalogo = {
         'version': 1,

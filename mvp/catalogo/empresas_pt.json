@@ -776,6 +776,99 @@
    "verifiedAt": "2026-10-28",
    "origin": "veto",
    "notes": "Email indicado para exercer direitos (política de privacidade da Mango em português). O Encarregado de Proteção de Dados tem outro endereço: dpo@mango.com."
+  },
+  {
+   "id": "vodafone.pt",
+   "name": "Vodafone",
+   "legalName": "Vodafone Portugal – Comunicações Pessoais, S.A.",
+   "domains": [
+    "vodafone.pt",
+    "vodafone.com"
+   ],
+   "sector": "servicos",
+   "channel": "email",
+   "privacyEmail": "privacidade@vodafone.com",
+   "privacyUrl": "https://www.vodafone.pt/portalprivacidade.html",
+   "verifiedAt": "2026-10-30",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados para exercer direitos de privacidade."
+  },
+  {
+   "id": "ageas.pt",
+   "name": "Ageas Seguros",
+   "legalName": "Ageas Portugal – Companhia de Seguros, S.A.",
+   "domains": [
+    "ageas.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "dpo@ageas.pt",
+   "privacyUrl": "https://www.ageas.pt/particulares/sobre-a-ageas-seguros/informacao-legal/politica-de-privacidade/",
+   "verifiedAt": "2026-10-30",
+   "origin": "veto",
+   "notes": "Contacto do Encarregado de Proteção de Dados indicado na política de privacidade."
+  },
+  {
+   "id": "iberdrola.pt",
+   "name": "Iberdrola",
+   "legalName": "Iberdrola Clientes Portugal, Unipessoal, Lda.",
+   "domains": [
+    "iberdrola.pt"
+   ],
+   "sector": "servicos",
+   "channel": "email",
+   "privacyEmail": "dpo@iberdrola.pt",
+   "privacyUrl": "https://www.iberdrola.pt/politica-privacidade",
+   "verifiedAt": "2026-10-30",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados indicado na política de privacidade."
+  },
+  {
+   "id": "epal.pt",
+   "name": "EPAL",
+   "legalName": "EPAL – Empresa Portuguesa das Águas Livres, S.A.",
+   "domains": [
+    "epal.pt",
+    "adp.pt"
+   ],
+   "sector": "servicos",
+   "channel": "email",
+   "privacyEmail": "epd.epal@adp.pt",
+   "privacyUrl": "https://www.epal.pt/EPAL/menu/clientes/contrato-de-abastecimento-de-%C3%A1gua/prote%C3%A7%C3%A3o-de-dados",
+   "verifiedAt": "2026-10-30",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados indicado na política de proteção de dados pessoais."
+  },
+  {
+   "id": "unilabs.pt",
+   "name": "Unilabs",
+   "legalName": "Unilabs Portugal, S.A.",
+   "domains": [
+    "unilabs.pt",
+    "unilabs.com"
+   ],
+   "sector": "saude",
+   "channel": "email",
+   "privacyEmail": "dpo@unilabs.com",
+   "privacyUrl": "https://www.unilabs.pt/pt/footer/politica-de-privacidade",
+   "verifiedAt": "2026-10-30",
+   "origin": "veto",
+   "notes": "Contacto do Encarregado de Proteção de Dados indicado na política de privacidade."
+  },
+  {
+   "id": "carris.pt",
+   "name": "Carris",
+   "legalName": "Companhia Carris de Ferro de Lisboa, E.M., S.A.",
+   "domains": [
+    "carris.pt"
+   ],
+   "sector": "viagens",
+   "channel": "email",
+   "privacyEmail": "dados@carris.pt",
+   "privacyUrl": "https://www.carris.pt/media/dmml1eyw/politica-de-privacidade-bolsas-de-estudo.pdf",
+   "verifiedAt": "2026-10-30",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados indicado na política de privacidade."
   }
  ]
 }

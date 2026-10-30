@@ -47,11 +47,10 @@ If a company has no email and no web form (only branches, phone or letters), lea
 These companies are common in Portuguese inboxes but are not in the catalogue yet:
 
 - **Checked, no digital channel:** Caixa Geral de Depósitos (Caixadirecta, a branch, or a letter to the Data Protection Officer at Av. João XXI, 63, 1000-300 Lisboa) and Millennium bcp (a letter to the Data Protection Officer at Av. Prof. Dr. Cavaco Silva, Tagus Park, Edf. 4, n.º 26, 2740-256 Porto Salvo, or the general contacts).
-- **Website blocks automatic reading, check by hand:** Vodafone Portugal (privacy portal at privacidade.vodafone.pt).
 - **Contact shown only as an image:** Universidade do Minho.
 - **Privacy page only loads with JavaScript, check by hand:** OLX (help.olx.pt/olxpthelp/s/privacy-policy), Vinted, Radio Popular.
 - **Contact hidden or missing on the page:** Wook and Bertrand (Porto Editora hides the email behind a protection script), Ticketline (only the customer service address), McDonald's Portugal (contact in a country addendum that is not published as text), KuantoKusta and Goldenergy (pages did not load).
-- **Not checked yet:** Ageas, Iberdrola, EPAL, NOWO, Farmácias Portuguesas, Unilabs, Luz Saúde, Intermarché, Telepizza, Too Good To Go, Nespresso, Klarna, Segurança Social, ePortugal, Indeed, Medium, Net-Empregos, FlixBus, Carris.
+- **Not checked yet:** NOWO, Farmácias Portuguesas, Luz Saúde, Intermarché, Telepizza, Too Good To Go, Nespresso, Klarna, Segurança Social, ePortugal, Indeed, Medium, Net-Empregos and FlixBus.
 
 Datenanfragen records are kept as published there; the team has not re-checked each one. The app always shows their source and date.
 

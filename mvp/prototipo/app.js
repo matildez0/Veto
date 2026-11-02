@@ -357,19 +357,7 @@ const GOOGLE_CLIENT_ID = '788465290091-1499vipmp7l7fv0t9oguigev9mlptibq.apps.goo
 // Cola aqui o link de um formulário (por exemplo, Google Forms) onde as pessoas pedem acesso.
 const PEDIR_ACESSO_URL = '';
 
-// Veto Plus ainda não existe: o botão mede quantas pessoas o comprariam e a que preço.
-// Quem escolhe um plano vê logo que não pagou nada. Muda aqui os preços e as funcionalidades.
-const PLUS = {
-  MENSAL: '2,99 €',
-  ANUAL: '29,99 €',
-  FUNCOES: [
-    ['Limpeza profunda', 'Cancela as subscrições todas de uma vez e apaga os emails antigos dessas empresas.'],
-    ['Várias contas', 'Junta os teus emails pessoais e de trabalho numa só análise.'],
-    ['Análise contínua', 'A contagem de emails e a gravidade de cada empresa sempre atualizadas.'],
-    ['Pedidos acompanhados', 'Segue cada pedido ao DPO, avisa quando o prazo passa e prepara a insistência.']
-  ]
-};
-const VERSAO = 'prototipo-0.7';
+const VERSAO = 'prototipo-0.8';
 
 /* ==========================================================================
    Configuração
@@ -587,7 +575,8 @@ const STATUS_LABELS = {
 /* ==========================================================================
    Estado (guardado só neste dispositivo)
    ========================================================================== */
-let estado = { empresas: [], pedidos: [], analisadoEm: null, demo: false };
+let estado = { empresas: [], pedidos: [], contas: [], analisadoEm: null, demo: false };
+let filtroConta = 'todas';
 let filtroSetor = 'todos';
 let filtroTipo = 'todas';
 let selecaoMapa = null; // { tipo: 'empresa' | 'terceiro' | 'setor', chave }
@@ -672,6 +661,9 @@ function guardarEstado() {
 const status = document.getElementById('analysis-status');
 
 carregarEstado();
+migrarContas();
+carregarPlus();
+const retornoPagamento = tratarRetornoPagamento();
 if (GOOGLE_CLIENT_ID) {
   document.getElementById('google-client-id').value = GOOGLE_CLIENT_ID;
   document.getElementById('client-id-box').classList.add('hidden');
@@ -681,7 +673,7 @@ const conviteNoLink = parametrosDoLink.get('convite') || '';
 // De onde veio a pessoa (por exemplo, ?origem=linkedin). Só serve para contar visitas por canal.
 const origemDoLink = (parametrosDoLink.get('origem') || parametrosDoLink.get('utm_source') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30);
 registarAbertura();
-document.getElementById('analyze-button').addEventListener('click', ligarGmail);
+document.getElementById('analyze-button').addEventListener('click', () => ligarGmail());
 document.getElementById('search-input').addEventListener('input', renderEmpresas);
 document.addEventListener('click', tratarClique);
 // Que perguntas do guia são abertas, uma vez por pergunta em cada visita
@@ -725,12 +717,15 @@ if (estado.demo || estado.pedidos.some((pedido) => pedido.demo)) limparExemplo()
 estado.pedidos.forEach((pedido) => { if (pedido.sentAt) pedido.dueDate = estimarPrazo(pedido.sentAt); });
 renderTudo();
 mostrarPerguntaConsentimento();
+mostrarRetornoPagamento(retornoPagamento);
 setTimeout(verificarPendente, 600);
 
 /* ==========================================================================
    Análise do Gmail (só cabeçalhos)
    ========================================================================== */
-function ligarGmail() {
+// opcoes.adicionar: deixa escolher outra conta Google (para juntar ou voltar a analisar uma conta)
+function ligarGmail(opcoes = {}) {
+  const adicionar = opcoes?.adicionar === true;
   const clientId = document.getElementById('google-client-id').value.trim();
   if (!clientId) {
     atualizarStatus('Introduz o Google OAuth Client ID para ligar a tua conta.', true);
@@ -789,7 +784,7 @@ function ligarGmail() {
         });
     }
   });
-  tokenClient.requestAccessToken({ prompt: 'consent' });
+  tokenClient.requestAccessToken({ prompt: adicionar ? 'select_account consent' : 'consent' });
 }
 
 // Erros fora do OAuth: a janela do Google não abriu (pop-up bloqueado) ou foi fechada antes do fim.
@@ -839,8 +834,14 @@ async function analisarCabecalhos(accessToken) {
   // O endereço da conta serve para abrir o Gmail na conta certa ao enviar pedidos (fica só neste dispositivo).
   registo.passo('conta', 'A identificar a conta');
   const perfil = await gmailFetch('/profile', accessToken, GMAIL_QUOTA.CUSTO_LIST).catch(() => null);
-  if (perfil?.emailAddress) estado.contaEmail = perfil.emailAddress;
+  const conta = perfil?.emailAddress || `conta-${(estado.contas?.length || 0) + 1}`;
   registo.feito('conta', perfil?.emailAddress ? `Conta ${perfil.emailAddress}` : 'Conta Gmail ligada');
+  // Contas a mais: o Veto+ junta até PLUS.MAX_CONTAS (o gratuito substitui a anterior, como sempre)
+  if (temPlus() && !estado.contas.some((c) => c.email === conta) && estado.contas.length >= PLUS.MAX_CONTAS) {
+    mostrarProgresso(null);
+    registo.erro(`Já tens ${PLUS.MAX_CONTAS} contas juntas, o máximo do Veto+. Remove uma na página Resultados para juntar esta.`);
+    return;
+  }
   registo.passo('lista', 'A procurar os teus emails mais recentes');
   const messages = await listarMensagens(accessToken);
   registo.feito('lista', 'Emails para analisar', `${messages.length}`);
@@ -924,8 +925,7 @@ async function analisarCabecalhos(accessToken) {
   registo.feito('contar', 'Emails contados por empresa', `${agregados.length}`);
 
   const encontradas = agregados.map(criarEmpresaLocal);
-  estado.emailsAnalisados = messages.length;
-  substituirEmpresas(encontradas, false);
+  integrarConta(conta, encontradas, messages.length);
   mostrarProgresso(null);
   const areas = new Set(encontradas.map((empresa) => empresa.sector)).size;
   registo.feito('fim', `Análise concluída: ${encontradas.length} ${plural(encontradas.length, 'empresa', 'empresas')} em ${areas} ${plural(areas, 'área', 'áreas')}`);
@@ -1012,7 +1012,7 @@ function apagarEmailsEmpresa(empresaId) {
   if (!empresa || estado.demo) return;
   const dominios = empresa.domains?.length ? empresa.domains : [empresa.domain];
   const pesquisa = `{${dominios.map((domain) => `from:${domain}`).join(' ')}} -in:spam -in:trash -in:sent -in:drafts -in:chats`;
-  const url = `https://mail.google.com/mail/u/0/#search/${encodeURIComponent(pesquisa)}`;
+  const url = `https://mail.google.com/mail/u/${encodeURIComponent(contasDaEmpresa(empresa)[0] || '0')}/#search/${encodeURIComponent(pesquisa)}`;
   abrirFolha({
     titulo: `Apagar os emails da ${empresa.name}`,
     texto: 'O Gmail abre com os emails desta empresa. Seleciona-os e move-os para o Lixo.',
@@ -1262,6 +1262,207 @@ function substituirEmpresas(novas, demoAtivo) {
 }
 
 /* ==========================================================================
+   Várias contas de email (Veto+)
+   Cada empresa guarda, por conta, o que se encontrou (porConta). Os totais que a app mostra
+   (evidence) são a soma das contas. Voltar a analisar uma conta substitui só a parte dessa conta.
+   O plano gratuito analisa uma conta de cada vez: uma conta nova substitui a anterior.
+   ========================================================================== */
+function fatiaDaEmpresa(empresa) {
+  const ev = empresa.evidence || {};
+  return {
+    count: ev.count || 0, recentCount: ev.recentCount || 0, firstDate: ev.firstDate || null, lastDate: ev.lastDate || null,
+    kinds: [...(ev.kinds || [])], totalRecebidos: ev.totalRecebidos ?? ev.count ?? 0, enviados: ev.enviados || 0,
+    kind: empresa.kind, unsubscribe: empresa.unsubscribe || ''
+  };
+}
+
+// Quem já tinha dados de antes das várias contas fica ligado à conta que se analisou
+function migrarContas() {
+  if (!Array.isArray(estado.contas)) estado.contas = [];
+  if (!estado.contas.length && estado.contaEmail && estado.empresas.length) {
+    estado.contas.push({ email: estado.contaEmail, analisadoEm: estado.analisadoEm, emails: estado.emailsAnalisados || 0 });
+  }
+  const principal = estado.contas[0]?.email;
+  if (!principal) return;
+  estado.empresas.forEach((empresa) => {
+    if (!empresa.porConta && empresa.evidence) empresa.porConta = { [principal]: fatiaDaEmpresa(empresa) };
+  });
+}
+
+function contasDaEmpresa(empresa) {
+  return Object.entries(empresa.porConta || {})
+    .sort((a, b) => (b[1].totalRecebidos || 0) - (a[1].totalRecebidos || 0))
+    .map(([email]) => email);
+}
+
+// Totais da empresa = soma das contas
+function recalcularEmpresa(empresa) {
+  const fatias = Object.values(empresa.porConta || {});
+  if (!fatias.length) return;
+  const ev = empresa.evidence || (empresa.evidence = {});
+  const soma = (campo) => fatias.reduce((total, fatia) => total + (fatia[campo] || 0), 0);
+  const datas = (campo) => fatias.map((fatia) => fatia[campo]).filter(Boolean).sort();
+  ev.count = soma('count');
+  ev.recentCount = soma('recentCount');
+  ev.totalRecebidos = soma('totalRecebidos');
+  ev.enviados = soma('enviados');
+  ev.firstDate = datas('firstDate')[0] || null;
+  ev.lastDate = datas('lastDate').pop() || null;
+  ev.kinds = [...new Set(fatias.flatMap((fatia) => fatia.kinds || []))];
+  empresa.kind = fatias.map((fatia) => fatia.kind).filter(Boolean).sort((x, y) => KIND_ORDER.indexOf(x) - KIND_ORDER.indexOf(y))[0] || empresa.kind;
+  const links = fatias.map((fatia) => fatia.unsubscribe).filter(Boolean);
+  empresa.unsubscribe = links.find((link) => /^https:/i.test(link)) || links[0] || '';
+}
+
+// Junta o resultado de uma conta às empresas que já existem
+function integrarConta(conta, encontradas, nEmails) {
+  const agora = new Date().toISOString();
+  const juntar = temPlus();
+  if (!juntar) {
+    // Plano gratuito: uma conta de cada vez. A nova substitui a anterior, como sempre foi.
+    estado.contas = [];
+    estado.empresas = [];
+  }
+  // Tira o que esta conta tinha trazido antes (as empresas só dela saem; as outras ficam com as restantes contas)
+  estado.empresas.forEach((empresa) => { if (empresa.porConta) delete empresa.porConta[conta]; });
+  estado.empresas = estado.empresas.filter((empresa) => empresa.porConta && Object.keys(empresa.porConta).length);
+
+  const porId = new Map(estado.empresas.map((empresa) => [empresa.id, empresa]));
+  encontradas.forEach((nova) => {
+    const fatia = fatiaDaEmpresa(nova);
+    const existente = porId.get(nova.id);
+    if (!existente) {
+      const adicionada = { ...nova, dismissed: false, porConta: { [conta]: fatia } };
+      estado.empresas.push(adicionada);
+      porId.set(adicionada.id, adicionada);
+      return;
+    }
+    existente.porConta[conta] = fatia;
+    existente.domains = [...new Set([...(existente.domains || []), ...(nova.domains || [])])];
+    // O exemplo de assunto (só em memória) vem da conta com o sinal mais forte
+    if (KIND_ORDER.indexOf(nova.kind) <= KIND_ORDER.indexOf(existente.kind) && nova.evidence) {
+      existente.evidence = { ...existente.evidence, sampleSubject: nova.evidence.sampleSubject, sampleDate: nova.evidence.sampleDate, reason: nova.evidence.reason };
+    }
+  });
+  estado.empresas.forEach(recalcularEmpresa);
+
+  const entrada = estado.contas.find((c) => c.email === conta);
+  if (entrada) {
+    entrada.analisadoEm = agora;
+    entrada.emails = nEmails;
+  } else {
+    estado.contas.push({ email: conta, analisadoEm: agora, emails: nEmails });
+    if (juntar && estado.contas.length > 1) registarEvento('conta_adicionada', { contas: estado.contas.length });
+  }
+  estado.contaEmail = conta; // a mais recente: serve de predefinição ao abrir o Gmail
+  estado.emailsAnalisados = estado.contas.reduce((total, c) => total + (c.emails || 0), 0);
+  estado.pedidos = estado.pedidos.filter((pedido) => !pedido.demo);
+  estado.analisadoEm = agora;
+  estado.demo = false;
+  renderResumo.novaAnalise = false;
+  filtroSetor = 'todos';
+  filtroTipo = 'todas';
+  filtroConta = 'todas';
+  guardarEstado();
+  renderTudo();
+}
+
+function adicionarConta() {
+  if (!temPlus()) {
+    abrirPlus('contas');
+    return;
+  }
+  if (estado.contas.length >= PLUS.MAX_CONTAS) {
+    mostrarToast(`Já tens ${PLUS.MAX_CONTAS} contas juntas, o máximo do Veto+.`);
+    return;
+  }
+  reanalisarConta();
+}
+
+// A análise mostra o progresso no Início: vai para lá e abre o Google com escolha de conta
+function reanalisarConta() {
+  location.hash = '#inicio';
+  ligarGmail({ adicionar: true });
+}
+
+function removerConta(email) {
+  abrirFolha({
+    titulo: `Remover ${email}?`,
+    texto: 'Tiram-se da lista as empresas que só tinham dados nesta conta. Os pedidos que já tens ficam como estão.',
+    opcoes: [
+      {
+        label: 'Remover conta', estilo: 'primary', acao: () => {
+          estado.empresas.forEach((empresa) => { if (empresa.porConta) delete empresa.porConta[email]; });
+          estado.empresas = estado.empresas.filter((empresa) => empresa.porConta && Object.keys(empresa.porConta).length);
+          estado.empresas.forEach(recalcularEmpresa);
+          estado.contas = estado.contas.filter((c) => c.email !== email);
+          if (estado.contaEmail === email) estado.contaEmail = estado.contas[0]?.email || '';
+          estado.emailsAnalisados = estado.contas.reduce((total, c) => total + (c.emails || 0), 0);
+          if (filtroConta === email) filtroConta = 'todas';
+          selecaoMapa = null;
+          guardarEstado();
+          renderTudo();
+          mostrarToast('Conta removida.');
+        }
+      },
+      { label: 'Cancelar', estilo: 'ghost', acao: () => {} }
+    ]
+  });
+}
+
+// A conta de onde sai o pedido, quando a empresa tem os teus dados em mais do que uma
+function escolherConta(empresa, depois) {
+  const opcoes = contasDaEmpresa(empresa).map((email, indice) => ({
+    label: `${email} · ${empresa.porConta[email].totalRecebidos || 0} emails`,
+    estilo: indice === 0 ? 'primary' : 'secondary',
+    acao: () => depois(email)
+  }));
+  opcoes.push({ label: 'Cancelar', estilo: 'ghost', acao: () => {} });
+  abrirFolha({
+    titulo: `De que conta queres pedir à ${empresa.name}?`,
+    texto: 'A empresa tem emails teus em mais do que uma conta. Envia o pedido da conta cujos dados queres tratar.',
+    opcoes
+  });
+}
+
+function renderContas() {
+  const cartao = document.getElementById('contas-card');
+  if (!cartao) return;
+  if (!estado.empresas.length) {
+    cartao.classList.add('hidden');
+    return;
+  }
+  cartao.classList.remove('hidden');
+  const contas = estado.contas;
+  const ativo = temPlus();
+  const linhas = contas.map((conta) => `
+    <li class="flex items-center gap-3 rounded-xl bg-ink/60 px-3 py-2.5">
+      <div class="min-w-0 flex-1">
+        <p class="truncate text-sm font-semibold">${esc(conta.email)}</p>
+        <p class="text-[11px] text-mist">${conta.emails || 0} emails · analisada ${esc(descreverDia(conta.analisadoEm))}</p>
+      </div>
+      <button data-action="reanalisar-conta" type="button" class="shrink-0 text-xs font-semibold text-lime">Analisar de novo</button>
+      ${contas.length > 1 ? `<button data-action="remover-conta" data-id="${esc(conta.email)}" type="button" class="shrink-0 text-xs font-semibold text-slate-500">Remover</button>` : ''}
+    </li>`).join('');
+  const filtros = contas.length > 1 ? `
+    <div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Ver empresas por conta">
+      ${[['todas', 'Todas as contas'], ...contas.map((conta) => [conta.email, conta.email])].map(([chave, texto]) => `
+        <button data-action="filtro-conta" data-id="${esc(chave)}" type="button" aria-pressed="${filtroConta === chave}" class="max-w-full truncate rounded-full border px-3 py-1.5 text-xs font-semibold ${filtroConta === chave ? 'border-oliva bg-oliva text-ink' : 'border-slate-700 text-slate-300'}">${esc(texto)}</button>`).join('')}
+    </div>` : '';
+  cartao.innerHTML = `
+    <div class="flex items-center justify-between gap-3">
+      <p class="text-sm font-semibold">${contas.length > 1 ? 'Contas analisadas' : 'Conta analisada'}</p>
+      ${ativo ? `<span class="text-[11px] font-semibold text-mist">${contas.length} de ${PLUS.MAX_CONTAS}</span>` : '<span class="rounded-full border border-lime/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-lime">Veto+</span>'}
+    </div>
+    ${linhas ? `<ul class="mt-3 flex flex-col gap-2">${linhas}</ul>` : ''}
+    ${filtros}
+    <button data-action="adicionar-conta" type="button" class="mt-3 flex w-full items-center justify-between rounded-xl border border-slate-700 px-4 py-3 text-sm font-bold text-slate-100 transition hover:border-slate-500 active:scale-[.98]">
+      <span>Juntar outra conta de email</span><span class="text-mist" aria-hidden="true">+</span>
+    </button>
+    ${ativo ? '' : '<p class="mt-2 text-[11px] leading-4 text-mist">O plano gratuito analisa uma conta de cada vez. Com o Veto+ juntas os emails pessoais e de trabalho numa só análise.</p>'}`;
+}
+
+/* ==========================================================================
    Pedidos
    ========================================================================== */
 function prepararPedido(empresaId, right) {
@@ -1281,13 +1482,24 @@ function prepararPedido(empresaId, right) {
     });
     return;
   }
+  // Com várias contas, o pedido sai da conta em que a empresa tem os teus dados
+  const contasEmpresa = contasDaEmpresa(empresa);
+  if (contasEmpresa.length > 1 && !prepararPedido.contaEscolhida) {
+    escolherConta(empresa, (conta) => {
+      prepararPedido.contaEscolhida = conta;
+      prepararPedido(empresaId, right);
+    });
+    return;
+  }
+  const contaDoPedido = prepararPedido.contaEscolhida || contasEmpresa[0] || estado.contaEmail || '';
+  prepararPedido.contaEscolhida = null;
   const aberto = estado.pedidos.find((pedido) => pedido.companyId === empresaId && pedido.right === right && !['closed', 'draft'].includes(pedido.status));
   if (aberto) mostrarToast(`Já tens um pedido de ${RIGHTS[right].short.toLowerCase()} aberto para ${empresa.name}.`);
 
   const agora = new Date().toISOString();
   const pedido = {
     id: gerarId(), companyId: empresa.id, companyName: empresa.name, companySector: empresa.sector, domain: empresa.domain, email: empresa.dpo_email,
-    right, status: 'awaiting_confirmation', createdAt: agora, sentAt: null, dueDate: null,
+    right, contaEmail: contaDoPedido, status: 'awaiting_confirmation', createdAt: agora, sentAt: null, dueDate: null,
     replyAt: null, closedAt: null, closeReason: null, outcome: null, holdsData: null, followUpAt: null,
     demo: estado.demo, timeline: [{ to: 'awaiting_confirmation', at: agora }]
   };
@@ -1295,7 +1507,7 @@ function prepararPedido(empresaId, right) {
   registarEvento('pedido_preparado', { demo: pedido.demo, direito: right, area: empresa.sector, gravidade: gravidadeDe(empresa).chave });
   // Guardado ANTES de abrir a app de email, para a pergunta "Enviaste?" sobreviver se o browser fechar a página.
   guardarEstado();
-  abrirEmail(pedido.email, RIGHTS[right].subject, RIGHTS[right].body(empresa.name), () => marcarNaoEnviado(pedido.id));
+  abrirEmail(pedido.email, RIGHTS[right].subject, RIGHTS[right].body(empresa.name), () => marcarNaoEnviado(pedido.id), pedido.contaEmail);
   renderTudo();
 }
 
@@ -1308,7 +1520,7 @@ function reabrirRascunho(pedidoId) {
     return;
   }
   mudarEstado(pedido, 'awaiting_confirmation');
-  abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id));
+  abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id), pedido.contaEmail);
 }
 
 /* ==========================================================================
@@ -1319,7 +1531,7 @@ function reabrirRascunho(pedidoId) {
 const APPS_EMAIL = {
   gmail: {
     label: 'Gmail',
-    url: (para, assunto, corpo) => `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(para)}&su=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}${estado.contaEmail ? `&authuser=${encodeURIComponent(estado.contaEmail)}` : ''}`
+    url: (para, assunto, corpo, conta) => `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(para)}&su=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}${conta || estado.contaEmail ? `&authuser=${encodeURIComponent(conta || estado.contaEmail)}` : ''}`
   },
   outlook: {
     label: 'Outlook ou Hotmail',
@@ -1331,13 +1543,13 @@ const APPS_EMAIL = {
   }
 };
 
-function abrirEmail(destinatario, assunto, corpo, aoCancelar = () => {}) {
+function abrirEmail(destinatario, assunto, corpo, aoCancelar = () => {}, conta = '') {
   if (!APPS_EMAIL[estado.appEmail]) {
-    escolherAppEmail(() => abrirEmail(destinatario, assunto, corpo, aoCancelar), aoCancelar);
+    escolherAppEmail(() => abrirEmail(destinatario, assunto, corpo, aoCancelar, conta), aoCancelar, conta);
     return;
   }
   const app = APPS_EMAIL[estado.appEmail];
-  const url = app.url(destinatario, assunto, corpo);
+  const url = app.url(destinatario, assunto, corpo, conta);
   mostrarToast(`A abrir o pedido no ${app.label}…`);
   if (estado.appEmail === 'sistema') {
     window.location.href = url;
@@ -1353,8 +1565,8 @@ function abrirEmail(destinatario, assunto, corpo, aoCancelar = () => {}) {
   }, 2500);
 }
 
-function escolherAppEmail(depois, aoCancelar) {
-  const conta = estado.contaEmail || '';
+function escolherAppEmail(depois, aoCancelar, contaDoPedido = '') {
+  const conta = contaDoPedido || estado.contaEmail || '';
   const sugerida = /@(hotmail|outlook|live|msn)\./i.test(conta) ? 'outlook' : 'gmail';
   abrirFolha({
     titulo: 'Onde queres escrever o pedido?',
@@ -1395,7 +1607,7 @@ function perguntarSeEnviou(pedido, aoFecharFora = null) {
         estilo: 'ghost',
         acao: () => {
           estado.appEmail = null;
-          abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id));
+          abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id), pedido.contaEmail);
         }
       }
     ]
@@ -1476,7 +1688,7 @@ Com os melhores cumprimentos.`;
   pedido.followUpAt = new Date().toISOString();
   pedido.timeline.push({ to: 'follow_up', at: pedido.followUpAt });
   guardarEstado();
-  abrirEmail(pedido.email, `Insistência: ${direito.subject}`, corpo);
+  abrirEmail(pedido.email, `Insistência: ${direito.subject}`, corpo, () => {}, pedido.contaEmail);
   renderTudo();
 }
 
@@ -1574,6 +1786,7 @@ function renderTudo() {
 
   renderResumo();
   renderPlus(visiveis().reduce((soma, empresa) => soma + tempoPerdidoS(empresa), 0));
+  renderContas();
   renderPainel();
   renderEmpresas();
   renderPedidos();
@@ -1792,6 +2005,7 @@ function renderEmpresas() {
   const filtradas = lista
     .filter((empresa) => filtroSetor === 'todos' || empresa.sector === filtroSetor)
     .filter((empresa) => filtroTipo === 'todas' || tiposDe(empresa).includes(filtroTipo))
+    .filter((empresa) => filtroConta === 'todas' || empresa.porConta?.[filtroConta])
     .filter((empresa) => `${empresa.name} ${empresa.domain} ${SECTORS[empresa.sector]?.label || ''}`.toLowerCase().includes(query))
     .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || (b.evidence?.count || 0) - (a.evidence?.count || 0));
 
@@ -1800,7 +2014,7 @@ function renderEmpresas() {
 
   if (!filtradas.length) {
     container.innerHTML = '<p class="py-8 text-center text-sm text-mist lg:col-span-full">Nenhuma empresa encontrada.</p>';
-  } else if (filtroSetor === 'todos' && !query && filtroTipo === 'todas') {
+  } else if (filtroSetor === 'todos' && !query && filtroTipo === 'todas' && filtroConta === 'todas') {
     // Sem filtros: agrupar por área, sensíveis primeiro.
     const grupos = SECTOR_ORDER
       .map((chave) => ({ chave, empresas: filtradas.filter((empresa) => empresa.sector === chave) }))
@@ -1847,6 +2061,7 @@ function criarCard(empresa) {
       <div class="min-w-0 flex-1">
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1"><h4 class="truncate font-semibold">${esc(empresa.name)}</h4>${tiposDe(empresa).map((chave) => `<span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${KINDS[chave].style}">${KINDS[chave].label}</span>`).join('')}</div>
         <p class="mt-0.5 truncate text-xs text-mist">≈ ${recebidos} emails · ${duracaoCurta(tempoPerdidoS(empresa))} gastos</p>
+        ${estado.contas.length > 1 && empresa.porConta ? `<p class="mt-0.5 truncate text-[11px] text-slate-500">${esc(contasDaEmpresa(empresa).join(' · '))}</p>` : ''}
       </div>
       <span class="mt-1 shrink-0" title="Gravidade ${SEVERITY[gravidade].label.toLowerCase()}" aria-label="Gravidade ${SEVERITY[gravidade].label.toLowerCase()}" role="img">${iconeGravidade(gravidade)}</span>
     </div>
@@ -2809,69 +3024,6 @@ function fecharFolha() {
 }
 
 /* ==========================================================================
-   Veto Plus: teste de interesse (a subscrição ainda não existe)
-   Eventos: plus_visto (viu o cartão no Início), plus_aberto (abriu o plano),
-   plus_quero (escolheu mensal ou anual), plus_agora_nao. Todos dizem onde foi o clique (onde: inicio ou topo).
-   ========================================================================== */
-function renderPlus(tempoTotal) {
-  const interesse = estado.plusInteresse;
-  document.getElementById('plus-card-text').textContent = interesse
-    ? `Registámos o teu interesse no plano ${interesse.plano}. Obrigado!`
-    : tempoTotal
-      ? `Estes emails já te custaram ≈ ${formatarDuracao(tempoTotal)}. O Plus limpa-os de uma vez.`
-      : 'Limpa a tua caixa de uma vez e acompanha cada pedido até à resposta.';
-  document.getElementById('plus-card-price').textContent = `${PLUS.MENSAL}/mês →`;
-}
-
-// Uma vez por dispositivo: dá a base para calcular quantos dos que viram o cartão carregaram nele.
-function registarPlusVisto() {
-  if (estado.plusVisto || !estado.teste?.consentimento) return;
-  estado.plusVisto = true;
-  registarEvento('plus_visto', { onde: 'inicio', analisou: estado.empresas.length > 0 });
-}
-
-function abrirPlus(onde = 'outro') {
-  registarEvento('plus_aberto', { onde, demo: estado.demo });
-  abrirFolha({
-    titulo: 'Veto+',
-    texto: 'Para deixares de perder tempo com os emails das empresas e teres os teus pedidos tratados até ao fim.',
-    lista: PLUS.FUNCOES,
-    nota: 'Em breve. O Veto+ ainda não está disponível e escolher um plano não cobra nada: estamos a medir quantas pessoas o querem antes de o construir.',
-    opcoes: [
-      { label: `Quero o mensal · ${PLUS.MENSAL}/mês`, estilo: 'primary', acao: () => quererPlus('mensal', onde) },
-      { label: `Quero o anual · ${PLUS.ANUAL}/ano (2 meses grátis)`, estilo: 'secondary', acao: () => quererPlus('anual', onde) },
-      { label: 'Agora não', estilo: 'ghost', acao: () => registarEvento('plus_agora_nao', { onde, demo: estado.demo }) }
-    ]
-  });
-}
-
-function quererPlus(plano, onde) {
-  const detalhes = { plano, onde, demo: estado.demo };
-  estado.plusInteresse = { plano, quando: new Date().toISOString() };
-  guardarEstado();
-  registarEvento('plus_quero', detalhes);
-  renderTudo();
-  // Quem ainda não respondeu às estatísticas pode aceitá-las aqui, para a escolha contar.
-  // Quem já as recusou não volta a ser perguntado.
-  const podePerguntar = !estado.teste?.consentimento && estado.decisaoTeste !== 'recusado';
-  abrirFolha({
-    titulo: 'Obrigado! Registámos o teu interesse',
-    texto: 'O Veto+ ainda não existe e não pagaste nada. A tua escolha ajuda-nos a decidir se o construímos e a que preço.',
-    nota: podePerguntar ? 'Para a tua escolha contar no nosso teste, aceita as estatísticas anónimas. Nunca enviamos o teu email, as empresas nem o conteúdo dos emails.' : '',
-    opcoes: podePerguntar
-      ? [
-        { label: 'Aceitar estatísticas anónimas', estilo: 'primary', acao: () => {
-          entrarNoTeste();
-          registarEvento('plus_aberto', { onde, demo: estado.demo, depoisDeAceitar: true });
-          registarEvento('plus_quero', { ...detalhes, depoisDeAceitar: true });
-        } },
-        { label: 'Agora não', estilo: 'ghost', acao: () => {} }
-      ]
-      : [{ label: 'Fechar', estilo: 'primary', acao: () => {} }]
-  });
-}
-
-/* ==========================================================================
    Cliques
    ========================================================================== */
 function tratarClique(evento) {
@@ -2909,6 +3061,10 @@ function tratarClique(evento) {
     case 'apagar-emails': apagarEmailsEmpresa(id); break;
     case 'mapa-zoom': botaoDeZoom(alvo.dataset.zoom); break;
     case 'plus': abrirPlus(alvo.dataset.onde); break;
+    case 'adicionar-conta': adicionarConta(); break;
+    case 'reanalisar-conta': reanalisarConta(); break;
+    case 'remover-conta': removerConta(id); break;
+    case 'filtro-conta': filtroConta = id; renderContas(); renderEmpresas(); break;
     case 'descartar': definirDescartada(id, true); break;
     case 'repor-descartadas': estado.empresas.forEach((empresa) => { empresa.dismissed = false; }); guardarEstado(); renderTudo(); break;
     case 'confirmar-envio': confirmarEnvio(id); break;
@@ -2924,7 +3080,7 @@ function tratarClique(evento) {
       const pedido = obterPedido(id);
       if (pedido) {
         registarEvento('pedido_reenviado', { direito: pedido.right, area: pedido.companySector });
-        abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => {});
+        abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => {}, pedido.contaEmail);
       }
       break;
     }
@@ -2981,7 +3137,7 @@ function limparExemplo() {
 
 function limparTudo() {
   const { teste, filaEnvio, enviadosTotal, decisaoTeste } = estado;
-  estado = { empresas: [], pedidos: [], analisadoEm: null, demo: false, teste, filaEnvio, enviadosTotal, decisaoTeste };
+  estado = { empresas: [], pedidos: [], contas: [], analisadoEm: null, demo: false, teste, filaEnvio, enviadosTotal, decisaoTeste };
   renderResumo.novaAnalise = false;
   selecaoMapa = null;
   try { localStorage.removeItem(STORAGE_KEY); } catch (erro) { /* sem armazenamento */ }

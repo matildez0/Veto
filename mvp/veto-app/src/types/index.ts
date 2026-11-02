@@ -55,3 +55,40 @@ export interface VetoDataService {
   markRequestAsSent: (requestId: string) => Promise<PrivacyRequest>;
   updateRequestStatus: (requestId: string, newStatus: PrivacyRequest['status']) => Promise<void>;
 }
+
+export type MonitoringFrequency = 'daily' | 'weekly' | 'monthly';
+
+export interface MonitoringSettings {
+  enabled: boolean;
+  frequency: MonitoringFrequency;
+  notificationPermissionGranted: boolean;
+  updatedAt: string;
+}
+
+export interface MonitoringCompany {
+  id: string;
+  name: string;
+  domain: string;
+  detectedAt: string;
+}
+
+export interface MonitoringNews {
+  id: string;
+  companyId: string;
+  companyName: string;
+  title: string;
+  url?: string;
+  publishedAt: string;
+}
+
+export interface MonitoringSnapshot {
+  scannedAt: string;
+  companies: MonitoringCompany[];
+  news: MonitoringNews[];
+}
+
+export interface MonitoringResult {
+  scannedAt: string;
+  newCompanies: MonitoringCompany[];
+  newNews: MonitoringNews[];
+}

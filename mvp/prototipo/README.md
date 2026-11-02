@@ -1,36 +1,3 @@
-# Veto+
-
-Este documento explica como testar o Veto+ no protótipo web da Veto.
-
-## O que é o Veto+
-
-O Veto+ permite juntar até **5 contas Gmail** numa só análise. O plano gratuito permite analisar uma conta de cada vez.
-
-No protótipo, o Veto+ usa o **Stripe em modo de teste**. Não são cobrados pagamentos reais.
-
-## Pré-requisitos
-
-- Python instalado.
-- Acesso à conta Stripe da equipa.
-- Os Payment Links Stripe em modo de teste configurados em [`veto-plus.js`](./veto-plus.js).
-- Um navegador com acesso ao Gmail e autorização para a aplicação.
-
-## Iniciar a aplicação localmente
-
-Abra o PowerShell na pasta `mvp\prototipo` e execute:
-
-```powershell
-python -m http.server 8000
-```
-
-Abra depois:
-
-```text
-http://localhost:8000
-```
-
-Não abra o `index.html` diretamente com `file://`, porque o login Google pode falhar devido ao `origin_mismatch`.
-
 ## Configuração do Stripe
 
 No Stripe, confirme que está ativo o **Test mode**.
@@ -93,6 +60,12 @@ Com o Veto+ ativo:
 5. Volte à aplicação e confirme que as contas aparecem juntas.
 
 É possível adicionar até 5 contas. Remover o Veto+ neste dispositivo não apaga imediatamente os dados já analisados, mas impede adicionar novas contas acima do limite gratuito.
+
+## Monitorização contínua
+
+Com o Veto+ ativo, abre **Monitorização** no menu lateral. Escolhe uma frequência, permite notificações e ativa a funcionalidade. A primeira verificação fica como referência; verificações seguintes mostram apenas empresas e notícias novas desde essa referência.
+
+No computador, a verificação é feita quando a app abre, volta a ficar visível ou quando carregas em **Verificar agora**. O navegador não consegue garantir uma tarefa em segundo plano quando a página está fechada. A permissão de notificações pode ser revogada nas definições do navegador e a monitorização pode ser desligada na própria página.
 
 ## Estado do Veto+
 

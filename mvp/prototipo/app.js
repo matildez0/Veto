@@ -653,6 +653,7 @@ function guardarEstado() {
   } catch (erro) {
     // Ignorar: sem armazenamento, os dados ficam só nesta sessão.
   }
+
 }
 
 /* ==========================================================================
@@ -661,6 +662,7 @@ function guardarEstado() {
 const status = document.getElementById('analysis-status');
 
 carregarEstado();
+carregarMonitorizacao();
 migrarContas();
 carregarPlus();
 const retornoPagamento = tratarRetornoPagamento();
@@ -709,13 +711,17 @@ window.addEventListener('resize', () => {
   }, 200);
 });
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') setTimeout(verificarPendente, 400);
+  if (document.visibilityState === 'visible') {
+    setTimeout(verificarPendente, 400);
+    verificarMonitorizacao();
+  }
 });
 // O modo exemplo foi retirado: apaga o que tenha ficado guardado de versões anteriores.
 if (estado.demo || estado.pedidos.some((pedido) => pedido.demo)) limparExemplo();
 // Prazos antigos (mês + 3 dias) passam a 30 dias depois do envio
 estado.pedidos.forEach((pedido) => { if (pedido.sentAt) pedido.dueDate = estimarPrazo(pedido.sentAt); });
 renderTudo();
+verificarMonitorizacao();
 mostrarPerguntaConsentimento();
 mostrarRetornoPagamento(retornoPagamento);
 setTimeout(verificarPendente, 600);
@@ -1767,7 +1773,7 @@ function precisaDeAtencao(pedido) {
    ========================================================================== */
 function vistaAtual() {
   const vista = location.hash.replace('#', '');
-  return ['inicio', 'resultados', 'pedidos', 'noticias'].includes(vista) ? vista : 'inicio';
+  return ['inicio', 'resultados', 'pedidos', 'noticias', 'monitorizacao'].includes(vista) ? vista : 'inicio';
 }
 
 function renderTudo() {
@@ -1791,6 +1797,7 @@ function renderTudo() {
   renderEmpresas();
   renderPedidos();
   renderNoticias();
+  renderMonitorizacao();
   if (vista === 'inicio') registarPlusVisto();
 }
 
@@ -3061,6 +3068,9 @@ function tratarClique(evento) {
     case 'apagar-emails': apagarEmailsEmpresa(id); break;
     case 'mapa-zoom': botaoDeZoom(alvo.dataset.zoom); break;
     case 'plus': abrirPlus(alvo.dataset.onde); break;
+    case 'ativar-monitorizacao': ativarMonitorizacao(); break;
+    case 'desativar-monitorizacao': desativarMonitorizacao(); break;
+    case 'verificar-monitorizacao': verificarMonitorizacao(true); break;
     case 'adicionar-conta': adicionarConta(); break;
     case 'reanalisar-conta': reanalisarConta(); break;
     case 'remover-conta': removerConta(id); break;

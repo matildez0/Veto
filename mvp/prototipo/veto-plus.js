@@ -30,6 +30,134 @@ const PLUS = {
 };
 const PLUS_KEY = 'veto.plus.v1';
 let plus = null;
+const MONITOR_KEY = 'veto.plus.monitorizacao.v1';
+let monitorizacao = {
+  ativa: false,
+  frequencia: 'semanal',
+  verificadaEm: null,
+  empresasConhecidas: [],
+  noticiasConhecidas: [],
+  novasEmpresas: [],
+  novasNoticias: []
+};
+
+function carregarMonitorizacao() {
+  try {
+    const guardado = JSON.parse(localStorage.getItem(MONITOR_KEY) || 'null');
+    if (guardado) monitorizacao = { ...monitorizacao, ...guardado };
+  } catch (erro) {
+    // Sem armazenamento: a monitorização vale só nesta sessão.
+  }
+}
+
+function guardarMonitorizacao() {
+  try { localStorage.setItem(MONITOR_KEY, JSON.stringify(monitorizacao)); } catch (erro) { /* só nesta sessão */ }
+}
+
+function intervaloMonitorizacao() {
+  return { diaria: 86400000, semanal: 604800000, mensal: 2592000000 }[monitorizacao.frequencia] || 604800000;
+}
+
+function empresasMonitorizadas() {
+  return estado.empresas.filter((empresa) => !empresa.dismissed).map((empresa) => ({
+    id: empresa.id, name: empresa.name, domain: empresa.domain
+  }));
+}
+
+function noticiasDasMinhasEmpresas() {
+  const dominios = new Set(empresasMonitorizadas().map((empresa) => empresa.domain));
+  return NOTICIAS.filter((noticia) => (noticia.dominios || []).some((dominio) => [...dominios].some((d) => d === dominio || d.endsWith(`.${dominio}`))));
+}
+
+function verificarMonitorizacao(forcar = false) {
+  if (!monitorizacao.ativa) {
+    mostrarToast('Ativa primeiro a monitorização.');
+    return;
+  }
+  if (!estado.empresas.length) {
+    mostrarToast('Faz primeiro uma análise do Gmail.');
+    return;
+  }
+  if (!forcar && monitorizacao.verificadaEm && Date.now() - new Date(monitorizacao.verificadaEm).getTime() < intervaloMonitorizacao()) {
+    mostrarToast(`A próxima verificação está definida para ${monitorizacao.frequencia}.`);
+    return;
+  }
+  const empresas = empresasMonitorizadas();
+  const noticias = noticiasDasMinhasEmpresas();
+  const empresasAnteriores = new Set(monitorizacao.empresasConhecidas);
+  const noticiasAnteriores = new Set(monitorizacao.noticiasConhecidas);
+  monitorizacao.novasEmpresas = empresas.filter((empresa) => !empresasAnteriores.has(empresa.id));
+  monitorizacao.novasNoticias = noticias.filter((noticia) => !noticiasAnteriores.has(noticia.id));
+  monitorizacao.empresasConhecidas = empresas.map((empresa) => empresa.id);
+  monitorizacao.noticiasConhecidas = noticias.map((noticia) => noticia.id);
+  monitorizacao.verificadaEm = new Date().toISOString();
+  guardarMonitorizacao();
+  const total = monitorizacao.novasEmpresas.length + monitorizacao.novasNoticias.length;
+  if (total && 'Notification' in window && Notification.permission === 'granted') {
+    new Notification('Atualização do Veto+', { body: `${total} novidade${total === 1 ? '' : 's'} desde a última verificação.` });
+  }
+  renderMonitorizacao();
+  mostrarToast(total ? `${total} novidade${total === 1 ? '' : 's'} encontrada${total === 1 ? '' : 's'}.` : 'Nenhuma novidade desde a última verificação.');
+}
+
+async function ativarMonitorizacao() {
+  if (!temPlus()) {
+    abrirPlus('monitorizacao');
+    return;
+  }
+  if (!estado.empresas.length) {
+    mostrarToast('Faz primeiro uma análise do Gmail para ativar a monitorização.');
+    return;
+  }
+  const frequencia = document.querySelector('input[name="monitor-frequencia"]:checked')?.value || 'semanal';
+  if ('Notification' in window && Notification.permission !== 'granted') {
+    const permissao = await Notification.requestPermission();
+    if (permissao !== 'granted') {
+      mostrarToast('A monitorização precisa de permissão para mostrar notificações.');
+      return;
+    }
+  }
+  monitorizacao = {
+    ...monitorizacao,
+    ativa: true,
+    frequencia,
+    verificadaEm: new Date().toISOString(),
+    empresasConhecidas: empresasMonitorizadas().map((empresa) => empresa.id),
+    noticiasConhecidas: noticiasDasMinhasEmpresas().map((noticia) => noticia.id),
+    novasEmpresas: [],
+    novasNoticias: []
+  };
+  guardarMonitorizacao();
+  renderMonitorizacao();
+  mostrarToast('Monitorização ativada. A primeira verificação fica como referência.');
+}
+
+function desativarMonitorizacao() {
+  monitorizacao.ativa = false;
+  monitorizacao.novasEmpresas = [];
+  monitorizacao.novasNoticias = [];
+  guardarMonitorizacao();
+  renderMonitorizacao();
+  mostrarToast('Monitorização desligada. Podes voltar a ativá-la quando quiseres.');
+}
+
+function renderMonitorizacao() {
+  const estadoEl = document.getElementById('monitorizacao-estado');
+  const novasEl = document.getElementById('monitorizacao-novas');
+  if (!estadoEl || !novasEl) return;
+  document.querySelectorAll('input[name="monitor-frequencia"]').forEach((input) => { input.checked = input.value === monitorizacao.frequencia; });
+  const ultima = monitorizacao.verificadaEm ? `Última verificação: ${formatarData(monitorizacao.verificadaEm)}` : 'Ainda não foi verificado.';
+  estadoEl.textContent = monitorizacao.ativa ? `Ativa · ${monitorizacao.frequencia}. ${ultima}` : 'Desligada.';
+  const toggle = document.getElementById('monitorizacao-toggle');
+  toggle.textContent = monitorizacao.ativa ? 'Desligar monitorização' : 'Ativar monitorização';
+  toggle.dataset.action = monitorizacao.ativa ? 'desativar-monitorizacao' : 'ativar-monitorizacao';
+  toggle.setAttribute('aria-pressed', String(monitorizacao.ativa));
+  const itens = [
+    ...monitorizacao.novasEmpresas.map((empresa) => `<li class="rounded-xl border border-lime/30 bg-lime/10 px-3 py-2 text-xs"><strong>${esc(empresa.name)}</strong> é uma empresa nova desde a última verificação.</li>`),
+    ...monitorizacao.novasNoticias.map((noticia) => `<li class="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs"><strong>${esc(noticia.empresa)}</strong>: ${esc(noticia.titulo)}</li>`)
+  ];
+  novasEl.innerHTML = itens.length ? `<ul class="flex flex-col gap-2">${itens.join('')}</ul>` : '<p class="text-xs text-mist">Não há empresas ou notícias novas.</p>';
+}
 
 function plusComStripe() {
   return Boolean(PLUS.PAGAMENTO.LINK_MENSAL && PLUS.PAGAMENTO.LINK_ANUAL);

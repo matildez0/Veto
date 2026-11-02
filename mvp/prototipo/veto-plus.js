@@ -13,8 +13,8 @@
    Eventos: plus_visto, plus_aberto, plus_checkout_aberto, plus_ativado, plus_agora_nao.
    ========================================================================== */
 const PLUS = {
-  MENSAL: '2,99 €',
-  ANUAL: '29,99 €',
+  MENSAL: '1,99 €',
+  ANUAL: '19,99 €',
   MAX_CONTAS: 5,
   PAGAMENTO: {
     LINK_MENSAL: 'https://buy.stripe.com/test_eVq4gBefq8Bc8k1eZGeQM00',

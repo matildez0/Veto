@@ -8,38 +8,38 @@
    ========================================================================== */
 const SECTORS = {
   saude: { get label() { return tt('Saúde'); }, get short() { return tt('Saúde'); }, sensitive: true,
-    gravidade: 'critica', get porque() { return tt('Dados de saúde são uma categoria especial no RGPD (artigo 9.º). Uma fuga pode expor doenças, consultas ou medicação.'); },
-    re: /sa[uú]de|clinic|cl[ií]nica|hospital|farm[aá]c|pharm|medic|m[eé]dic|dent(al|ist|[aá]ri)|\bcuf\b|lusiadas|luz ?saude|fisio|[oó]ptica|optic|psic|terapia|an[aá]lises|laborat|unilabs|multicare|medis|wells/i },
+    gravidade: 'critica', get porque() { return tt('Dados de saúde, como consultas, exames ou medicação. O RGPD protege-os como categoria especial (artigo 9.º).'); },
+    re: /sa[uú]de|clinic|cl[ií]nica|hospital|farm[aá]c|pharm|medic|m[eé]dic|dent(al|ist|[aá]ri)|\bcuf\b|lusiadas|luz ?saude|fisio|[oó]ptica|optic|psic|terapia|an[aá]lises|laborat|unilabs|multicare|medis|wells|trofa ?sa[uú]de|sns ?24|joaquim ?chaves/i },
   financas: { get label() { return tt('Finanças e seguros'); }, get short() { return tt('Finanças'); }, sensitive: true,
-    gravidade: 'critica', get porque() { return tt('Dados bancários e de pagamento abrem a porta a fraude e roubo de identidade.'); },
-    re: /bank|banco|\bcaixa|\bcgd\b|millennium|\bbcp\b|\bbpi\b|santander|novo ?banco|montepio|activobank|revolut|\bn26\b|\bwise\b|paypal|mbway|cetelem|cofidis|unicre|cr[eé]dito|seguro|insurance|fidelidade|ageas|tranquilidade|allianz|generali|zurich|invest|binance|coinbase|trading|klarna|scalapay/i },
+    gravidade: 'critica', get porque() { return tt('Dados bancários e de pagamento e, muitas vezes, uma cópia do teu documento de identificação.'); },
+    re: /bank|banco|\bcaixa|\bcgd\b|millennium|\bbcp\b|\bbpi\b|santander|novo ?banco|montepio|activobank|revolut|\bn26\b|\bwise\b|paypal|mbway|cetelem|cofidis|unicre|cr[eé]dito|seguro|insurance|fidelidade|ageas|tranquilidade|allianz|generali|zurich|invest|binance|coinbase|trading|klarna|scalapay|wizink|unibanco|credibom|bancoctt/i },
   encontros: { get label() { return tt('Encontros'); }, get short() { return tt('Encontros'); }, sensitive: true,
-    gravidade: 'critica', get porque() { return tt('Pode revelar a tua orientação sexual, fotos e conversas íntimas, que o RGPD protege como categoria especial.'); },
+    gravidade: 'critica', get porque() { return tt('Perfil, fotos e conversas que podem revelar a tua orientação sexual, que o RGPD protege como categoria especial.'); },
     re: /tinder|bumble|hinge|badoo|grindr|happn|meetic|okcupid|lovoo/i },
   comida: { get label() { return tt('Comida e entregas'); }, get short() { return tt('Comida'); }, sensitive: false,
     gravidade: 'media', get porque() { return tt('Sabem a tua morada e os teus hábitos do dia a dia.'); },
     re: /glovo|uber ?eats|ubereats|bolt ?food|just ?eat|telepizza|domino|mcdonald|burger|\bkfc\b|pizza|restaur|too ?good|sushi|nespresso/i },
   viagens: { get label() { return tt('Transportes e viagens'); }, get short() { return tt('Viagens'); }, sensitive: false,
     gravidade: 'alta', get porque() { return tt('Sabem onde estiveste e para onde vais, e por vezes guardam o teu documento de identificação.'); },
-    re: /\buber\b|\bbolt\b|cabify|free ?now|ryanair|easyjet|flytap|tap ?air|vueling|booking|airbnb|expedia|hotels|trivago|edreams|skyscanner|flixbus|rede ?expressos|\bcp\.pt|comboios|via ?verde|carris/i },
+    re: /\buber\b|\bbolt\b|cabify|free ?now|ryanair|easyjet|flytap|tap ?air|vueling|booking|airbnb|expedia|hotels|trivago|edreams|skyscanner|flixbus|rede[ -]?expressos|\bcp\.pt|comboios|via ?verde|carris|metro ?(de )?lisboa|metrolisboa|metro ?do ?porto|metrodoporto|\bemel\b/i },
   lazer: { get label() { return tt('Streaming e lazer'); }, get short() { return tt('Lazer'); }, sensitive: false,
     gravidade: 'baixa', get porque() { return tt('Sobretudo gostos e hábitos de consumo.'); },
-    re: /spotify|netflix|disney|\bhbo\b|primevideo|youtube|twitch|steam|playstation|xbox|epicgames|nintendo|ticketline|blueticket|\bbol\.pt|cinema|deezer|audible|crunchyroll/i },
+    re: /spotify|netflix|disney|\bhbo\b|primevideo|youtube|twitch|steam|playstation|xbox|epicgames|nintendo|ticketline|blueticket|\bbol\.pt|cinema|deezer|audible|crunchyroll|\brtp\b/i },
   social: { get label() { return tt('Redes sociais'); }, get short() { return tt('Social'); }, sensitive: false,
-    gravidade: 'alta', get porque() { return tt('Guardam perfil, fotos, mensagens e contactos, e as contas são um alvo frequente de roubo.'); },
+    gravidade: 'alta', get porque() { return tt('Perfil, fotos, mensagens e contactos.'); },
     re: /linkedin|twitter|\bx\.com|tiktok|pinterest|reddit|discord|snapchat|tumblr|threads|telegram|whatsapp|bereal|quora|medium/i },
   servicos: { get label() { return tt('Casa e telecomunicações'); }, get short() { return tt('Casa'); }, sensitive: false,
     gravidade: 'alta', get porque() { return tt('Contratos de casa e telecomunicações têm morada, NIF e IBAN.'); },
-    re: /\bmeo\b|\bnos\.pt|vodafone|nowo|digi\.pt|\bedp\b|galp|endesa|goldenergy|iberdrola|\bepal\b|[aá]guas|\bctt\b/i },
+    re: /\bmeo\b|\bnos\.pt|vodafone|nowo|digi\.pt|\bedp\b|galp|endesa|goldenergy|iberdrola|repsol|\bepal\b|[aá]guas|\bctt\b/i },
   educacao: { get label() { return tt('Educação e trabalho'); }, get short() { return tt('Educação'); }, sensitive: false,
     gravidade: 'media', get porque() { return tt('Percurso académico ou profissional e dados de contacto.'); },
-    re: /uminho|universid|\.edu\b|udemy|coursera|duolingo|\bedx\b|net-?empregos|indeed|glassdoor|itjobs|landing\.jobs/i },
+    re: /uminho|universid|\.edu\b|udemy|coursera|duolingo|\bedx\b|net-?empregos|indeed|glassdoor|itjobs|landing\.jobs|ulisboa|\bup\.pt|\buc\.pt|iscte|\bunl\.pt/i },
   publico: { get label() { return tt('Serviços públicos'); }, get short() { return tt('Público'); }, sensitive: false,
     gravidade: 'alta', get porque() { return tt('Guardam NIF, morada e dados de identificação.'); },
-    re: /gov\.pt|portaldasfinancas|seg-social|autenticacao|\bsns\b|\bimt\b|justica/i },
+    re: /gov\.pt|portaldasfinancas|seg-social|seguran[çc]a social|autenticacao|eportugal|\bsns\b|\bimt\b|justica/i },
   compras: { get label() { return tt('Compras'); }, get short() { return tt('Compras'); }, sensitive: false,
     gravidade: 'media', get porque() { return tt('Morada de entrega, histórico de compras e, por vezes, o cartão.'); },
-    re: /shop|store|loja|amazon|shein|temu|aliexpress|zara|inditex|bershka|stradivarius|mango|primark|asos|zalando|worten|fnac|continente|pingo ?doce|lidl|auchan|ikea|decathlon|sport ?zone|vinted|\bolx\b|ebay|wook|bertrand|kuantokusta|leroy/i },
+    re: /shop|store|loja|amazon|shein|temu|aliexpress|zara|inditex|bershka|stradivarius|mango|primark|asos|zalando|worten|fnac|continente|pingo ?doce|lidl|auchan|ikea|decathlon|sport ?zone|vinted|\bolx\b|ebay|wook|bertrand|kuantokusta|leroy|radio ?popular|el ?corte ?ingl|elcorteingles|intermarch|mercadona|prozis|media ?markt|conforama/i },
   outros: { get label() { return tt('Outros'); }, get short() { return tt('Outros'); }, sensitive: false,
     gravidade: 'baixa', get porque() { return tt('Não sabemos que dados têm: à partida, o teu email e pouco mais.'); } }
 };
@@ -74,7 +74,14 @@ const ICONES = {
   troca: ['<path d="M4 8.5h14l-3.5-3.5M20 15.5H6l3.5 3.5"/>'],
   lixo: ['<path d="M4.5 6.5h15M9.5 6.5V4h5v2.5"/>', '<path d="M6.5 6.5l1 13.5h9l1-13.5M10 10.5v6M14 10.5v6"/>'],
   balanca: ['<path d="M12 4v16M8 20h8M5 7.5h14"/>', '<path d="M5 7.5 2.5 13a2.5 2.5 0 0 0 5 0zM19 7.5 16.5 13a2.5 2.5 0 0 0 5 0z"/>'],
-  cadeado: ['<rect x="5" y="10.5" width="14" height="10" rx="2"/>', '<path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/>']
+  cadeado: ['<rect x="5" y="10.5" width="14" height="10" rx="2"/>', '<path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/>'],
+  lista: ['<path d="M9 6.5h11M9 12h11M9 17.5h11"/>', '<path d="M4.5 6.5h.01M4.5 12h.01M4.5 17.5h.01"/>'],
+  grelha: ['<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/>', '<rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/>', '<rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/>', '<rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>'],
+  pontos: ['<circle cx="7" cy="8" r="3.5"/>', '<circle cx="17" cy="7" r="2.5"/>', '<circle cx="15" cy="17" r="4"/>', '<circle cx="6" cy="17.5" r="1.8"/>'],
+  jornal: ['<path d="M4 5h13v14a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2Z"/>', '<path d="M17 9h3v10a2 2 0 0 1-2 2"/>', '<path d="M7.5 9h6M7.5 12.5h6M7.5 16h4"/>'],
+  seta: ['<path d="m9 5.5 6.5 6.5L9 18.5"/>'],
+  visto: ['<path d="m4.5 12.5 4.5 4.5 10.5-10.5"/>'],
+  voltar: ['<path d="m14.5 5.5-6.5 6.5 6.5 6.5"/>']
 };
 
 function icone(nome, classe = 'h-4 w-4') {
@@ -91,9 +98,9 @@ function iconeNoMapa(nome, x, y, tamanho, cor) {
    Catálogo de demonstração
    - sector: área da empresa
    - kind: o que os emails indicam (conta, compra, newsletter, desconhecido)
-   Os contactos de privacidade são todos de exemplo. As empresas que não têm um
-   contacto aqui recebem um endereço gerado (privacy@dominio), também de exemplo.
-   Na versão final, os contactos vêm de um catálogo verificado.
+   Só para o modo de exemplo: os contactos de privacidade aqui são de exemplo.
+   Nas análises reais, os contactos vêm do catálogo (mvp/catalogo/catalogo.json),
+   carregado mais abaixo; fora do catálogo, o utilizador confirma o contacto.
    ========================================================================== */
 // Números de exemplo: emails recebidos na caixa toda e emails que escreveste à empresa
 const DEMO_EXTRA = {
@@ -145,6 +152,119 @@ const empresasConhecidas = [
   { id: 'anthropic.com', name: 'Anthropic', domain: 'anthropic.com', sector: 'outros', icon: 'A', dpo_email: '' }
 ];
 const knownCompanies = new Map(empresasConhecidas.map((company) => [company.domain, company]));
+
+// Catálogo de empresas (mvp/catalogo/catalogo.json): contactos de privacidade publicados pelas empresas,
+// do Datenanfragen.de (CC0) e verificados pela equipa. Vem do mesmo site: nenhum dado sai para terceiros.
+// Primeiro procura a pasta do catálogo no repositório; se não existir, uma cópia ao lado desta página.
+const CATALOGO_URLS = ['../catalogo/catalogo.json', 'catalogo.json'];
+// Chave pública do grupo (ECDSA P-256). Só quem tem a chave privada consegue assinar um catálogo
+// que a app aceite. É preenchida por "node mvp/catalogo/assinar.mjs chaves"; enquanto for null,
+// o catálogo é usado sem verificação (e o registo da análise diz isso).
+const CATALOGO_CHAVE_PUBLICA = {"kty":"EC","crv":"P-256","x":"red7YO3oegvtCnSOa-tZ4BNnQvzvq6P9F7sdCJtJG6g","y":"nFUfvdfyrWoyAd4ut-Qbpw_VD6uDptfPaUEvo8wBGyw"};
+const catalogo = { carregado: false, empresas: 0, assinatura: 'sem_chave' }; // assinatura: valida | invalida | sem_chave
+let catalogoPronto = Promise.resolve(false);
+
+// Confirma que o texto do catálogo foi assinado com a chave privada do grupo.
+// Os fins de linha são normalizados (\r\n → \n), como no script que assina, para o Windows não estragar a assinatura.
+async function assinaturaValida(texto, url) {
+  try {
+    const resposta = await fetch(`${url}.sig`, { cache: 'no-cache' });
+    if (!resposta.ok) return false;
+    const assinatura = Uint8Array.from(atob((await resposta.text()).trim()), (c) => c.charCodeAt(0));
+    const chave = await crypto.subtle.importKey('jwk', CATALOGO_CHAVE_PUBLICA, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+    const dados = new TextEncoder().encode(texto.replace(/\r\n/g, '\n'));
+    return await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, chave, assinatura, dados);
+  } catch (erro) {
+    return false;
+  }
+}
+
+// Só links https: vindos do catálogo (nunca javascript: ou outros)
+function linkSeguro(valor) {
+  return /^https:\/\//i.test(valor || '') ? valor : '';
+}
+
+async function carregarCatalogo() {
+  for (const url of CATALOGO_URLS) {
+    try {
+      const resposta = await fetch(url, { cache: 'no-cache' });
+      if (!resposta.ok) continue;
+      const texto = await resposta.text();
+      if (CATALOGO_CHAVE_PUBLICA) {
+        if (!(await assinaturaValida(texto, url))) {
+          // Um catálogo alterado por quem não tem a chave do grupo nunca é usado
+          catalogo.assinatura = 'invalida';
+          continue;
+        }
+        catalogo.assinatura = 'valida';
+      }
+      const dados = JSON.parse(texto);
+      let total = 0;
+      (dados.companies || []).forEach((registo) => {
+        if (!registo.id || !Array.isArray(registo.domains) || (!registo.privacyEmail && !linkSeguro(registo.webFormUrl))) return;
+        const empresa = {
+          id: registo.id, name: registo.name, legalName: registo.legalName || '', domain: registo.id,
+          sector: SECTORS[registo.sector] ? registo.sector : 'outros', icon: (registo.name[0] || '?').toUpperCase(),
+          dpo_email: registo.privacyEmail || '', privacyForm: linkSeguro(registo.webFormUrl),
+          contactVerifiedAt: registo.verifiedAt || '', contactSource: linkSeguro(registo.privacyUrl), contactNotes: registo.notes || '',
+          contactOrigin: registo.origin || ''
+        };
+        registo.domains.forEach((dominio) => knownCompanies.set(dominio.toLowerCase(), empresa));
+        total += 1;
+      });
+      catalogo.carregado = true;
+      catalogo.empresas = total;
+      aplicarCatalogo();
+      return true;
+    } catch (erro) {
+      // Tenta o próximo endereço; sem catálogo, a app pede o contacto ao utilizador
+    }
+  }
+  return false;
+}
+
+// Quando o catálogo não carregou, nenhuma empresa tem contacto: diz porquê, em vez de parecer que não estão lá
+function avisoDoCatalogo() {
+  if (catalogo.carregado) return '';
+  return catalogo.assinatura === 'invalida'
+    ? 'Os contactos verificados do Veto não carregaram: o catálogo foi alterado e ainda não foi assinado pela equipa.'
+    : 'Os contactos verificados do Veto não carregaram. Recarrega a página para tentar outra vez.';
+}
+
+// Contacto de uma empresa do catálogo (ou nada, se não estiver lá)
+// Procura em todos os domínios de onde a empresa enviou emails (vinted.pt, vinted.com…)
+function contactoDoCatalogo(dominio, outros = []) {
+  for (const d of [dominio, ...outros]) {
+    const conhecida = knownCompanies.get(d);
+    if (conhecida?.contactVerifiedAt) return conhecida;
+  }
+  return null;
+}
+
+// Resultados guardados de análises anteriores ficam com os contactos atuais do catálogo.
+// Fora do catálogo, um contacto adivinhado (privacy@...) deixa de ser usado: o utilizador confirma-o.
+function aplicarCatalogo() {
+  if (estado.demo) return;
+  let mudou = false;
+  estado.empresas.forEach((empresa) => {
+    const registo = contactoDoCatalogo(empresa.domain, empresa.domains || []);
+    if (registo) {
+      Object.assign(empresa, {
+        dpo_email: registo.dpo_email, privacyForm: registo.privacyForm, legalName: registo.legalName,
+        contactVerifiedAt: registo.contactVerifiedAt, contactSource: registo.contactSource, contactNotes: registo.contactNotes,
+        contactOrigin: registo.contactOrigin, contactExample: false, contactUser: false
+      });
+      mudou = true;
+    } else if (empresa.contactExample) {
+      Object.assign(empresa, { dpo_email: '', contactExample: false });
+      mudou = true;
+    }
+  });
+  if (mudou) {
+    guardarEstado();
+    renderTudo();
+  }
+}
 
 // Alguns grupos usam um domínio diferente em cada país. Só juntamos aliases
 // confirmados, para não fundir empresas diferentes apenas por terem o mesmo nome.
@@ -236,9 +356,9 @@ const NOTICIAS = [
   }
 ];
 const TIPOS_NOTICIA = {
-  fuga: { get label() { return tt('Fuga de dados'); }, style: 'bg-rose-400/15 text-rose-200' },
-  multa: { get label() { return tt('Multa'); }, style: 'bg-amber-400/15 text-amber-100' },
-  fraude: { get label() { return tt('Burla'); }, style: 'bg-orange-400/15 text-orange-200' }
+  fuga: { get label() { return tt('Fuga de dados'); }, style: 'bg-slate-800 text-slate-200' },
+  multa: { get label() { return tt('Multa'); }, style: 'bg-slate-800 text-slate-200' },
+  fraude: { get label() { return tt('Burla'); }, style: 'bg-slate-800 text-slate-200' }
 };
 
 // Como as empresas tratam os dados: o essencial, com o direito que responde a cada ponto
@@ -338,6 +458,86 @@ const GUIA = [
   }
 ];
 
+// Perguntas frequentes sobre o Veto (página Notícias). O guia acima fala dos direitos; isto fala da app.
+// "link" acrescenta uma ligação no fim; "acao" um botão da app.
+const FAQ = [
+  {
+    id: 'le', pergunta: 'O Veto lê os meus emails?',
+    blocos: [
+      'Na análise, o Veto lê o remetente, o assunto e a data dos teus últimos 1000 emails, para saber que empresas te escrevem. Nesta versão de teste, não abre o texto nem os anexos. Demora uns 4 minutos, porque o Gmail só deixa ler cerca de 300 emails por minuto.',
+      'Os emails descarregados pela app são analisados no dispositivo. O Veto não recebe nem guarda os teus emails nos seus servidores.'
+    ]
+  },
+  {
+    id: 'guarda', pergunta: 'O que fica guardado, e onde?',
+    blocos: [
+      'Só neste browser: as empresas encontradas (nome, domínio, área e quantos emails te enviaram) e os teus pedidos. Os assuntos dos emails não ficam guardados.',
+      'Para apagar tudo, usa «Apagar tudo deste dispositivo», no fim da página Pedidos.'
+    ]
+  },
+  {
+    id: 'autorizacoes', pergunta: 'Que autorizações pede o Veto ao Google?',
+    blocos: [
+      'Cada uma só no momento em que é precisa. O Veto cancela-a logo a seguir:',
+      [
+        'Ler os emails: na análise.',
+        'Enviar emails em teu nome: quando envias o mesmo pedido a várias empresas.',
+        'Gerir os emails: quando mandas o Veto mover para o Lixo os emails de uma empresa. O Google descreve-a como «ler, escrever e enviar», porque não há uma autorização mais pequena para mover emails.'
+      ],
+      'Podes ver e retirar as autorizações a qualquer momento na tua conta Google.'
+    ],
+    link: ['Ver as autorizações da conta Google', 'https://myaccount.google.com/permissions']
+  },
+  {
+    id: 'envia', pergunta: 'O Veto envia emails por mim?',
+    blocos: [
+      'Só quando lhe pedes. Num pedido a uma empresa, o Veto abre o email já escrito na tua app de email e és tu que o envias.',
+      'Num pedido a várias empresas, vês antes exatamente o que sai, de que conta e para quem. Só depois de aceitares é que o Veto o envia pelo teu Gmail. As cópias ficam na tua pasta Enviados.'
+    ]
+  },
+  {
+    id: 'contactos', pergunta: 'Como sabe o Veto para onde enviar cada pedido?',
+    blocos: [
+      'Do nosso catálogo: endereços publicados pelas próprias empresas, verificados pela equipa do Veto ou registados na base de dados aberta Datenanfragen.de. Em cada empresa, mostramos a fonte e a data.',
+      'Se a empresa não estiver no catálogo, pedimos-te que confirmes o email na política de privacidade dela. Nunca adivinhamos endereços.'
+    ]
+  },
+  {
+    id: 'prazo', pergunta: 'A empresa é obrigada a responder? Em quanto tempo?',
+    blocos: [
+      'Sim. Tem um mês para te responder (artigo 12.º do RGPD). Em pedidos complexos, pode prolongar o prazo por mais dois meses, mas tem de te avisar dentro do primeiro mês.',
+      'O Veto conta 30 dias desde o envio e avisa-te quando o prazo passa. Aí podes enviar uma insistência e, se continuar sem resposta, apresentar queixa à CNPD.'
+    ],
+    link: ['Apresentar queixa na CNPD', 'https://www.cnpd.pt']
+  },
+  {
+    id: 'emails_dados', pergunta: 'Apagar os emails de uma empresa apaga os meus dados?',
+    blocos: [
+      'Não. Apagar os emails limpa a tua caixa, mas a empresa continua com os teus dados. Para que ela os apague, envia-lhe um pedido de apagamento (artigo 17.º).',
+      'Os emails que o Veto move para o Lixo ficam lá 30 dias. Até lá, podes recuperá-los no Gmail.'
+    ]
+  },
+  {
+    id: 'subscricao', pergunta: 'Cancelar a subscrição não chega?',
+    blocos: ['Deixas de receber publicidade, mas a empresa continua com os teus dados e pode usá-los para traçar o teu perfil. Um pedido de oposição obriga-a a parar o marketing e os perfis de publicidade (artigo 21.º).']
+  },
+  {
+    id: 'custo', pergunta: 'Quanto custa?',
+    blocos: [
+      'Durante o teste, nada. As funções marcadas Veto+, como pedir a várias empresas de uma vez e apagar os emails de uma empresa, estão abertas a todos.',
+      'O Veto+ ainda não existe: escolher um plano não cobra nada e só nos diz quantas pessoas o querem.'
+    ]
+  },
+  {
+    id: 'equipa', pergunta: 'O que fica a equipa do Veto a saber sobre mim?',
+    blocos: [
+      'Só o que aceitares nas estatísticas anónimas: contagens, como quantas empresas encontrámos por área ou que tipo de pedido enviaste, com um código aleatório deste dispositivo.',
+      'Nunca o teu endereço de email, os nomes das empresas, os assuntos nem o conteúdo dos emails.'
+    ],
+    acao: ['saber-mais-teste', 'Ver o que é enviado']
+  }
+];
+
 /* ==========================================================================
    Programa de teste (validação de mercado)
    Cada testador recebe um código de convite pessoal. Com o consentimento dele,
@@ -369,7 +569,9 @@ const PLUS = {
     [tt('Pedidos acompanhados'), tt('Segue cada pedido ao DPO, avisa quando o prazo passa e prepara a insistência.')]
   ]
 };
-const VERSAO = 'prototipo-0.7';
+// Funções do Veto+ que, durante o teste, estão abertas a todos (pedir a várias empresas, apagar emails)
+const SELO_PLUS = '<span class="shrink-0 self-center rounded-full bg-lime/10 px-1.5 py-0.5 font-sans text-[9px] font-bold leading-3 text-lime">Veto+</span>';
+const VERSAO = 'prototipo-0.10';
 
 /* ==========================================================================
    Configuração
@@ -378,11 +580,21 @@ const GMAIL_READ_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
 // Os emails mais recentes da caixa, sem spam, lixo, enviados nem rascunhos
 // (os enviados são teus, não de empresas).
 const GMAIL_QUERY = '-in:spam -in:trash -in:sent -in:drafts -in:chats';
-const GMAIL_MAX_EMAILS = 500;
+const GMAIL_MAX_EMAILS = 1000;
 const GMAIL_PARALELO = 10; // pedidos ao mesmo tempo
 // Limite do Gmail por conta: 6.000 unidades por minuto. Ler um email (messages.get) custa 20
-// e listar (messages.list) custa 5, ou seja, cerca de 300 emails por minuto. Ficamos a 90 %.
-const GMAIL_QUOTA = { UNIDADES: 6000, JANELA_MS: 60000, MARGEM: 0.9, CUSTO_GET: 20, CUSTO_LIST: 5 };
+// e listar (messages.list) custa 5, ou seja, cerca de 300 emails por minuto. Ficamos a 90 %:
+// 1000 emails levam uns 4 minutos.
+// Enviar um email custa 100, mover um para o Lixo custa 20 e mudar até 1000 de uma vez custa 50.
+// https://developers.google.com/workspace/gmail/api/reference/quota
+const GMAIL_QUOTA = { UNIDADES: 6000, JANELA_MS: 60000, MARGEM: 0.9, CUSTO_GET: 20, CUSTO_LIST: 5, CUSTO_SEND: 100, CUSTO_TRASH: 20, CUSTO_BATCH: 50 };
+// Autorizações pedidas só no momento da ação (Veto+), e canceladas logo a seguir:
+// enviar os pedidos a várias empresas e mover para o Lixo os emails de uma empresa.
+// Têm de estar também no ecrã de consentimento do projeto Google Cloud (Acesso aos dados).
+const GMAIL_SEND_SCOPE = 'https://www.googleapis.com/auth/gmail.send';
+const GMAIL_MODIFY_SCOPE = 'https://www.googleapis.com/auth/gmail.modify';
+const EMAIL_SCOPE = 'https://www.googleapis.com/auth/userinfo.email'; // para confirmar de que conta saem os pedidos
+const LIMPEZA_MAX = 5000; // emails de uma empresa movidos para o Lixo de cada vez
 const RESPONSE_BUFFER_DAYS = 3;
 const STORAGE_KEY = 'veto.prototipo.v2';
 const PEDIDOS_GRATIS_POR_DIA = 3;
@@ -394,14 +606,109 @@ const ignoredDomains = new Set([
   'facebookmail.com', 'facebook.com', 'instagram.com',
   // Fornecedores de email pessoal: um remetente destes é uma pessoa, não uma empresa
   'hotmail.com', 'outlook.com', 'live.com', 'msn.com', 'yahoo.com', 'icloud.com',
-  'me.com', 'sapo.pt', 'proton.me', 'protonmail.com', 'gmx.com', 'aol.com'
+  'me.com', 'sapo.pt', 'proton.me', 'protonmail.com', 'gmx.com', 'aol.com',
+  'outlook.pt', 'hotmail.pt', 'live.com.pt', 'clix.pt', 'netcabo.pt', 'iol.pt', 'portugalmail.pt',
+  'mac.com', 'yahoo.com.br', 'yahoo.es', 'gmx.net', 'gmx.pt', 'pm.me', 'tutanota.com', 'tuta.io', 'yandex.com'
 ]);
 
+/* ==========================================================================
+   Reconhecer a empresa a partir do remetente
+   ========================================================================== */
+// Marcas portuguesas que ainda não têm um contacto de privacidade verificado no catálogo:
+// dão o nome certo e a área. Não dão contacto: antes de um pedido, confirmas tu o email.
+const MARCAS_PT = {
+  'cgd.pt': ['Caixa Geral de Depósitos', 'financas'], 'millenniumbcp.pt': ['Millennium bcp', 'financas'],
+  'cofidis.pt': ['Cofidis', 'financas'], 'ageas.pt': ['Ageas Seguros', 'financas'], 'allianz.pt': ['Allianz', 'financas'],
+  'vodafone.pt': ['Vodafone', 'servicos'], 'nowo.pt': ['NOWO', 'servicos'], 'iberdrola.pt': ['Iberdrola', 'servicos'], 'epal.pt': ['EPAL', 'servicos'],
+  'hospitaldaluz.pt': ['Hospital da Luz', 'saude'], 'luzsaude.pt': ['Luz Saúde', 'saude'], 'trofasaude.pt': ['Trofa Saúde', 'saude'],
+  'unilabs.pt': ['Unilabs', 'saude'], 'sns24.gov.pt': ['SNS 24', 'saude'],
+  'seg-social.pt': ['Segurança Social', 'publico'], 'eportugal.gov.pt': ['ePortugal', 'publico'], 'autenticacao.gov.pt': ['Autenticação.gov', 'publico'],
+  'olx.pt': ['OLX', 'compras'], 'bertrand.pt': ['Bertrand', 'compras'], 'wook.pt': ['Wook', 'compras'], 'sportzone.pt': ['Sport Zone', 'compras'],
+  'intermarche.pt': ['Intermarché', 'compras'], 'mercadona.pt': ['Mercadona', 'compras'], 'elcorteingles.pt': ['El Corte Inglés', 'compras'],
+  'prozis.com': ['Prozis', 'compras'], 'kuantokusta.pt': ['KuantoKusta', 'compras'], 'mediamarkt.pt': ['MediaMarkt', 'compras'],
+  'ticketline.pt': ['Ticketline', 'lazer'], 'blueticket.pt': ['BlueTicket', 'lazer'], 'bol.pt': ['BOL', 'lazer'], 'ucicinemas.pt': ['UCI Cinemas', 'lazer'], 'rtp.pt': ['RTP', 'lazer'],
+  'carris.pt': ['Carris', 'viagens'], 'metrolisboa.pt': ['Metro de Lisboa', 'viagens'], 'metrodoporto.pt': ['Metro do Porto', 'viagens'],
+  'rede-expressos.pt': ['Rede Expressos', 'viagens'], 'emel.pt': ['EMEL', 'viagens'], 'telepizza.pt': ['Telepizza', 'comida'],
+  'uminho.pt': ['Universidade do Minho', 'educacao'], 'up.pt': ['Universidade do Porto', 'educacao'], 'ulisboa.pt': ['Universidade de Lisboa', 'educacao'],
+  'uc.pt': ['Universidade de Coimbra', 'educacao'], 'net-empregos.com': ['Net-Empregos', 'educacao']
+};
+
+// Do domínio mais específico ao mais geral: news.cgd.pt, depois cgd.pt
+function marcaConhecida(dominio) {
+  const partes = String(dominio || '').split('.');
+  for (let i = 0; i < partes.length - 1; i += 1) {
+    const marca = MARCAS_PT[partes.slice(i).join('.')];
+    if (marca) return { name: marca[0], sector: marca[1] };
+  }
+  return null;
+}
+
+// Plataformas que enviam emails por conta de outras empresas. Quando o remetente é uma delas,
+// o domínio não diz de que empresa se trata: é o nome do remetente que o diz.
+const PLATAFORMAS_ENVIO = new Set(['sendgrid.net', 'mcsv.net', 'mcdlv.net', 'rsgsv.net', 'mandrillapp.com', 'amazonses.com', 'mailgun.org', 'mailgun.net',
+  'sparkpostmail.com', 'hubspotemail.net', 'mktomail.com', 'sendinblue.com', 'e-goi.com', 'egoiapp.com', 'ccsend.com', 'createsend.com', 'mlsend.com',
+  'exacttarget.com', 'klaviyomail.com', 'zendesk.com', 'freshdesk.com', 'intercom-mail.com', 'substack.com', 'shopifyemail.com']);
+function plataformaDeEnvio(dominio) {
+  return [...PLATAFORMAS_ENVIO].find((plataforma) => dominio === plataforma || dominio.endsWith(`.${plataforma}`)) || '';
+}
+
+// Endereços de envio automático (noreply@, faturacao@, encomendas@…): é uma empresa, não uma pessoa
+const LOCAL_AUTOMATICO = /^(no-?reply|noreply|do-?not-?reply|donotreply|n[aã]o-?responder|naoresponder|nao_responder|news(letter)?s?|info|informa[cç](oes|ao)|geral|apoio(-?cliente)?|clientes?|servico-?clientes?|atendimento|suporte|support|help|ajuda|hello|ola|contact[oa]?s?|marketing|promo(coes)?|novidades|fatura[cç]ao|faturas?|factura[cç]ao|billing|invoices?|encomendas?|orders?|pedidos|reservas?|bookings?|notifica[cç](oes|ao)|notifications?|alerts?|alertas?|accounts?|conta|seguranca|security|verify|verificacao|team|equipa|mailer|bounces?|updates?|digest|comunica[cç](ao|oes)|store|loja|shop|recibos?|receipts?|pagamentos?|payments?|envios?|shipping|entregas?)([-._+][a-z0-9]+)*$/i;
+// Palavras que, no nome do remetente, indicam uma empresa
+const NOME_DE_EMPRESA = /\b(lda|s\.a\.|sa|group|grupo|loja|store|shop|cl[ií]nica|farm[aá]cia|hotel|seguros|banco|servi[cç]os|online|app|apoio ao cliente|portugal)\b/i;
+// Respostas e reencaminhamentos (Re:, RES:, ENC:, Fwd:): conversa entre pessoas
+const ASSUNTO_DE_CONVERSA = /^\s*(re|res|enc|fwd?|fw|tr|aw|wg|rv)\s*(\[\d+\])?\s*:/i;
+// Nomes que não identificam ninguém
+const NOME_GENERICO = /^(news(letter)?s?|no-?reply|noreply|do-?not-?reply|n[aã]o[- ]?responder|info|informa[cç](ões|oes|ão|ao)|team|equipa|suporte|support|apoio( ao cliente)?|marketing|notifica\w*|alertas?|geral|clientes?|servi[cç]o de clientes|atendimento|fatura[cç][aã]o|faturas?|encomendas?|reservas?|promo[cç](ões|oes)|novidades|customer (service|care|support)|hello|ol[áa]|admin|mailer|updates?|notifications?)$/i;
+
+// Limpa o nome do remetente para ficar só a empresa:
+// "Equipa da Glovo" → Glovo, "Revolut Team" → Revolut, "Newsletter | Farmácia Avenida" → Farmácia Avenida,
+// "Maria via LinkedIn" → LinkedIn, "Ana, da Revolut" → Revolut, "Glovo Portugal" → Glovo (mas "Correios de Portugal" fica).
+// Com várias partes ("Black Friday - Worten"), fica a que corresponde ao domínio.
+function limparNomeRemetente(valor, dominio = '') {
+  let nome = String(valor || '').replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}️‍]/gu, '').replace(/\s+/g, ' ').trim();
+  if (!nome || nome.includes('@') || /^[\w-]+(\.[\w-]+)+$/.test(nome)) return '';
+  const via = nome.match(/\s(?:via|através de|atraves de)\s+(.+)$/i);
+  if (via) nome = via[1].trim();
+  // Só com vírgula ou "from": "Maria da Silva" é o nome de uma pessoa
+  const pessoaDa = nome.match(/^[A-ZÀ-Ý][a-zà-ÿ]+(?:,\s+(?:da|do|de)|\s+(?:from|at))\s+(.+)$/);
+  if (pessoaDa) nome = pessoaDa[1].trim();
+  const partes = nome.split(/\s+[|·•–—-]\s+|:\s+/).map((parte) => parte.trim()).filter(Boolean);
+  if (partes.length > 1) {
+    const rotulo = normalizarNome(String(dominio).split('.')[0]);
+    const doDominio = rotulo.length >= 3 && partes.find((parte) => {
+      const n = normalizarNome(parte);
+      return n.length >= 3 && (rotulo.includes(n) || n.includes(rotulo));
+    });
+    nome = doDominio || partes.find((parte) => !NOME_GENERICO.test(parte)) || partes[0];
+  }
+  nome = nome.replace(/^(a\s+)?(equipa|team|apoio ao cliente|apoio|servi[cç]o de (apoio ao )?clientes?|notifica[cç][õo]es|novidades|newsletter|news from|informa[cç][õo]es)\s+(d[aoe]s?\s+)?/i, '');
+  nome = nome.replace(/\s+(team|equipa|newsletter|news|notifica[cç][õo]es|notifications|alertas?|support|suporte|apoio( ao cliente)?|customer (service|care|support)|no-?reply)$/i, '');
+  if (/\s(pt|portugal)$/i.test(nome) && !/\s(de|do|da|dos|das)\s+(pt|portugal)$/i.test(nome)) nome = nome.replace(/\s(pt|portugal)$/i, '');
+  nome = nome.replace(/^[\s"'«»]+|[\s"'«».,:;-]+$/g, '');
+  return nome && !NOME_GENERICO.test(nome) && nome.length <= 40 ? nome : '';
+}
+
+// Para comparar nomes: sem acentos, maiúsculas nem espaços
+function normalizarNome(texto) {
+  return String(texto || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+// Uma empresa do catálogo com este nome (para remetentes que usam uma plataforma de envio)
+function empresaPeloNome(nome) {
+  const alvo = normalizarNome(nome);
+  if (alvo.length < 3) return null;
+  for (const empresa of new Set(knownCompanies.values())) {
+    if (normalizarNome(empresa.name) === alvo) return empresa;
+  }
+  return null;
+}
+
 const KINDS = {
-  likely_account: { get label() { return tt('Conta'); }, get filtro() { return tt('Tens conta'); }, style: 'text-rose-200 bg-rose-400/10', bar: 'bg-ink', get help() { return tt('Recebeste um email de boas-vindas, de registo ou de palavra-passe. Provavelmente tens conta.'); } },
-  purchase: { get label() { return tt('Compra'); }, get filtro() { return tt('Compraste'); }, style: 'text-amber-200 bg-amber-400/10', bar: 'bg-ink/60', get help() { return tt('Recebeste recibos, faturas ou confirmações de encomenda. A empresa guarda dados da compra, como o nome e a morada.'); } },
-  newsletter: { get label() { return tt('Newsletter'); }, get filtro() { return tt('Recebes publicidade'); }, style: 'text-sky-200 bg-sky-400/10', bar: 'bg-ink/30', get help() { return tt('Só recebes marketing. A empresa tem o teu email, mas pode não haver conta.'); } },
-  unknown: { get label() { return tt('Por confirmar'); }, get filtro() { return tt('Sem tipo claro'); }, style: 'text-slate-300 bg-slate-700/60', bar: 'bg-ink/15', get help() { return tt('Há emails desta empresa, mas nenhuma regra os explica. Revê tu.'); } }
+  likely_account: { get label() { return tt('Conta'); }, get filtro() { return tt('Tens conta'); }, style: 'text-slate-300 bg-slate-800', bar: 'bg-ink', get help() { return tt('Recebeste um email de boas-vindas, de registo ou de palavra-passe. Provavelmente tens conta.'); } },
+  purchase: { get label() { return tt('Compra'); }, get filtro() { return tt('Compraste'); }, style: 'text-slate-300 bg-slate-800', bar: 'bg-ink/60', get help() { return tt('Recebeste recibos, faturas ou confirmações de encomenda. A empresa guarda dados da compra, como o nome e a morada.'); } },
+  newsletter: { get label() { return tt('Newsletter'); }, get filtro() { return tt('Recebes publicidade'); }, style: 'text-slate-300 bg-slate-800', bar: 'bg-ink/30', get help() { return tt('Só recebes marketing. A empresa tem o teu email, mas pode não haver conta.'); } },
+  unknown: { get label() { return tt('Por confirmar'); }, get filtro() { return tt('Sem tipo claro'); }, style: 'text-slate-300 bg-slate-800', bar: 'bg-ink/15', get help() { return tt('Há emails desta empresa, mas nenhuma regra os explica. Revê tu.'); } }
 };
 
 // O que cada tipo de relação costuma deixar nas mãos da empresa ("Porquê esta empresa?")
@@ -437,10 +744,15 @@ function formatarDuracao(segundos) {
 }
 
 const SUBJECT_RULES = [
+  // Conta: boas-vindas, registo, códigos, palavra-passe, inícios de sessão e avisos sobre a conta
   { kind: 'likely_account', get reason() { return tt('Email de boas-vindas, registo ou palavra-passe'); },
-    re: /bem-vind|boas-vindas|welcome|confirm\w*\s.*(conta|registo|e-?mail)|verifi|ativ\w*\s.*conta|activate|palavra-passe|password|reset|registo|sign ?up|inscri|criaste|nova conta|new account|account created|in[ií]cio de sess[aã]o/i },
+    re: /bem-vind|boas-vindas|welcome|confirm\w*\s.*(conta|registo|e-?mail|endere[cç]o)|verifi|valida\w*\s.*(conta|e-?mail)|ativ\w*\s.*conta|activate|palavra-passe|password|\bsenha\b|\bpin\b|reset|recupera\w*\s.*(conta|acesso)|registo|sign ?up|inscri|criaste|nova conta|new account|account created|conta criada|a tua conta|your account|in[ií]cio de sess[aã]o|iniciar sess[aã]o|novo dispositivo|new (sign-?in|login|device)|c[oó]digo de (verifica|confirma|acesso|seguran|ativa)|verification code|security code|one-time|autentica[cç][aã]o|two-factor|\b2fa\b|altera[cç][aã]o (de|dos) dados|dados da (tua )?conta|extrato|ap[oó]lice|movimentos? (no|na|do|da) (teu|tua) (cart[aã]o|conta)|termos e condi[cç][õo]es|pol[ií]tica de privacidade|privacy policy|terms of (service|use)/i },
+  // Compra: encomendas, faturas, pagamentos, envios, reservas, bilhetes, devoluções e subscrições pagas
   { kind: 'purchase', get reason() { return tt('Recibo, fatura ou encomenda'); },
-    re: /encomenda|order|fatura|factura|invoice|recibo|receipt|compra|purchase|pagamento|payment|enviad|shipped|entrega|delivery|reserva|booking|bilhete/i }
+    re: /encomenda|pedido (n\.?\s?[ºo°]|#|\d)|\border\b|fatura|factura|invoice|recibo|receipt|nota de cr[eé]dito|compra|purchase|pagamento|payment|refer[eê]ncia (multibanco|mb|de pagamento)|\bmb ?way\b|d[eé]bito direto|expedi|enviad[oa]|a caminho|em tr[aâ]nsito|shipped|entreg|delivery|levantamento|pronto para levantar|cacifo|reserva|booking|bilhete|e-?ticket|cart[aã]o de embarque|boarding pass|check-?in|itiner[aá]rio|devolu[cç][aã]o|reembolso|refund|garantia|subscri[cç][aã]o|renova[cç][aã]o|renovad[oa]|renewal|o teu plano|your (plan|subscription)/i },
+  // Publicidade, mesmo sem o cabeçalho List-Unsubscribe
+  { kind: 'newsletter', get reason() { return tt('Promoções ou novidades'); },
+    re: /newsletter|promo[cç]|desconto|\d+ ?% ?(de )?desc|\bsaldos\b|black ?friday|cyber ?monday|novidades|\boferta|cup[aã]o|c[oó]digo promocional|s[oó] hoje|[uú]ltimos dias|campanha|\bsale\b|\bdeals?\b|exclusiv/i }
 ];
 
 const RIGHTS = {
@@ -493,16 +805,19 @@ const OUTCOMES_BY_RIGHT = {
 };
 
 /* ==========================================================================
-   Gravidade: quão grave seria se os dados desta empresa se perdessem
-   (fuga, venda ou uso indevido). Escala fixa de quatro níveis.
-   A cor vem sempre com ícone (barras) e texto, nunca sozinha;
-   no mapa, os pontos mais graves também são maiores.
+   Sensibilidade (no código, "gravidade"): quão sensíveis são os dados que a empresa guarda,
+   ou seja, quão grave seria se se perdessem. Escala fixa de quatro níveis.
+   Uma só escala de cor, que só serve para isto: de vermelho escuro (baixa) a vermelho forte (muito alta),
+   para o risco se ver logo. Nada a piscar, e sempre com as barras (como o sinal do telemóvel) e a palavra,
+   para não depender só da cor. O texto usa tons mais claros do mesmo vermelho, para se ler no fundo escuro.
+   No mapa, mais sensível = ponto maior e de um vermelho mais forte.
+   O verde fica para a ação principal e para o que já fizeste; o amarelo para os pedidos a decorrer, o verde escuro para os concluídos e o vermelho de risco para o que correu mal.
    ========================================================================== */
 const SEVERITY = {
-  critica: { get label() { return tt('Crítica'); }, nivel: 4, hex: '#d03b3b', r: 7.5 },
-  alta: { get label() { return tt('Alta'); }, nivel: 3, hex: '#ec835a', r: 6.5 },
-  media: { get label() { return tt('Média'); }, nivel: 2, hex: '#fab219', r: 5.5 },
-  baixa: { get label() { return tt('Baixa'); }, nivel: 1, hex: '#719b08', r: 4.5 }
+  critica: { get label() { return tt('Muito alta'); }, nivel: 4, hex: '#810A0A', r: 7.5, texto: 'text-white', fundo: 'bg-risco', borda: 'border-risco' },
+  alta: { get label() { return tt('Alta'); }, nivel: 3, hex: '#810A0A', r: 6.5, texto: 'text-white', fundo: 'bg-risco', borda: 'border-risco' },
+  media: { get label() { return tt('Média'); }, nivel: 2, hex: '#a39ca7', r: 5.5, texto: 'text-slate-200', fundo: 'bg-slate-500', borda: 'border-slate-700' },
+  baixa: { get label() { return tt('Baixa'); }, nivel: 1, hex: '#807785', r: 4.5, texto: 'text-slate-300', fundo: 'bg-slate-600', borda: 'border-slate-700/70' }
 };
 const SEVERITY_ORDER = ['critica', 'alta', 'media', 'baixa'];
 
@@ -520,22 +835,36 @@ function gravidadeDe(empresa) {
 }
 
 // Ícone de barras (1 a 4), para a gravidade não depender só da cor
-function iconeGravidade(chave, altura = 10) {
+function iconeGravidade(chave, altura = 12) {
   const g = SEVERITY[chave];
-  const barras = [0, 1, 2, 3].map((i) => `<rect x="${i * 3.5}" y="${9 - (i + 1) * 2.25}" width="2.5" height="${(i + 1) * 2.25}" rx="0.6" fill="${i < g.nivel ? g.hex : '#4d4354'}"/>`).join('');
+  const barras = [0, 1, 2, 3].map((i) => `<rect x="${i * 3.5}" y="${9 - (i + 1) * 2.25}" width="2.5" height="${(i + 1) * 2.25}" rx="0.6" fill="${i < g.nivel ? g.hex : (modoClaro() ? '#d3c9dc' : '#4d4354')}"/>`).join('');
   return `<svg viewBox="0 0 13.5 9" width="${Math.round(altura * 1.5)}" height="${altura}" aria-hidden="true" class="inline-block shrink-0">${barras}</svg>`;
 }
 
-function seloGravidade(chave, prefixo = 'Gravidade') {
-  return `<span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-300">${iconeGravidade(chave)}${prefixo ? `${prefixo} ` : ''}${prefixo ? SEVERITY[chave].label.toLowerCase() : SEVERITY[chave].label}</span>`;
+// Barra com a distribuição das empresas pela sensibilidade, da mais à menos sensível
+function barraDeSensibilidade(niveis, altura = 'h-2.5') {
+  const comEmpresas = niveis.filter((nivel) => nivel.n);
+  const descricao = comEmpresas.map((nivel) => `${nivel.n} de sensibilidade ${SEVERITY[nivel.chave].label.toLowerCase()}`).join(', ');
+  return `<div class="flex ${altura} w-full gap-0.5 overflow-hidden rounded-full bg-slate-800" role="img" aria-label="${esc(descricao)}">
+    ${comEmpresas.map((nivel) => `<span class="basis-0 ${SEVERITY[nivel.chave].fundo}" style="flex-grow:${nivel.n}"></span>`).join('')}
+  </div>`;
+}
+
+// A legenda da barra: um ponto da cor de cada nível e quantas empresas tem
+function legendaDeSensibilidade(niveis) {
+  return niveis.filter((nivel) => nivel.n).map((nivel) => `<span class="inline-flex items-center gap-1.5 whitespace-nowrap"><span class="h-2 w-2 rounded-full ${SEVERITY[nivel.chave].fundo}"></span><span class="font-semibold text-slate-100">${nivel.n}</span> ${SEVERITY[nivel.chave].label.toLowerCase()}</span>`).join('');
+}
+
+function seloGravidade(chave, prefixo = 'Sensibilidade') {
+  return `<span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300">${iconeGravidade(chave)}${prefixo ? `${prefixo} ` : ''}${prefixo ? SEVERITY[chave].label.toLowerCase() : SEVERITY[chave].label}</span>`;
 }
 
 // Estados de cada empresa no mapa de exposição. "sempedido" = encontrada na análise, ainda sem pedido.
 const BUCKETS = {
-  confirmado: { get label() { return tt('Têm os teus dados'); }, dot: 'bg-rose-400', hex: '#fb7185' },
-  atraso: { get label() { return tt('Em atraso'); }, dot: 'bg-orange-400', hex: '#fb923c' },
-  espera: { get label() { return tt('À espera'); }, dot: 'bg-amber-200', hex: '#fde68a' },
-  resolvido: { get label() { return tt('Já não têm'); }, dot: 'bg-lime', hex: '#c2ea5d' },
+  confirmado: { get label() { return tt('Têm os teus dados'); }, dot: 'bg-concluido', hex: '#32480C' },
+  atraso: { get label() { return tt('Em atraso'); }, dot: 'bg-risco', hex: '#810A0A' },
+  espera: { get label() { return tt('À espera'); }, dot: 'bg-pendente', hex: '#945D0A' },
+  resolvido: { get label() { return tt('Já não têm'); }, dot: 'bg-concluido', hex: '#32480C' },
   sempedido: { get label() { return tt('Ainda sem pedido'); }, dot: 'bg-slate-600', hex: '#655b6c' }
 };
 const MAP_ORDER = ['confirmado', 'atraso', 'espera', 'resolvido', 'sempedido'];
@@ -556,17 +885,31 @@ const STATUS_LABELS = {
 let estado = { empresas: [], pedidos: [], analisadoEm: null, demo: false };
 let filtroSetor = 'todos';
 let filtroTipo = 'todas';
-let selecaoMapa = null; // { tipo: 'empresa' | 'terceiro' | 'setor', chave }
+let selecaoMapa = null; // a empresa (ou terceiro, ou área) aberta no painel dos resultados: { tipo: 'empresa' | 'terceiro' | 'setor', chave }
+// Resultados: as mesmas empresas vistas de quatro formas
+let modoResultados = 'lista';
+// Lista por sensibilidade: grupos abertos e grupos com todas as empresas à vista
+const LIMITE_GRUPO = 6;
+const gruposAbertos = new Set(['critica', 'alta']);
+const gruposCompletos = new Set();
+// Notícias com o resumo aberto na página da empresa
+const noticiasAbertas = new Set();
+let ordemLista = 'gravidade'; // ou 'emails'
+const MODOS_RESULTADOS = [
+  { modo: 'lista', label: 'Lista', icone: 'lista' },
+  { modo: 'areas', label: 'Por área', icone: 'grelha' },
+  { modo: 'mapa', label: 'Mapa', icone: 'pontos' }
+];
 
 // Cores e medidas do mapa de exposição (a rede)
 const REDE = {
-  EMPRESA: '#c2ea5d',   // verde do logo
-  TERCEIRO: '#b9a2f5',  // lilás, a condizer com o fundo
+  get EMPRESA() { return modoClaro() ? '#719b08' : '#c2ea5d'; },   // verde do logo (mais escuro no modo claro)
+  get TERCEIRO() { return modoClaro() ? '#8a67de' : '#b9a2f5'; },  // lilás, a condizer com o fundo
   PORMENOR: '#719b08',
   NUCLEO: '#807785',    // centro de cada área
-  PASSO: 11,            // distância entre empresas vizinhas (unidades do desenho)
+  PASSO: 14,            // distância entre empresas vizinhas (unidades do desenho)
   FOLGA: 22,            // espaço entre áreas, onde cabe o nome da área
-  LETRA: 10.5,          // tamanho dos nomes em píxeis, igual com qualquer zoom
+  LETRA: 12,            // tamanho dos nomes em píxeis, igual com qualquer zoom
   SATELITE: 44          // distância, em píxeis, da empresa escolhida aos seus terceiros
 };
 // Zoom do mapa (k = escala; x, y = deslocação, em unidades do desenho). Mantém-se ao escolher pontos.
@@ -574,7 +917,18 @@ let zoomMapa = { k: 1, x: 0, y: 0, assinatura: '' };
 let redeDesenhada = null; // posições e nomes do último desenho, para o zoom
 let pedidoDeZoom = 0;
 let animacaoDeZoom = 0;
-const RAIO_EMPRESA = { critica: 4.6, alta: 4, media: 3.5, baixa: 3 };
+const RAIO_EMPRESA = { critica: 6.2, alta: 5.7, media: 5.2, baixa: 4.8 };
+// No mapa, a sensibilidade alta e muito alta ficam com o vermelho de risco; a média e a baixa em cinzentos
+const COR_NO_MAPA = { critica: '#810A0A', alta: '#810A0A', media: '#b3abb7', baixa: '#7d7482' };
+// A inicial dentro do ícone, legível sobre cada cor
+const LETRA_NO_MAPA = { critica: '#ffffff', alta: '#ffffff', media: '#1d1620', baixa: '#ffffff' };
+// A cor do ícone de cada empresa (no mapa, na lista e nos pedidos): vermelho se algo correu mal,
+// amarelo se há um pedido a decorrer, verde se o pedido está concluído. Sem nada disto, fica neutro.
+const ESTADOS_EMPRESA = {
+  concluido: { label: 'Pedido concluído', hex: '#32480C', fundo: 'bg-concluido' },
+  pendente: { label: 'Pedido a decorrer', hex: '#945D0A', fundo: 'bg-pendente' },
+  atencao: { label: 'Algo correu mal', hex: '#810A0A', fundo: 'bg-risco' }
+};
 
 // Serviços de envio de email conhecidos (domínio do link de cancelamento → nome)
 const TERCEIROS = {
@@ -591,24 +945,30 @@ const TERCEIROS = {
   'createsend.com': 'Campaign Monitor', 'rs6.net': 'Constant Contact', 'constantcontact.com': 'Constant Contact',
   'customer.io': 'Customer.io', 'iterable.com': 'Iterable', 'mailerlite.com': 'MailerLite',
   'activecampaign.com': 'ActiveCampaign', 'getresponse.com': 'GetResponse', 'substack.com': 'Substack',
-  'shopify.com': 'Shopify', 'intercom.io': 'Intercom', 'zendesk.com': 'Zendesk'
+  'shopify.com': 'Shopify', 'intercom.io': 'Intercom', 'zendesk.com': 'Zendesk',
+  'rsgsv.net': 'Mailchimp', 'mandrillapp.com': 'Mailchimp', 'sparkpostmail.com': 'SparkPost', 'egoiapp.com': 'E-goi',
+  'ccsend.com': 'Constant Contact', 'mlsend.com': 'MailerLite', 'intercom-mail.com': 'Intercom', 'freshdesk.com': 'Freshdesk',
+  'shopifyemail.com': 'Shopify'
 };
 let filtroNoticias = 'todas';
 let animarMapa = true;
 let folhaAberta = false;
 let opcoesFolha = [];
+let lote = null; // pedir a várias empresas: { passo: 'escolher' | 'rever' | 'enviar' | 'fim', right, selecionadas, envios, erro, onde }
 
 function carregarEstado() {
   try {
     const guardado = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
     if (guardado && Array.isArray(guardado.empresas) && Array.isArray(guardado.pedidos)) {
       estado = { ...estado, ...guardado };
-      estado.empresas.forEach((empresa) => {
-        if (!empresa.dpo_email) {
-          empresa.dpo_email = contactoDeExemplo(empresa.domain);
-          empresa.contactExample = true;
-        }
-      });
+      if (estado.demo) {
+        estado.empresas.forEach((empresa) => {
+          if (!empresa.dpo_email) {
+            empresa.dpo_email = contactoDeExemplo(empresa.domain);
+            empresa.contactExample = true;
+          }
+        });
+      }
     }
   } catch (erro) {
     // Sem acesso ao armazenamento: a app funciona só em memória.
@@ -638,6 +998,7 @@ function guardarEstado() {
 const status = document.getElementById('analysis-status');
 
 carregarEstado();
+catalogoPronto = carregarCatalogo();
 if (GOOGLE_CLIENT_ID) {
   document.getElementById('google-client-id').value = GOOGLE_CLIENT_ID;
   document.getElementById('client-id-box').classList.add('hidden');
@@ -649,15 +1010,24 @@ const origemDoLink = (parametrosDoLink.get('origem') || parametrosDoLink.get('ut
 registarAbertura();
 document.getElementById('analyze-button').addEventListener('click', ligarGmail);
 document.getElementById('search-input').addEventListener('input', renderEmpresas);
+document.getElementById('filtro-tipo').addEventListener('change', (evento) => { filtroTipo = evento.target.value; renderEmpresas(); });
+document.getElementById('ordem-lista').addEventListener('change', (evento) => {
+  ordemLista = evento.target.value === 'emails' ? 'emails' : 'gravidade';
+  if (selecaoMapa?.auto) selecaoMapa = null;
+  renderPainel();
+});
 document.addEventListener('click', tratarClique);
 // Que perguntas do guia são abertas, uma vez por pergunta em cada visita
 // (o evento "toggle" não sobe, por isso apanha-se na descida)
+// O mesmo para as perguntas frequentes (evento faq_aberta)
 const perguntasAbertas = new Set();
 document.addEventListener('toggle', (evento) => {
-  const pergunta = evento.target.matches?.('details[data-guia]') && evento.target.open && evento.target.dataset.guia;
-  if (!pergunta || perguntasAbertas.has(pergunta)) return;
-  perguntasAbertas.add(pergunta);
-  registarEvento('guia_aberto', { pergunta });
+  if (!evento.target.open) return;
+  const { guia, faq } = evento.target.dataset || {};
+  const pergunta = guia || faq;
+  if (!pergunta || perguntasAbertas.has(`${guia ? 'g' : 'f'}:${pergunta}`)) return;
+  perguntasAbertas.add(`${guia ? 'g' : 'f'}:${pergunta}`);
+  registarEvento(guia ? 'guia_aberto' : 'faq_aberta', { pergunta });
 }, true);
 ligarZoomDoMapa();
 // As áreas do mapa são elementos SVG: Enter e Espaço também as abrem.
@@ -673,14 +1043,39 @@ document.getElementById('sheet').addEventListener('click', (evento) => {
   fecharFolha();
   if (continuar) continuar();
 });
+// Pedir a várias empresas: escolher empresas, fechar ao clicar fora ou com Esc (exceto a meio do envio)
+const caixaLote = document.getElementById('lote');
+caixaLote.addEventListener('change', (evento) => {
+  const id = evento.target.dataset?.loteEmpresa;
+  if (!id || !lote) return;
+  if (evento.target.checked) lote.selecionadas.add(id);
+  else lote.selecionadas.delete(id);
+  // Só o rodapé e o "Selecionar todas" mudam: redesenhar tudo faria saltar a lista
+  const rolagem = caixaLote.querySelector('.overflow-y-auto')?.scrollTop || 0;
+  renderLote();
+  const lista = caixaLote.querySelector('.overflow-y-auto');
+  if (lista) lista.scrollTop = rolagem;
+  caixaLote.querySelector(`[data-lote-empresa="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+});
+caixaLote.addEventListener('click', (evento) => {
+  if (evento.target.id === 'lote') fecharLote();
+});
+document.addEventListener('keydown', (evento) => {
+  if (evento.key !== 'Escape') return;
+  if (lote) fecharLote();
+  else if (!folhaAberta && selecaoMapa && vistaAtual() === 'resultados') fecharPainelEmpresa();
+});
 window.addEventListener('hashchange', renderTudo);
 let esperaRedimensionar = 0;
 window.addEventListener('resize', () => {
   clearTimeout(esperaRedimensionar);
   esperaRedimensionar = setTimeout(() => {
     const largura = document.getElementById('dot-map')?.clientWidth;
-    if (vistaAtual() === 'pedidos' && redeDesenhada && largura && Math.abs(largura - redeDesenhada.larguraPx) > 8) renderPedidos();
+    if (vistaAtual() === 'resultados' && modoResultados === 'mapa' && redeDesenhada && largura && Math.abs(largura - redeDesenhada.larguraPx) > 8) renderMapa();
   }, 200);
+});
+window.matchMedia('(min-width: 1024px)').addEventListener('change', () => {
+  if (vistaAtual() === 'resultados') renderPainel();
 });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') setTimeout(verificarPendente, 400);
@@ -720,8 +1115,8 @@ function ligarGmail() {
     atualizarStatus(tt('Para ligar o Gmail, abre a app por http://localhost:8000 (com o servidor a correr), não com duplo clique no ficheiro.'), true);
     return;
   }
-  if (!window.google?.accounts?.oauth2) {
-    atualizarStatus(tt('A biblioteca de autenticação do Google ainda está a carregar. Tenta novamente.'), true);
+  if (!googlePronto()) {
+    esperarPeloGoogle();
     return;
   }
   const button = document.getElementById('analyze-button');
@@ -739,7 +1134,8 @@ function ligarGmail() {
       if (response.error) {
         repor(button);
         registo.erro(response.error === 'access_denied' ? tt('O Google não deixou ligar esta conta.') : tt('O Google recusou a ligação ({0}).', [response.error]));
-        if (response.error === 'access_denied') mostrarTesteFechado();
+        if (response.error === 'access_denied') mostrarTesteFechado('acesso_negado');
+        else registarEvento('login_google_interrompido', { motivo: 'outro' });
         return;
       }
       // O Google deixa desmarcar a permissão no ecrã de consentimento: sem ela, o Gmail responde 403.
@@ -755,6 +1151,7 @@ function ligarGmail() {
         .catch((error) => {
           mostrarProgresso(null);
           registo.erro(tt('Não foi possível ler o Gmail: {0}', [error.message]));
+          registarEvento('analise_falhou', { motivo: motivoDoErro(error) });
         })
         .finally(() => {
           repor(button);
@@ -776,11 +1173,12 @@ function erroNaJanelaGoogle(erro, button) {
     popup_closed: tt('A janela do Google fechou antes de terminares.')
   };
   registo.erro(mensagens[erro?.type] || tt('Não foi possível abrir o login do Google ({0}).', [erro?.type || 'erro desconhecido']));
-  if (erro?.type === 'popup_closed') mostrarTesteFechado();
+  if (erro?.type === 'popup_closed') mostrarTesteFechado('janela_fechada');
+  else registarEvento('login_google_interrompido', { motivo: erro?.type === 'popup_failed_to_open' ? 'janela_bloqueada' : 'outro' });
 }
 
 // A janela do Google fechou sem ligação: explica o que pode ter acontecido e o que fazer.
-function mostrarTesteFechado() {
+function mostrarTesteFechado(motivo = 'outro') {
   const caixa = document.getElementById('closed-test');
   const pedir = document.getElementById('closed-test-request');
   document.getElementById('closed-test-text').textContent = tt('Se fechaste a janela do Google sem querer, carrega outra vez em «Ligar Gmail e começar». ')
@@ -800,7 +1198,7 @@ function mostrarTesteFechado() {
     dev.textContent = tt('Em desenvolvimento: se o Google mostrou «origin_mismatch», acrescenta {0} às «Origens JavaScript autorizadas» do teu cliente OAuth e espera uns minutos.', [location.origin]);
   }
   caixa.classList.remove('hidden');
-  registarEvento('login_google_interrompido', {});
+  registarEvento('login_google_interrompido', { motivo });
 }
 
 function repor(button) {
@@ -808,10 +1206,81 @@ function repor(button) {
   button.innerHTML = `${tt('Ligar Gmail e começar')} <span>→</span>`;
 }
 
+/* O login do Google (accounts.google.com/gsi/client) carrega à parte da app.
+   Se o clique chega antes dele, a app espera; se o browser o bloqueou, tenta
+   mais uma vez e, se continuar bloqueado, diz porquê e o que fazer. */
+const GOOGLE_LOGIN_URL = 'https://accounts.google.com/gsi/client';
+
+function googlePronto() {
+  return Boolean(window.google?.accounts?.oauth2);
+}
+
+// Devolve 'pronto', 'bloqueado' (o browser recusou o script) ou 'lento' (não chegou a tempo)
+function esperarGoogle(ms = 8000) {
+  return new Promise((resolve) => {
+    if (googlePronto()) { resolve('pronto'); return; }
+    if (window.vetoGoogle === 'falhou' || window.vetoGoogle === 'carregou') {
+      // Segunda tentativa: às vezes foi só a rede, na primeira vez
+      window.vetoGoogle = 'a-carregar';
+      const script = document.createElement('script');
+      script.src = GOOGLE_LOGIN_URL;
+      script.async = true;
+      script.onload = () => { window.vetoGoogle = 'carregou'; };
+      script.onerror = () => { window.vetoGoogle = 'falhou'; };
+      document.head.append(script);
+    }
+    const limite = Date.now() + ms;
+    const relogio = setInterval(() => {
+      let fim = null;
+      if (googlePronto()) fim = 'pronto';
+      else if (window.vetoGoogle === 'falhou') fim = 'bloqueado';
+      // Carregou mas não trouxe o login: um bloqueador trocou-o por um ficheiro vazio
+      else if (window.vetoGoogle === 'carregou') fim = 'bloqueado';
+      else if (Date.now() > limite) fim = 'lento';
+      if (fim) { clearInterval(relogio); resolve(fim); }
+    }, 150);
+  });
+}
+
+function textoGoogleIndisponivel(motivo) {
+  return motivo === 'lento'
+    ? 'O login do Google está a demorar a carregar. Confirma que tens internet e carrega outra vez no botão.'
+    : 'O browser não deixou carregar o login do Google (accounts.google.com). Costuma ser um bloqueador de anúncios ou a proteção contra rastreio: permite accounts.google.com nesta página, ou abre-a noutro browser, e recarrega a página.';
+}
+
+// O clique chegou antes do login do Google: espera por ele e, se chegar logo, continua sozinho
+async function esperarPeloGoogle() {
+  const button = document.getElementById('analyze-button');
+  const inicio = Date.now();
+  button.disabled = true;
+  button.innerHTML = 'A carregar o login do Google <span class="animate-pulse">•••</span>';
+  status.classList.add('hidden');
+  const resultado = await esperarGoogle();
+  repor(button);
+  if (resultado === 'pronto') {
+    // O browser só abre a janela do Google logo a seguir a um clique; se demorou, pede outro clique
+    if (Date.now() - inicio < 1000) ligarGmail();
+    else atualizarStatus('O login do Google já carregou. Carrega outra vez em «Ligar Gmail e começar».');
+    return;
+  }
+  atualizarStatus(textoGoogleIndisponivel(resultado), true);
+  registarEvento('login_google_interrompido', { motivo: resultado === 'lento' ? 'google_lento' : 'google_bloqueado' });
+}
+
 async function analisarCabecalhos(accessToken) {
+  const inicio = Date.now();
   mostrarProgresso(0);
   gastosGmail.length = 0;
   // O endereço da conta serve para abrir o Gmail na conta certa ao enviar pedidos (fica só neste dispositivo).
+  registo.passo('catalogo', tt('A carregar o catálogo de contactos de privacidade'));
+  await catalogoPronto;
+  if (catalogo.carregado) {
+    registo.feito('catalogo', catalogo.assinatura === 'valida' ? tt('Catálogo de contactos verificados (assinatura do grupo confirmada)') : tt('Catálogo de contactos verificados'), `${catalogo.empresas}`);
+  } else if (catalogo.assinatura === 'invalida') {
+    registo.aviso('catalogo', tt('O catálogo foi alterado sem a assinatura do grupo e não foi usado: vais confirmar os contactos antes de cada pedido'));
+  } else {
+    registo.aviso('catalogo', tt('Catálogo indisponível: vais confirmar os contactos antes de cada pedido'));
+  }
   registo.passo('conta', tt('A identificar a conta'));
   const perfil = await gmailFetch('/profile', accessToken, GMAIL_QUOTA.CUSTO_LIST).catch(() => null);
   if (perfil?.emailAddress) estado.contaEmail = perfil.emailAddress;
@@ -832,23 +1301,33 @@ async function analisarCabecalhos(accessToken) {
     const obter = (nome) => headers.find((header) => header.name.toLowerCase() === nome.toLowerCase())?.value || '';
     const remetente = analisarRemetente(obter('From'));
     if (!remetente) return;
-    const dominioEmpresa = obterDominioEmpresa(remetente.domain);
+    // Por uma plataforma de envio, a empresa vem do nome do remetente; senão, do domínio
+    const dominioEmpresa = remetente.plataforma ? chaveDaPlataforma(remetente) : obterDominioEmpresa(remetente.domain);
     const assunto = obter('Subject');
     const data = detalhe.internalDate ? new Date(Number(detalhe.internalDate)) : new Date(obter('Date'));
-    const sinal = classificarEmail(assunto, Boolean(obter('List-Unsubscribe')));
+    const temCancelamento = Boolean(obter('List-Unsubscribe'));
+    const sinal = classificarEmail(assunto, temCancelamento);
     const cancelar = linkDeCancelamento(obter('List-Unsubscribe'));
 
     if (!porEmpresa.has(dominioEmpresa)) {
       const conhecida = knownCompanies.get(dominioEmpresa);
-      const nome = conhecida?.name || remetente.name || dominioEmpresa;
+      const marca = marcaConhecida(dominioEmpresa);
+      const nome = conhecida?.name || marca?.name || remetente.name || dominioEmpresa;
       registo.empresa(nome, (SECTORS[conhecida?.sector || estimarSetor(dominioEmpresa, nome)] || SECTORS.outros).short);
     }
     const atual = porEmpresa.get(dominioEmpresa) || {
-      domain: dominioEmpresa, domains: new Set(), senderName: remetente.name, count: 0, recentCount: 0, firstDate: null, lastDate: null,
-      kind: 'unknown', sampleSubject: '', reason: 'Nenhuma regra correspondeu'
+      domain: dominioEmpresa, domains: new Set(), senderName: remetente.name, nomes: new Map(), count: 0, recentCount: 0, firstDate: null, lastDate: null,
+      kind: 'unknown', sampleSubject: '', reason: 'Nenhuma regra correspondeu', sinaisDeEmpresa: 0, conversas: 0,
+      sentVia: remetente.plataforma ? (TERCEIROS[remetente.plataforma] || remetente.plataforma) : ''
     };
-    atual.domains.add(remetente.domain);
+    // Numa plataforma de envio, só o endereço exato é desta empresa (as pesquisas no Gmail usam-no)
+    atual.domains.add(remetente.plataforma ? remetente.email : remetente.domain);
     atual.count += 1;
+    if (remetente.name) atual.nomes.set(remetente.name, (atual.nomes.get(remetente.name) || 0) + 1);
+    // Sinais de que é uma empresa e não uma pessoa: envio automático, link de cancelamento,
+    // um assunto de conta, compra ou publicidade, ou palavras como "Loja" ou "Lda." no nome
+    if (remetente.automatico || temCancelamento || sinal.kind !== 'unknown' || remetente.nomeDeEmpresa || remetente.plataforma) atual.sinaisDeEmpresa += 1;
+    else if (ASSUNTO_DE_CONVERSA.test(assunto)) atual.conversas += 1;
     if (!atual.kinds) atual.kinds = new Set();
     if (sinal.kind !== 'unknown') atual.kinds.add(sinal.kind);
     if (!Number.isNaN(data.getTime()) && data.getTime() >= limiteUltimos30Dias) atual.recentCount += 1;
@@ -881,7 +1360,12 @@ async function analisarCabecalhos(accessToken) {
 
   // Quantas vezes cada empresa aparece na caixa toda, e quantos emails lhe escreveste.
   // São pesquisas (5 unidades), não leituras: não se abre nenhum email.
-  const agregados = [...porEmpresa.values()];
+  // Só conversas com uma pessoa (respostas e reencaminhamentos, sem nenhum sinal de empresa)
+  // ficam de fora, a não ser que o domínio seja de uma empresa conhecida
+  const conversas = [...porEmpresa.values()].filter((agregado) => !agregado.sinaisDeEmpresa && agregado.conversas === agregado.count
+    && !knownCompanies.has(agregado.domain) && !marcaConhecida(agregado.domain));
+  if (conversas.length) registo.feito('pessoas', `${conversas.length} ${plural(conversas.length, 'remetente parece uma pessoa', 'remetentes parecem pessoas')} (só respostas e reencaminhamentos): ficam de fora`);
+  const agregados = [...porEmpresa.values()].filter((agregado) => !conversas.includes(agregado));
   mostrarProgresso(0);
   registo.passo('contar', tt('A contar os emails de cada empresa na caixa toda'), tt('0 de {0}', [agregados.length]));
   await emLotes(agregados, GMAIL_PARALELO, async (agregado) => {
@@ -904,8 +1388,26 @@ async function analisarCabecalhos(accessToken) {
   mostrarProgresso(null);
   const areas = new Set(encontradas.map((empresa) => empresa.sector)).size;
   registo.feito('fim', tt('Análise concluída: {0} {1} em {2} {3}', [encontradas.length, plural(encontradas.length, tt('empresa'), tt('empresas')), areas, plural(areas, tt('área'), tt('áreas'))]));
-  registarEvento('analise_concluida', { demo: false, emails: messages.length, ...resumoParaEventos(encontradas) });
-  location.hash = '#resultados';
+  registarEvento('analise_concluida', { demo: false, emails: messages.length, duracaoS: Math.round((Date.now() - inicio) / 1000), ...resumoParaEventos(encontradas) });
+  // Fica no Início: primeiro o resumo (quantas, que sensibilidade, que notícias), depois o botão para os resultados
+  mostrarResumoDaAnalise();
+}
+
+function mostrarResumoDaAnalise() {
+  renderResumo.acabouDeAnalisar = true;
+  const mostrar = () => {
+    const resumo = document.getElementById('home-summary');
+    const topo = resumo.getBoundingClientRect().top + window.scrollY - 16;
+    window.scrollTo({ top: Math.max(topo, 0), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    resumo.focus({ preventScroll: true });
+  };
+  if (vistaAtual() !== 'inicio') {
+    location.hash = '#inicio';
+    setTimeout(mostrar, 80); // depois de a página mudar (que volta ao topo)
+  } else {
+    renderTudo();
+    mostrar();
+  }
 }
 
 async function emLotes(itens, tamanho, tarefa, progresso) {
@@ -960,49 +1462,35 @@ async function listarMensagens(accessToken) {
 // Cada pedido ao Gmail espera pela sua vez para nunca passar do limite por minuto.
 // Se mesmo assim o Gmail disser que passou (por exemplo, por tentativas anteriores),
 // a app espera que a janela de um minuto esvazie e continua.
-async function gmailFetch(path, accessToken, custo = GMAIL_QUOTA.CUSTO_GET, tentativa = 0) {
+// "corpo" (opcional) faz um POST com JSON. "repetirSeFalhar: false" evita repetir um envio que o
+// Gmail pode já ter feito (um erro 5xx não garante que o email não saiu).
+async function gmailFetch(path, accessToken, custo = GMAIL_QUOTA.CUSTO_GET, tentativa = 0, { corpo, repetirSeFalhar = true } = {}) {
   await esperarQuota(custo);
-  const response = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me${path}`, {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  });
-  if (response.ok) return response.json();
+  const response = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me${path}`, corpo === undefined
+    ? { headers: { Authorization: `Bearer ${accessToken}` } }
+    : { method: 'POST', headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
+  if (response.ok) {
+    // Algumas respostas (por exemplo, batchModify) vêm vazias
+    const texto = await response.text();
+    return texto ? JSON.parse(texto) : {};
+  }
   const detalhe = await response.json().catch(() => null);
   const motivos = [...(detalhe?.error?.errors || []), ...(detalhe?.error?.details || [])].map((item) => item.reason).filter(Boolean);
   const semQuota = response.status === 429
     || motivos.some((motivo) => /rate_?limit_?exceeded|quota_?exceeded/i.test(motivo))
     || /quota exceeded/i.test(detalhe?.error?.message || '');
+  const opcoes = { corpo, repetirSeFalhar };
   if (semQuota && tentativa < 3) {
     gastosGmail.push({ t: Date.now(), unidades: GMAIL_QUOTA.UNIDADES }); // bloqueia até a janela esvaziar
-    return gmailFetch(path, accessToken, custo, tentativa + 1);
+    return gmailFetch(path, accessToken, custo, tentativa + 1, opcoes);
   }
-  if (response.status >= 500 && tentativa < 3) {
+  if (response.status >= 500 && repetirSeFalhar && tentativa < 3) {
     await dormir(800 * 2 ** tentativa);
-    return gmailFetch(path, accessToken, custo, tentativa + 1);
+    return gmailFetch(path, accessToken, custo, tentativa + 1, opcoes);
   }
-  throw new Error(explicarErroGmail(response.status, motivos, detalhe?.error?.message));
-}
-
-function apagarEmailsEmpresa(empresaId) {
-  const empresa = obterEmpresa(empresaId);
-  if (!empresa || estado.demo) return;
-  const dominios = empresa.domains?.length ? empresa.domains : [empresa.domain];
-  const pesquisa = `{${dominios.map((domain) => `from:${domain}`).join(' ')}} -in:spam -in:trash -in:sent -in:drafts -in:chats`;
-  const url = `https://mail.google.com/mail/u/0/#search/${encodeURIComponent(pesquisa)}`;
-  abrirFolha({
-    titulo: tt('Apagar os emails da {0}', [empresa.name]),
-    texto: tt('O Gmail abre com os emails desta empresa. Seleciona-os e move-os para o Lixo.'),
-    nota: tt('O Veto não apaga emails por ti.'),
-    opcoes: [
-      {
-        label: tt('Abrir no Gmail'), estilo: 'primary', acao: () => {
-          const janela = window.open(url, '_blank');
-          if (janela) janela.opener = null;
-          else window.location.href = url;
-        }
-      },
-      { label: tt('Cancelar'), estilo: 'ghost', acao: () => {} }
-    ]
-  });
+  const erro = new Error(explicarErroGmail(response.status, motivos, detalhe?.error?.message));
+  erro.estado = response.status;
+  throw erro;
 }
 
 // Janela deslizante: soma das unidades gastas no último minuto
@@ -1151,28 +1639,57 @@ function mostrarProgresso(fracao) {
 }
 
 function classificarEmail(assunto, temListUnsubscribe) {
-  const regra = SUBJECT_RULES.find((item) => item.re.test(assunto || ''));
+  // Numa resposta ("Re: ..."), o assunto é o da conversa, não diz que tipo de email é
+  const texto = String(assunto || '').replace(ASSUNTO_DE_CONVERSA, '');
+  const regra = !ASSUNTO_DE_CONVERSA.test(assunto || '') && SUBJECT_RULES.find((item) => item.re.test(texto));
   if (regra) return { kind: regra.kind, reason: regra.reason };
   if (temListUnsubscribe) return { kind: 'newsletter', reason: tt('Só emails de marketing') };
   return { kind: 'unknown', reason: 'Nenhuma regra correspondeu' };
 }
 
 function estimarSetor(dominio, nome) {
+  const marca = marcaConhecida(dominio);
+  if (marca) return marca.sector;
   const texto = `${dominio} ${nome}`;
   return SECTOR_ORDER.find((chave) => SECTORS[chave].re && SECTORS[chave].re.test(texto)) || 'outros';
 }
 
 // Só o remetente (From) identifica a empresa. O List-Unsubscribe serve apenas
 // de sinal de newsletter: os domínios lá dentro são muitas vezes de plataformas de envio.
+// Devolve também se o endereço é de envio automático (noreply@, faturacao@…) e, quando o email
+// vem de uma plataforma de envio (SendGrid, E-goi…), qual é.
 function analisarRemetente(valor) {
   const email = (valor.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i) || [])[0];
   if (!email) return null;
   const domain = normalizarDominio(email.split('@')[1]);
   if (!domain || isProviderDomain(domain)) return null;
-  const nome = valor.replace(/<[^>]*>/g, '').replace(/["']/g, '').trim();
+  const local = email.split('@')[0].toLowerCase();
+  const bruto = valor.replace(/<[^>]*>/g, '').replace(/["']/g, '').trim();
   // Nomes genéricos ("Newsletter", "noreply"…) não identificam a empresa: usa-se o domínio.
-  const generico = /^(news(letter)?|no-?reply|info|team|equipa|suporte|support|marketing|notifica\w*|alertas?)$/i.test(nome);
-  return { domain, name: nome && !generico && nome.length <= 40 && !nome.includes('@') ? nome : '' };
+  const plataforma = plataformaDeEnvio(domain);
+  let nome = limparNomeRemetente(bruto, domain);
+  // Nas plataformas de apoio ao cliente, o subdomínio é a empresa: loja.zendesk.com
+  if (!nome && ['zendesk.com', 'freshdesk.com'].includes(plataforma) && domain !== plataforma) {
+    const rotulo = domain.slice(0, -plataforma.length - 1).split('.').pop();
+    nome = rotulo.replace(/[-_]/g, ' ').replace(/\b\w/g, (letra) => letra.toUpperCase());
+  }
+  return {
+    domain, email: email.toLowerCase(), name: nome,
+    automatico: LOCAL_AUTOMATICO.test(local),
+    nomeDeEmpresa: NOME_DE_EMPRESA.test(bruto),
+    plataforma
+  };
+}
+
+// A chave de uma empresa enviada por uma plataforma: a empresa do catálogo com esse nome
+// ou, se não houver, o nome dela ("farmacia-avenida.e-goi.com"). Sem nome, fica a plataforma.
+function chaveDaPlataforma(remetente) {
+  const conhecida = remetente.name && empresaPeloNome(remetente.name);
+  if (conhecida) return conhecida.domain;
+  const rotulo = remetente.name ? normalizarNome(remetente.name).slice(0, 40) : '';
+  const daPlataforma = normalizarNome(remetente.plataforma.split('.')[0]);
+  if (!rotulo || rotulo === daPlataforma) return remetente.plataforma;
+  return `${rotulo}.${remetente.plataforma}`;
 }
 
 function normalizarDominio(domain) {
@@ -1186,10 +1703,12 @@ function isProviderDomain(domain) {
 function obterDominioEmpresa(domain) {
   const alias = COMPANY_DOMAIN_ALIASES.get(domain);
   if (alias) return alias;
-  const conhecido = [...knownCompanies.keys()].find((companyDomain) => (
-    domain === companyDomain || domain.endsWith(`.${companyDomain}`)
-  ));
-  if (conhecido) return conhecido;
+  // Do mais específico ao mais geral: info.edp.pt, depois edp.pt
+  const partesDominio = domain.split('.');
+  for (let i = 0; i < partesDominio.length - 1; i += 1) {
+    const conhecida = knownCompanies.get(partesDominio.slice(i).join('.'));
+    if (conhecida) return conhecida.domain;
+  }
 
   const partes = domain.split('.');
   const suffixSize = multiPartPublicSuffixes.has(partes.slice(-2).join('.')) ? 2 : 1;
@@ -1204,17 +1723,26 @@ function criarEmpresaLocal(agregado) {
   const unsubscribe = agregado.unsubscribe || '';
   if (knownCompanies.has(agregado.domain)) {
     const conhecida = knownCompanies.get(agregado.domain);
+    const verificado = Boolean(conhecida.contactVerifiedAt);
     return {
       ...conhecida, id: agregado.domain, domains: agregado.domains ? [...agregado.domains] : [agregado.domain], kind: agregado.kind, evidence, unsubscribe, sectorEstimated: false,
-      dpo_email: conhecida.dpo_email || contactoDeExemplo(agregado.domain), contactExample: true
+      ...(agregado.sentVia ? { sentVia: agregado.sentVia } : {}),
+      // Empresas da lista de exemplo antiga, sem contacto verificado, ficam por confirmar como as outras
+      dpo_email: verificado ? conhecida.dpo_email : '', contactExample: false
     };
   }
   const label = agregado.domain.split('.')[0].replace(/[-_]/g, ' ');
   const nomeDominio = label.replace(/\b\w/g, (letter) => letter.toUpperCase());
-  const name = agregado.senderName || nomeDominio;
+  // O nome: o da marca conhecida ou o que o remetente usa mais vezes (no empate, o mais curto)
+  const marca = marcaConhecida(agregado.domain);
+  const maisUsado = agregado.nomes?.size
+    ? [...agregado.nomes.entries()].sort((a, b) => b[1] - a[1] || a[0].length - b[0].length)[0][0] : '';
+  const name = marca?.name || maisUsado || agregado.senderName || nomeDominio;
   return {
-    id: agregado.domain, name, domain: agregado.domain, domains: agregado.domains ? [...agregado.domains] : [agregado.domain], sector: estimarSetor(agregado.domain, name), sectorEstimated: true,
-    kind: agregado.kind, icon: (name[0] || '?').toUpperCase(), dpo_email: contactoDeExemplo(agregado.domain), contactExample: true, evidence, unsubscribe
+    id: agregado.domain, name, domain: agregado.domain, domains: agregado.domains ? [...agregado.domains] : [agregado.domain],
+    sector: marca?.sector || estimarSetor(agregado.domain, name), sectorEstimated: !marca,
+    kind: agregado.kind, icon: (name[0] || '?').toUpperCase(), dpo_email: '', contactExample: false, evidence, unsubscribe,
+    ...(agregado.sentVia ? { sentVia: agregado.sentVia } : {})
   };
 }
 
@@ -1242,8 +1770,8 @@ function substituirEmpresas(novas, demoAtivo) {
 function prepararPedido(empresaId, right) {
   const empresa = obterEmpresa(empresaId);
   if (!empresa) return;
-  if (!empresa.dpo_email) {
-    mostrarToast(tt('Ainda não temos um contacto de privacidade verificado para esta empresa.'));
+  if (!empresa.dpo_email && !empresa.privacyForm) {
+    pedirContacto(empresa, () => prepararPedido(empresaId, right));
     return;
   }
   if (!temPedidoDisponivelHoje()) {
@@ -1261,21 +1789,61 @@ function prepararPedido(empresaId, right) {
     return;
   }
   const aberto = estado.pedidos.find((pedido) => pedido.companyId === empresaId && pedido.right === right && !['closed', 'draft'].includes(pedido.status));
-  if (aberto) mostrarToast(tt('Já tens um pedido de {0} aberto para {1}.', [RIGHTS[right].short.toLowerCase(), empresa.name]));
+  if (aberto) mostrarToast(`Já tens um pedido de ${RIGHTS[right].short.toLowerCase()} aberto para ${empresa.name}.`);
+  // Com email: o Veto mostra o pedido completo e envia-o pelo Gmail se a pessoa aceitar (ou ela abre-o no email dela).
+  // Só com formulário, ou no exemplo com dados simulados, fica como antes.
+  if (empresa.dpo_email && !estado.demo && location.protocol !== 'file:') {
+    abrirPedidoUnico(empresa, right);
+    return;
+  }
+  prepararPedidoManual(empresa, right);
+}
 
+// Pedido a uma empresa: o mesmo ecrã de confirmação do envio a várias, com o email completo
+function abrirPedidoUnico(empresa, right) {
+  lote = {
+    passo: 'rever', right, selecionadas: new Set([empresa.id]), erro: '', onde: 'empresa', unica: true,
+    envios: [{ id: empresa.id, nome: empresa.name, email: empresa.dpo_email, estado: 'espera', motivo: '' }]
+  };
+  registarEvento('pedido_preparado', {
+    demo: false, direito: right, area: empresa.sector, gravidade: gravidadeDe(empresa).chave,
+    canal: 'email', contacto: origemDoContacto(empresa), vista: vistaAtual()
+  });
+  const caixa = document.getElementById('lote');
+  caixa.classList.remove('hidden');
+  caixa.classList.add('flex');
+  renderLote();
+  document.getElementById('lote-painel').focus();
+}
+
+// O caminho manual: abre o pedido no email da pessoa (ou no formulário) e pergunta depois se o enviou
+function prepararPedidoManual(empresa, right, jaRegistado = false) {
   const agora = new Date().toISOString();
   const pedido = {
-    id: gerarId(), companyId: empresa.id, companyName: empresa.name, companySector: empresa.sector, domain: empresa.domain, email: empresa.dpo_email,
+    id: gerarId(), companyId: empresa.id, companyName: empresa.name, companySector: empresa.sector, domain: empresa.domain,
+    // Por email quando a empresa o publica; senão, no formulário oficial
+    channel: empresa.dpo_email ? 'email' : 'formulario', email: empresa.dpo_email || empresa.privacyForm,
     right, status: 'awaiting_confirmation', createdAt: agora, sentAt: null, dueDate: null,
     replyAt: null, closedAt: null, closeReason: null, outcome: null, holdsData: null, followUpAt: null,
     demo: estado.demo, sentDates: [], timeline: [{ to: 'awaiting_confirmation', at: agora }]
   };
   estado.pedidos.push(pedido);
-  registarEvento('pedido_preparado', { demo: pedido.demo, direito: right, area: empresa.sector, gravidade: gravidadeDe(empresa).chave });
+  // Quem veio do ecrã de envio pelo Veto já contou como pedido preparado
+  if (!jaRegistado) registarEvento('pedido_preparado', {
+    demo: pedido.demo, direito: right, area: empresa.sector, gravidade: gravidadeDe(empresa).chave,
+    canal: pedido.channel, contacto: origemDoContacto(empresa), vista: vistaAtual()
+  });
   // Guardado ANTES de abrir a app de email, para a pergunta "Enviaste?" sobreviver se o browser fechar a página.
   guardarEstado();
-  abrirEmail(pedido.email, RIGHTS[right].subject, RIGHTS[right].body(empresa.name), () => marcarNaoEnviado(pedido.id));
+  enviarPedido(pedido, RIGHTS[right].subject, RIGHTS[right].body(empresa.name), () => marcarNaoEnviado(pedido.id));
   renderTudo();
+}
+
+// De onde veio o contacto usado: catálogo da equipa, Datenanfragen.de ou escrito pela pessoa
+function origemDoContacto(empresa) {
+  if (empresa.contactUser) return 'utilizador';
+  if (empresa.contactVerifiedAt) return empresa.contactOrigin === 'datenanfragen' ? 'datenanfragen' : 'veto';
+  return 'exemplo';
 }
 
 function reabrirRascunho(pedidoId) {
@@ -1287,7 +1855,7 @@ function reabrirRascunho(pedidoId) {
     return;
   }
   mudarEstado(pedido, 'awaiting_confirmation');
-  abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id));
+  enviarPedido(pedido, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id));
 }
 
 /* ==========================================================================
@@ -1309,6 +1877,79 @@ const APPS_EMAIL = {
     url: (para, assunto, corpo) => `mailto:${para}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`
   }
 };
+
+// Abre o pedido no canal certo: a app de email ou o formulário oficial da empresa
+function enviarPedido(pedido, assunto, corpo, aoCancelar = () => {}) {
+  if (pedido.channel === 'formulario') abrirFormulario(pedido.email, assunto, corpo, pedido.companyName);
+  else abrirEmail(pedido.email, assunto, corpo, aoCancelar);
+}
+
+// Formulário oficial: o texto do pedido vai para a área de transferência, para colar no formulário
+function abrirFormulario(url, assunto, corpo, empresa) {
+  if (!/^https:\/\//i.test(url)) return;
+  copiarTexto(`${assunto}\n\n${corpo}`);
+  mostrarToast(`Copiámos o texto do pedido. Cola-o no formulário da ${empresa}.`);
+  const janela = window.open(url, '_blank');
+  if (janela) janela.opener = null;
+  else window.location.href = url;
+  setTimeout(() => {
+    if (document.visibilityState === 'visible') verificarPendente();
+  }, 2500);
+}
+
+function copiarTexto(texto) {
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(texto).catch(() => copiarTextoAntigo(texto));
+  } else {
+    copiarTextoAntigo(texto);
+  }
+}
+
+function copiarTextoAntigo(texto) {
+  const area = document.createElement('textarea');
+  area.value = texto;
+  area.setAttribute('readonly', '');
+  area.style.position = 'fixed';
+  area.style.opacity = '0';
+  document.body.appendChild(area);
+  area.select();
+  try { document.execCommand('copy'); } catch (erro) { /* sem área de transferência */ }
+  area.remove();
+}
+
+// Fora do catálogo não adivinhamos endereços: o utilizador confirma o contacto na política de privacidade
+function pedirContacto(empresa, depois) {
+  const pesquisa = `https://duckduckgo.com/?q=${encodeURIComponent(`${empresa.name} ${empresa.domain} política de privacidade proteção de dados`)}`;
+  abrirFolha({
+    titulo: `Confirma o contacto da ${empresa.name}`,
+    texto: `${avisoDoCatalogo() || 'Esta empresa ainda não está no nosso catálogo de contactos verificados.'} Procura na política de privacidade dela o email do Encarregado de Proteção de Dados (ou o indicado para exercer direitos).`,
+    nota: 'Não adivinhamos endereços: um pedido para o endereço errado nunca chega.',
+    opcoes: [
+      {
+        label: 'Procurar a política de privacidade', estilo: 'secondary', acao: () => {
+          const janela = window.open(pesquisa, '_blank');
+          if (janela) janela.opener = null;
+        }
+      },
+      {
+        label: 'Já tenho o email', estilo: 'primary', acao: () => {
+          const email = (window.prompt(`Email de privacidade da ${empresa.name}:`) || '').trim();
+          if (!email) return;
+          if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) {
+            mostrarToast('Esse email não parece válido.');
+            return;
+          }
+          empresa.dpo_email = email;
+          empresa.contactUser = true;
+          guardarEstado();
+          registarEvento('contacto_indicado', { area: empresa.sector });
+          depois();
+        }
+      },
+      { label: 'Cancelar', estilo: 'ghost', acao: () => {} }
+    ]
+  });
+}
 
 function abrirEmail(destinatario, assunto, corpo, aoCancelar = () => {}) {
   if (!APPS_EMAIL[estado.appEmail]) {
@@ -1356,7 +1997,7 @@ function escolherAppEmail(depois, aoCancelar) {
 }
 
 function verificarPendente() {
-  if (folhaAberta) return;
+  if (folhaAberta || lote) return;
   const pendente = estado.pedidos.find((pedido) => pedido.status === 'awaiting_confirmation');
   if (pendente) perguntarSeEnviou(pendente);
 }
@@ -1369,12 +2010,16 @@ function perguntarSeEnviou(pedido, aoFecharFora = null) {
     opcoes: [
       { label: tt('Sim, enviei'), estilo: 'primary', acao: () => confirmarEnvio(pedido.id) },
       { label: tt('Ainda não'), estilo: 'secondary', acao: () => marcarNaoEnviado(pedido.id) },
-      {
+      pedido.channel === 'formulario' ? {
+        label: tt('Abrir o formulário outra vez'),
+        estilo: 'ghost',
+        acao: () => enviarPedido(pedido, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName))
+      } : {
         label: estado.appEmail ? `Abrir noutra app (agora: ${APPS_EMAIL[estado.appEmail]?.label || 'nenhuma'})` : tt('Abrir noutra app de email'),
         estilo: 'ghost',
         acao: () => {
           estado.appEmail = null;
-          abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id));
+          enviarPedido(pedido, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id));
         }
       }
     ]
@@ -1389,11 +2034,15 @@ function confirmarEnvio(pedidoId) {
   pedido.sentDates = [...new Set([...(pedido.sentDates || []), agora])];
   pedido.dueDate = estimarPrazo(pedido.sentAt);
   mudarEstado(pedido, 'sent');
-  registarEvento('pedido_enviado', { demo: pedido.demo, direito: pedido.right, area: pedido.companySector, app: estado.appEmail || '' });
+  registarEvento('pedido_enviado', {
+    demo: pedido.demo, direito: pedido.right, area: pedido.companySector, canal: pedido.channel,
+    app: pedido.channel === 'formulario' ? '' : (estado.appEmail || ''),
+    minutos: Math.max(0, Math.round((Date.now() - new Date(pedido.createdAt).getTime()) / 60000))
+  });
   // Depois de enviar, o próximo sítio natural é a página de pedidos.
   abrirFolha({
     titulo: tt('Pedido enviado'),
-    texto: tt('A {0} tem até {1} para responder. Acompanha-o no mapa de exposição.', [pedido.companyName, formatarData(pedido.dueDate)]),
+    texto: tt('A {0} tem até {1} para responder. Acompanha-o na página Pedidos.', [pedido.companyName, formatarData(pedido.dueDate)]),
     opcoes: vistaAtual() === 'pedidos'
       ? [{ label: tt('OK'), estilo: 'primary', acao: () => {} }]
       : [
@@ -1415,7 +2064,7 @@ function registarResposta(pedidoId) {
   if (!pedido) return;
   abrirFolha({
     titulo: tt('O que respondeu a {0}?', [pedido.companyName]),
-    texto: tt('Escolhe a opção que melhor descreve a resposta. Isto atualiza o teu mapa de exposição.'),
+    texto: tt('Escolhe a opção que melhor descreve a resposta. Isto atualiza o estado do pedido.'),
     opcoes: [
       ...OUTCOMES_BY_RIGHT[pedido.right].map((chave, indice) => ({
         label: OUTCOMES[chave].label, estilo: indice === 0 ? 'primary' : 'secondary', acao: () => aplicarResultado(pedido.id, chave)
@@ -1432,7 +2081,10 @@ function aplicarResultado(pedidoId, chave) {
   const agora = new Date().toISOString();
   pedido.outcome = chave;
   pedido.holdsData = resultado.holdsData;
-  registarEvento('resposta_registada', { demo: pedido.demo, direito: pedido.right, area: pedido.companySector, resultado: chave });
+  registarEvento('resposta_registada', {
+    demo: pedido.demo, direito: pedido.right, area: pedido.companySector, resultado: chave,
+    dias: pedido.sentAt ? Math.max(0, Math.round((Date.now() - new Date(pedido.sentAt).getTime()) / 86400000)) : undefined
+  });
   if (!pedido.replyAt && chave !== 'no_reply') pedido.replyAt = agora;
   if (resultado.closeReason) {
     pedido.closedAt = agora;
@@ -1451,7 +2103,7 @@ function enviarInsistencia(pedidoId) {
   pedido.followUpAt = new Date().toISOString();
   pedido.timeline.push({ to: 'follow_up', at: pedido.followUpAt });
   guardarEstado();
-  abrirEmail(pedido.email, `Insistência: ${direito.subject}`, corpo);
+  enviarPedido(pedido, `Insistência: ${direito.subject}`, corpo);
   renderTudo();
 }
 
@@ -1504,6 +2156,32 @@ function baldeDoPedido(pedido) {
   return null;
 }
 
+// O último pedido feito a uma empresa (os rascunhos não contam)
+function ultimoPedidoDe(empresaId) {
+  return estado.pedidos
+    .filter((pedido) => pedido.companyId === empresaId && pedido.status !== 'draft')
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] || null;
+}
+
+// O estado de uma empresa, para a cor do seu ícone. Vermelho se algo correu mal (um pedido sem resposta no prazo
+// ou recusado, ou uma fuga de dados, burla ou multa nas Notícias); verde se o pedido está concluído;
+// amarelo se está a decorrer. Senão, nada (o ícone fica neutro).
+function estadoDaEmpresa(empresa, ultimo) {
+  if (ultimo) return estadoDoPedido(ultimo);
+  const noticia = empresa ? noticiasDaEmpresa(empresa)[0] : null;
+  if (noticia) return { chave: 'atencao', texto: `${TIPOS_NOTICIA[noticia.tipo].label} em ${noticia.data.slice(0, 4)}` };
+  return null;
+}
+
+// O estado de um pedido, com as mesmas cores no mapa, na lista e na página Pedidos
+function estadoDoPedido(pedido) {
+  const balde = baldeDoPedido(pedido);
+  if (balde === 'atraso') return { chave: 'atencao', texto: 'O prazo do pedido terminou sem resposta' };
+  if (pedido.outcome === 'company_refused') return { chave: 'atencao', texto: 'A empresa recusou o pedido' };
+  if (balde === 'resolvido' || balde === 'confirmado') return { chave: 'concluido', texto: 'O pedido está concluído' };
+  return { chave: 'pendente', texto: 'O pedido está a decorrer' };
+}
+
 // Só entram as empresas a quem foi enviado pelo menos um pedido (os rascunhos não contam).
 function empresasComPedidos() {
   const mapa = new Map();
@@ -1530,7 +2208,7 @@ function precisaDeAtencao(pedido) {
    ========================================================================== */
 function vistaAtual() {
   const vista = location.hash.replace('#', '');
-  return ['inicio', 'resultados', 'pedidos', 'noticias'].includes(vista) ? vista : 'inicio';
+  return ['inicio', 'resultados', 'pedidos', 'noticias', 'definicoes'].includes(vista) ? vista : 'inicio';
 }
 
 function renderTudo() {
@@ -1538,24 +2216,23 @@ function renderTudo() {
   document.querySelectorAll('[data-view]').forEach((secao) => secao.classList.toggle('hidden', secao.dataset.view !== vista));
   document.querySelectorAll('[data-nav]').forEach((link) => {
     const ativo = link.dataset.nav === vista;
-    link.classList.toggle('text-oliva', ativo);
+    link.classList.toggle('text-lime', ativo);
     link.classList.toggle('text-slate-500', !ativo);
   });
   if (renderTudo.ultimaVista !== vista) {
+    if (renderTudo.ultimaVista) registarPaginaVista(vista);
     window.scrollTo(0, 0);
-    if (vista === 'pedidos') animarMapa = true;
+    if (vista === 'resultados') animarMapa = true;
   }
   renderTudo.ultimaVista = vista;
 
   renderResumo();
   renderPlus(visiveis().reduce((soma, empresa) => soma + tempoPerdidoS(empresa), 0));
   renderPainel();
-  renderEmpresas();
   renderPedidos();
   renderNoticias();
   if (vista === 'inicio') registarPlusVisto();
 }
-
 
 // Empresas dos resultados (e dos pedidos) a que uma notícia diz respeito
 function empresasDaNoticia(noticia) {
@@ -1579,12 +2256,29 @@ function renderNoticias() {
         <span class="flex-1 text-sm font-semibold leading-5">${esc(item.pergunta)}</span>
         <svg viewBox="0 0 16 16" class="guia-seta h-4 w-4 shrink-0 text-slate-500 transition" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
       </summary>
-      <div class="flex flex-col gap-2.5 px-4 pb-4 text-[13px] leading-5 text-slate-300">
+      <div class="flex flex-col gap-2.5 px-4 pb-4 text-[0.8125rem] leading-5 text-slate-300">
         ${item.blocos.map((bloco) => (Array.isArray(bloco)
           ? `<ul class="flex flex-col gap-1.5">${bloco.map((linha) => `<li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-500"></span><span>${esc(linha)}</span></li>`).join('')}</ul>`
           : `<p>${esc(bloco)}</p>`)).join('')}
         ${item.acao ? `<p class="font-semibold text-lime">${esc(item.acao)}</p>` : ''}
         ${item.filtro ? `<button data-action="ver-casos" data-filter="${item.filtro[0]}" type="button" class="self-start text-xs font-semibold text-slate-200 underline decoration-slate-600 underline-offset-4">${esc(item.filtro[1])}</button>` : ''}
+      </div>
+    </details>`).join('');
+
+  // Perguntas frequentes sobre a app (as abertas continuam abertas)
+  const faqAbertas = new Set([...document.querySelectorAll('#faq-list details[open]')].map((d) => d.dataset.faq));
+  document.getElementById('faq-list').innerHTML = FAQ.map((item) => `
+    <details data-faq="${item.id}" class="guia rounded-2xl border border-slate-800 bg-slate-900/60"${faqAbertas.has(item.id) ? ' open' : ''}>
+      <summary class="flex cursor-pointer items-center gap-3 px-4 py-3.5">
+        <span class="flex-1 text-sm font-semibold leading-5">${esc(item.pergunta)}</span>
+        <svg viewBox="0 0 16 16" class="guia-seta h-4 w-4 shrink-0 text-slate-500 transition" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+      </summary>
+      <div class="flex flex-col gap-2.5 px-4 pb-4 text-[0.8125rem] leading-5 text-slate-300">
+        ${item.blocos.map((bloco) => (Array.isArray(bloco)
+          ? `<ul class="flex flex-col gap-1.5">${bloco.map((linha) => `<li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-500"></span><span>${esc(linha)}</span></li>`).join('')}</ul>`
+          : `<p>${esc(bloco)}</p>`)).join('')}
+        ${item.link ? `<a href="${esc(item.link[1])}" target="_blank" rel="noopener noreferrer" class="self-start text-xs font-semibold text-lime underline decoration-lime/40 underline-offset-4">${esc(item.link[0])} ↗</a>` : ''}
+        ${item.acao ? `<button data-action="${item.acao[0]}" type="button" class="self-start text-xs font-semibold text-lime underline decoration-lime/40 underline-offset-4">${esc(item.acao[1])}</button>` : ''}
       </div>
     </details>`).join('');
 
@@ -1606,8 +2300,8 @@ function criarCartaoNoticia(noticia) {
   // Sem a empresa exata, ainda pode tocar-te pela área (por exemplo, outras apps de encontros)
   const areaComum = !afetadas.length && (noticia.setores || []).find((setor) => visiveis().some((empresa) => empresa.sector === setor));
   const dominio = noticia.fonte.url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
-  return `<article class="rounded-2xl border ${afetadas.length ? 'border-rose-400/40 bg-rose-400/5' : 'border-slate-800 bg-slate-900/60'} p-4">
-    <div class="flex flex-wrap items-center gap-2 text-[11px]">
+  return `<article class="rounded-2xl border ${afetadas.length ? 'border-slate-600' : 'border-slate-800'} bg-slate-900/60 p-4">
+    <div class="flex flex-wrap items-center gap-2 text-xs">
       <span class="rounded-full px-2 py-0.5 font-bold ${tipo.style}">${tipo.label}</span>
       ${noticia.estado === 'por_confirmar' ? `<span class="rounded-full bg-slate-700/60 px-2 py-0.5 font-bold text-slate-300">${tt('Por confirmar')}</span>` : ''}
       <span class="text-mist">${esc(noticia.empresa)} · ${formatarData(noticia.data)}</span>
@@ -1617,15 +2311,15 @@ function criarCartaoNoticia(noticia) {
     <p class="mt-2 text-xs leading-5 text-mist"><span class="font-semibold text-slate-200">${tt('Porque importa:')}</span> ${esc(tt(noticia.importa))}</p>
     ${afetadas.length ? `
       <div class="mt-3 flex items-center justify-between gap-3 rounded-xl bg-ink/60 px-3 py-2">
-        <span class="text-[11px] font-semibold text-rose-200">${tt('Tens dados nesta empresa')}</span>
-        <button data-action="gerir" data-id="${esc(afetadas[0].id)}" type="button" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-[11px] font-bold text-ink">${tt('Gerir no mapa →')}</button>
+        <span class="text-xs font-semibold text-slate-200">Tens dados nesta empresa</span>
+        <button data-action="gerir" data-id="${esc(afetadas[0].id)}" type="button" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-ink">Ver a empresa →</button>
       </div>` : ''}
     ${areaComum ? `
       <div class="mt-3 flex items-center justify-between gap-3 rounded-xl bg-ink/60 px-3 py-2">
-        <span class="text-[11px] font-semibold text-amber-100">${tt('Tens empresas na área')} ${esc(SECTORS[areaComum].label)}</span>
-        <button data-action="ver-area" data-sector="${areaComum}" type="button" class="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-[11px] font-bold text-slate-200">${tt('Ver no mapa →')}</button>
+        <span class="text-xs font-semibold text-slate-200">Tens empresas na área ${esc(SECTORS[areaComum].label)}</span>
+        <button data-action="ver-area" data-sector="${areaComum}" type="button" class="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-200">Ver a área →</button>
       </div>` : ''}
-    <a href="${esc(noticia.fonte.url)}" target="_blank" rel="noopener noreferrer" data-action="abrir-fonte" data-id="${esc(noticia.id)}" class="mt-3 inline-block text-[11px] font-semibold text-lime underline decoration-lime/40 underline-offset-4">${tt('Ler em')} ${esc(noticia.fonte.nome)} (${esc(dominio)}) ↗</a>
+    <a href="${esc(noticia.fonte.url)}" target="_blank" rel="noopener noreferrer" data-action="abrir-fonte" data-id="${esc(noticia.id)}" class="mt-3 inline-block text-xs font-semibold text-lime underline decoration-lime/40 underline-offset-4">Ler em ${esc(noticia.fonte.nome)} (${esc(dominio)}) ↗</a>
   </article>`;
 }
 
@@ -1633,161 +2327,249 @@ function visiveis() {
   return estado.empresas.filter((empresa) => !empresa.dismissed);
 }
 
+// Lista em português: "a, b e c"
+function listaDeNomes(nomes) {
+  return nomes.length > 1 ? `${nomes.slice(0, -1).join(', ')} e ${nomes[nomes.length - 1]}` : (nomes[0] || '');
+}
+
+// As empresas por sensibilidade: quantas há em cada nível e de que áreas são
+function porSensibilidade(lista) {
+  return SEVERITY_ORDER.map((chave) => {
+    const empresas = lista.filter((empresa) => gravidadeDe(empresa).chave === chave).sort((a, b) => emailsDe(b) - emailsDe(a));
+    const areas = SECTOR_ORDER.filter((setor) => empresas.some((empresa) => empresa.sector === setor));
+    return { chave, n: empresas.length, areas, nomes: empresas.map((empresa) => empresa.name) };
+  });
+}
+
+// O risco no resumo: um segundo número ao lado do total (as muito sensíveis, em vermelho forte)
+// e uma frase simples por baixo dos níveis, a dizer por onde começar
+function destaqueDeRisco(niveis) {
+  const muito = niveis.find((nivel) => nivel.chave === 'critica');
+  const alta = niveis.find((nivel) => nivel.chave === 'alta');
+  const pedido = 'o Veto escreve por ti o pedido para apagarem os teus dados.';
+  const areas = (nivel) => listaDeNomes(nivel.areas.map((setor) => SECTORS[setor].short.toLowerCase()));
+  const nomes = (nivel) => (nivel.nomes.length > 3 ? `${nivel.nomes.slice(0, 3).join(', ')} e mais ${nivel.nomes.length - 3}` : listaDeNomes(nivel.nomes));
+  const numero = (n, cor, texto) => `<div class="min-w-0 rounded-2xl px-4 py-3 ${cor === SEVERITY.critica.texto ? 'bg-risco' : 'border border-slate-700'}">
+      <p class="font-display text-5xl font-semibold leading-none text-white">${n}</p>
+      <p class="mt-2 text-sm leading-5 text-white">${texto}</p>
+    </div>`;
+  if (muito.n) {
+    return {
+      numero: numero(muito.n, SEVERITY.critica.texto, `${plural(muito.n, 'guarda', 'guardam')} dados <span class="font-semibold">muito sensíveis</span>`),
+      frase: `Começa por ${plural(muito.n, 'essa', 'essas')} (${esc(areas(muito))}): ${esc(nomes(muito))}. Em cada uma, ${pedido}`
+    };
+  }
+  if (alta.n) {
+    return {
+      numero: numero(alta.n, SEVERITY.alta.texto, `${plural(alta.n, 'guarda', 'guardam')} dados de sensibilidade <span class="font-semibold">alta</span>`),
+      frase: `Nenhuma é de saúde, finanças ou encontros. Começa por ${esc(nomes(alta))}: ${pedido}`
+    };
+  }
+  return { numero: '', frase: `Nenhuma guarda dados muito sensíveis. Ainda assim, todas têm, pelo menos, o teu email, e ${pedido}` };
+}
+
+// Resumo no Início: aparece no fim da análise, antes de abrir os resultados
+function renderResumoInicio(lista) {
+  const total = lista.length;
+  const niveis = porSensibilidade(lista);
+  const noticias = noticiasDasMinhasEmpresas();
+  const comNoticias = [...new Set(noticias.map((noticia) => noticia.empresa))];
+  const enviados = estado.pedidos.filter((pedido) => pedido.status !== 'draft').length;
+  const emails = estado.emailsAnalisados ? ` · ${estado.emailsAnalisados} emails` : '';
+  const origem = estado.demo ? 'Exemplo com dados simulados'
+    : `${renderResumo.acabouDeAnalisar ? 'Análise concluída' : `Analisado ${descreverDia(estado.analisadoEm)}`}${emails}`;
+  // Um nível por linha: as barras, o nível, as empresas (as que mais emails enviam primeiro) e quantas são
+  const linhaNivel = ({ chave, n, nomes }) => `<li class="flex items-center gap-3 py-2 ${n ? '' : 'opacity-50'}">
+      <span class="flex w-6 justify-center">${iconeGravidade(chave, 10)}</span>
+      <span class="w-[5.25rem] shrink-0 text-sm font-semibold text-slate-100">${SEVERITY[chave].label}</span>
+      <span class="min-w-0 flex-1 truncate text-xs text-slate-300">${esc(nomes.join(', '))}</span>
+      <span class="w-8 shrink-0 text-right font-display text-lg font-semibold text-white">${n}</span>
+    </li>`;
+  const risco = destaqueDeRisco(niveis);
+  const comNoticiasCurto = comNoticias.length > 3 ? `${comNoticias.slice(0, 3).join(', ')} e mais ${comNoticias.length - 3}` : listaDeNomes(comNoticias);
+  document.getElementById('home-summary').innerHTML = `
+    <p class="flex items-center gap-1.5 text-xs font-semibold text-slate-300">${estado.demo ? '' : `<span class="text-lime">${icone('visto', 'h-4 w-4')}</span>`}${esc(origem)}</p>
+    <h2 id="home-summary-total" class="sr-only">${total} ${plural(total, 'empresa tem', 'empresas têm')} provavelmente os teus dados</h2>
+    <!-- Dois números lado a lado: quantas empresas (verde-lima, a cor do Veto) e quantas guardam dados muito sensíveis (vermelho) -->
+    <div class="mt-4 grid grid-cols-2 gap-4">
+      <div class="min-w-0">
+        <p class="font-display text-5xl font-semibold leading-none text-lime">${total}</p>
+        <p class="mt-2 text-sm leading-5 text-slate-100"><span class="font-semibold">${plural(total, 'empresa', 'empresas')}</span> ${total === 1 ? 'tem' : 'têm'} provavelmente os teus dados</p>
+      </div>
+      ${risco.numero}
+    </div>
+
+    <h3 class="mt-6 text-sm font-semibold text-white">Sensibilidade dos dados que guardam</h3>
+    <div class="mt-2.5">${barraDeSensibilidade(niveis)}</div>
+    <ul class="mt-2 divide-y divide-slate-800 border-b border-slate-800">${niveis.map(linhaNivel).join('')}</ul>
+    <p class="mt-4 text-sm leading-6 text-slate-200">${risco.frase}</p>
+    ${noticias.length ? `<p class="mt-3 flex gap-2.5 text-sm leading-6 text-slate-200"><span class="mt-1 shrink-0 text-slate-300">${icone('jornal', 'h-4 w-4')}</span>
+      <span>${noticias.length} ${plural(noticias.length, 'notícia envolve', 'notícias envolvem')} empresas tuas: ${esc(comNoticiasCurto)}.</span></p>` : ''}
+
+    <a href="#resultados" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-lime px-4 py-3.5 text-[0.9375rem] font-bold text-ink transition hover:brightness-95 active:scale-[.98]">Ver ${total === 1 ? 'a empresa' : `as ${total} empresas`}</a>
+    ${enviados ? `<a href="#pedidos" class="mt-2 flex w-full items-center justify-between rounded-xl border border-slate-700 px-4 py-3 text-sm font-semibold text-slate-100"><span>Os teus pedidos <span class="text-slate-300">(${enviados})</span></span>${icone('seta', 'h-4 w-4')}</a>` : ''}
+    <button data-action="nova-analise" class="mt-4 w-full text-xs font-semibold text-slate-300 underline decoration-slate-600 underline-offset-4" type="button">Analisar de novo</button>`;
+}
+
 function renderResumo() {
   renderTeste();
   const lista = visiveis();
-  const sensiveis = lista.filter((empresa) => SECTORS[empresa.sector]?.sensitive).length;
-  const enviados = estado.pedidos.filter((pedido) => pedido.status !== 'draft').length;
   const atencao = estado.pedidos.filter(precisaDeAtencao).length;
-  document.getElementById('service-count').textContent = lista.length;
-  document.getElementById('service-noun').textContent = plural(lista.length, tt('empresa'), tt('empresas'));
-  document.getElementById('service-verb').textContent = (lista.length === 1 ? tt('tem provavelmente os teus dados') : tt('têm provavelmente os teus dados'));
-  document.getElementById('risk-count').textContent = sensiveis;
-  document.getElementById('analysis-date').textContent = estado.analisadoEm ? tt('analisado {0}', [descreverDia(estado.analisadoEm)]) : tt('ainda não analisado');
-
   const analisado = Boolean(estado.analisadoEm);
   document.getElementById('intro-panel').classList.toggle('hidden', analisado && !renderResumo.novaAnalise);
   document.getElementById('home-summary').classList.toggle('hidden', !analisado || renderResumo.novaAnalise);
-  document.getElementById('next-steps').classList.toggle('hidden', !analisado || renderResumo.novaAnalise);
+  // Com resultados, o título do Início fica mais pequeno no telemóvel: o resumo é o que importa
+  const titulo = document.getElementById('inicio-titulo');
+  titulo.classList.toggle('max-lg:text-2xl', analisado && !renderResumo.novaAnalise);
   document.getElementById('feedback-panel').classList.toggle('hidden', !analisado);
-  document.getElementById('next-steps-requests').textContent = enviados ? `(${enviados})` : '';
-
-  // Terceiros e fugas nas empresas encontradas (o mapa mostra-os ao tocar numa empresa)
-  document.getElementById('relations-info').classList.toggle('hidden', !analisado || renderResumo.novaAnalise);
-  if (analisado) {
-    const rede = construirRede(nosDoMapa());
-    document.getElementById('relations-terceiros').textContent = rede.terceiros.length ? tt('· {0} nas tuas empresas', [rede.terceiros.length]) : tt('· nenhum encontrado');
-    document.getElementById('relations-fugas').textContent = rede.incidentes.length ? tt('· {0} nas tuas empresas', [rede.incidentes.length]) : tt('· nenhuma conhecida');
-  }
+  if (analisado) renderResumoInicio(lista);
 
   const badge = document.getElementById('nav-badge');
   badge.textContent = atencao;
   badge.classList.toggle('hidden', atencao === 0);
 }
 
+// Resultados: uma linha de resumo, os três separadores e a coluna da empresa aberta
 function renderPainel() {
   const lista = visiveis();
   const temEmpresas = estado.empresas.length > 0;
+  // Sem empresas, no computador não há coluna da empresa
+  document.getElementById('res-grelha').classList.toggle('lg:grid', temEmpresas);
+  document.getElementById('painel-empresa').classList.toggle('lg:hidden', !temEmpresas);
   document.getElementById('results-empty').classList.toggle('hidden', temEmpresas);
   document.getElementById('results-content').classList.toggle('hidden', !temEmpresas);
-  if (!temEmpresas) return;
+  if (!temEmpresas) {
+    selecaoMapa = null;
+    renderPainelEmpresa();
+    return;
+  }
+  if (!MODOS_RESULTADOS.some((item) => item.modo === modoResultados)) modoResultados = 'lista';
 
-  // Total e áreas sensíveis
-  document.getElementById('dash-total').textContent = lista.length;
-  document.getElementById('dash-source').textContent = estado.demo || !estado.emailsAnalisados
-    ? tt('provavelmente têm os teus dados.')
-    : tt('provavelmente têm os teus dados, segundo os teus últimos {0} emails.', [estado.emailsAnalisados]);
-  const sensiveis = SECTOR_ORDER.filter((chave) => SECTORS[chave].sensitive)
-    .map((chave) => ({ chave, n: lista.filter((empresa) => empresa.sector === chave).length }))
-    .filter((item) => item.n > 0);
-  const totalSensiveis = sensiveis.reduce((soma, item) => soma + item.n, 0);
-  document.getElementById('dash-sensitive').innerHTML = totalSensiveis
-    ? `${icone('alerta')}<span>${totalSensiveis} ${tt('em áreas sensíveis:')} ${sensiveis.map((item) => esc(SECTORS[item.chave].short.toLowerCase())).join(', ')}</span>`
-    : `<span>${tt('Nenhuma em áreas sensíveis.')}</span>`;
+  // Uma linha só, por baixo do título: o resumo completo está no Início
+  document.getElementById('res-resumo').textContent = `${lista.length} ${plural(lista.length, 'empresa', 'empresas')}${estado.demo ? ' (exemplo com dados simulados)' : estado.emailsAnalisados ? `, segundo os teus últimos ${estado.emailsAnalisados} emails` : ''}.`;
+  const lote = document.getElementById('res-lote');
+  lote.classList.toggle('hidden', lista.length < 2);
+  lote.innerHTML = lista.length >= 2 ? `<button data-action="lote" data-onde="resultados" type="button" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-200 underline decoration-slate-600 underline-offset-4">Pedir o mesmo a várias empresas ${SELO_PLUS}</button>` : '';
 
-  // Gravidade se os dados se perderem
-  const porGravidade = SEVERITY_ORDER.map((chave) => ({ chave, n: lista.filter((empresa) => gravidadeDe(empresa).chave === chave).length }));
-  document.getElementById('severity-bar').innerHTML = porGravidade.filter((item) => item.n)
-    .map((item) => `<div class="h-full rounded-[3px]" style="width:${(item.n / Math.max(lista.length, 1)) * 100}%;background:${SEVERITY[item.chave].hex}" title="${SEVERITY[item.chave].label}: ${item.n}"></div>`).join('');
-  document.getElementById('severity-legend').innerHTML = porGravidade
-    .map((item) => `<span class="flex items-center gap-1.5 ${item.n ? '' : 'opacity-40'}">${iconeGravidade(item.chave)}<span class="text-slate-300">${SEVERITY[item.chave].label}</span><span class="font-display text-sm font-semibold text-white">${item.n}</span></span>`).join('');
-
-  renderFrequencia(lista);
-
-  // Grelha por área (sensíveis primeiro, depois por número de empresas)
-  const areas = SECTOR_ORDER
-    .map((chave) => ({ chave, empresas: lista.filter((empresa) => empresa.sector === chave) }))
-    .filter((area) => area.empresas.length)
-    .sort((a, b) => SEVERITY_ORDER.indexOf(SECTORS[a.chave].gravidade) - SEVERITY_ORDER.indexOf(SECTORS[b.chave].gravidade) || (b.empresas.length - a.empresas.length));
-  document.getElementById('sector-grid').innerHTML = areas.map(({ chave, empresas }) => {
-    const setor = SECTORS[chave];
-    const ativo = filtroSetor === chave;
-    return `<button data-action="setor" data-sector="${chave}" type="button"
-      aria-label="${tt('{0}: {1} {2}, gravidade {3}', [setor.label, empresas.length, plural(empresas.length, tt('empresa'), tt('empresas')), SEVERITY[setor.gravidade].label.toLowerCase()])}"
-      class="flex items-center gap-2.5 rounded-2xl border px-3 py-2.5 text-left transition ${ativo ? 'border-lime bg-lime/10' : setor.sensitive ? 'border-rose-400/30 bg-rose-400/5' : 'border-slate-800 bg-slate-900/60'}">
-      <span class="text-slate-300">${icone(chave, 'h-5 w-5')}</span>
-      <span class="min-w-0 flex-1">
-        <span class="block truncate text-sm font-semibold">${esc(setor.short)}</span>
-        <span class="block">${seloGravidade(setor.gravidade, '')}</span>
-      </span>
-      <span class="font-display text-xl font-semibold">${empresas.length}</span>
-    </button>`;
+  // Separadores
+  document.getElementById('res-abas').innerHTML = MODOS_RESULTADOS.map(({ modo, label, icone: nomeIcone }) => {
+    const ativo = modo === modoResultados;
+    return `<button data-action="modo-resultados" data-modo="${modo}" type="button" role="tab" aria-selected="${ativo}"
+      class="flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition lg:flex-none lg:px-4 ${ativo ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-slate-200'}">
+      ${icone(nomeIcone, 'h-4 w-4 max-sm:hidden')}<span class="whitespace-nowrap">${label}</span></button>`;
   }).join('');
-  document.getElementById('sector-reset').classList.toggle('hidden', filtroSetor === 'todos');
+  MODOS_RESULTADOS.forEach(({ modo }) => document.getElementById(`res-${modo}`).classList.toggle('hidden', modo !== modoResultados));
 
-  // Filtros pelo que os emails indicam
-  const naArea = lista.filter((empresa) => filtroSetor === 'todos' || empresa.sector === filtroSetor);
-  const filtros = [['todas', tt('Todas · {0}', [naArea.length])], ...KIND_ORDER.map((chave) => [chave, `${KINDS[chave].filtro} · ${naArea.filter((empresa) => tiposDe(empresa).includes(chave)).length}`])];
-  document.getElementById('kind-filters').innerHTML = filtros.map(([chave, texto]) => `
-    <button data-action="filtro" data-kind="${chave}" type="button" class="shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${filtroTipo === chave ? 'border-oliva bg-oliva text-ink' : 'border-slate-700 text-slate-300'}">${esc(texto)}</button>`).join('');
+  // A distribuição pela sensibilidade, com a legenda das cores (o mapa tem a sua)
+  const niveis = porSensibilidade(lista);
+  document.getElementById('res-legenda').innerHTML = modoResultados !== 'mapa'
+    ? `${barraDeSensibilidade(niveis, 'h-2')}<p class="mt-2 flex flex-wrap gap-x-3.5 gap-y-1 text-xs text-slate-300"><span class="font-semibold text-slate-200 max-sm:sr-only">Sensibilidade:</span>${legendaDeSensibilidade(niveis)}</p>` : '';
 
   // Explicação
   document.getElementById('kind-legend').innerHTML = `
-    <p>${tt('Olhamos só para quem te enviou emails, o assunto e a data. Cada empresa fica numa área (estimada pelo nome, quando não está no nosso catálogo) e numa de quatro categorias:')}</p>
-    ${KIND_ORDER.map((chave) => `<p><span class="mr-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${KINDS[chave].style}">${KINDS[chave].label}</span>${esc(KINDS[chave].help)}</p>`).join('')}
-    <p>${tt('Se uma empresa não for tua, abre "Porquê esta empresa?" e escolhe "Não tenho dados aqui".')}</p>`;
+    <p>Olhamos só para quem te enviou emails, o assunto e a data. Cada empresa fica numa área (estimada pelo nome, quando não está no nosso catálogo) e numa de quatro categorias:</p>
+    ${KIND_ORDER.map((chave) => `<p><span class="mr-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-bold ${KINDS[chave].style}">${KINDS[chave].label}</span>${esc(KINDS[chave].help)}</p>`).join('')}
+    <p>A sensibilidade vem da área: dados de saúde, finanças ou encontros são os mais sensíveis. Se só recebes publicidade, desce um nível.</p>
+    <p>Se uma empresa não for tua, abre-a e escolhe "Não tenho dados aqui".</p>`;
+
+  escolherPorOmissao(lista);
+  if (modoResultados === 'lista') renderEmpresas();
+  if (modoResultados === 'areas') renderAreas();
+  if (modoResultados === 'mapa' && vistaAtual() === 'resultados') renderMapa();
+  renderPainelEmpresa();
 }
 
-function emailsUltimos30Dias(empresa) {
-  const ev = empresa.evidence || {};
-  const count = Number(ev.recentCount || 0);
-  return count;
+function ecraGrande() {
+  return window.matchMedia('(min-width: 1024px)').matches;
 }
 
-function renderFrequencia(lista) {
-  const section = document.getElementById('frequency-section');
-  const container = document.getElementById('frequency-list');
-  const contagens = lista
-    .map((empresa) => ({ empresa, contagem: emailsUltimos30Dias(empresa) }))
-    .sort((a, b) => b.contagem - a.contagem);
-  const frequentes = contagens.filter((item) => item.contagem > 0).slice(0, 5);
-  const semInformacao = frequentes.length === 0 ? contagens : [];
-  section.classList.toggle('hidden', contagens.length === 0);
-  const ranking = frequentes.map(({ empresa, contagem }, indice) => `
-    <div class="flex items-center gap-3 rounded-xl bg-ink/60 px-3 py-2">
-      <span class="w-4 text-center text-xs font-bold text-mist">${indice + 1}</span>
-      <span class="min-w-0 flex-1 truncate text-sm font-semibold">${esc(empresa.name)}</span>
-      <span class="shrink-0 text-xs text-lime">${contagem} ${contagem === 1 ? tt('email') : tt('emails')}</span>
-    </div>`).join('');
-  const semInformacaoTexto = semInformacao.length
-    ? `<div class="rounded-xl bg-ink/60 px-3 py-2 text-xs leading-4 text-mist">
-        <span class="font-semibold text-slate-200">${tt('Sem informação nos últimos 30 dias:')}</span>
-        ${esc(semInformacao.slice(0, 5).map(({ empresa }) => empresa.name).join(', '))}
-        ${semInformacao.length > 5 ? tt(' e mais {0}.', [semInformacao.length - 5]) : '.'}
-      </div>`
-    : '';
-  container.innerHTML = ranking + semInformacaoTexto;
+function emailsDe(empresa) {
+  return empresa.evidence?.totalRecebidos ?? empresa.evidence?.count ?? 0;
 }
 
+function ordemDaLista(a, b) {
+  if (ordemLista === 'emails') return emailsDe(b) - emailsDe(a) || a.name.localeCompare(b.name);
+  return SEVERITY_ORDER.indexOf(gravidadeDe(a).chave) - SEVERITY_ORDER.indexOf(gravidadeDe(b).chave) || emailsDe(b) - emailsDe(a) || a.name.localeCompare(b.name);
+}
+
+// No computador, o painel ao lado já mostra a primeira empresa da Lista (ou da área escolhida),
+// com as notícias que justificam a gravidade. No telemóvel não: a folha taparia a lista.
+function escolherPorOmissao(lista) {
+  const cabe = ecraGrande() && ['lista', 'areas'].includes(modoResultados);
+  if (selecaoMapa?.auto && !cabe) selecaoMapa = null;
+  if (selecaoMapa || !cabe || !lista.length) return;
+  const daVista = modoResultados === 'areas' && filtroSetor !== 'todos' ? lista.filter((empresa) => empresa.sector === filtroSetor) : lista;
+  const primeira = [...(daVista.length ? daVista : lista)].sort(ordemDaLista)[0];
+  if (primeira) selecaoMapa = { tipo: 'empresa', chave: primeira.id, auto: true };
+}
+
+// Notícias que falam de empresas encontradas na análise
+function noticiasDasMinhasEmpresas() {
+  return NOTICIAS.filter((noticia) => empresasDaNoticia(noticia).length).sort((a, b) => b.data.localeCompare(a.data));
+}
+
+function mudarModoResultados(modo) {
+  if (!MODOS_RESULTADOS.some((item) => item.modo === modo)) modo = 'lista';
+  if (modo !== modoResultados) registarEvento('resultados_vista', { modo });
+  modoResultados = modo;
+  if (modo === 'mapa') animarMapa = true;
+  if (vistaAtual() !== 'resultados') {
+    location.hash = '#resultados';
+    return;
+  }
+  renderPainel();
+}
+
+// Lista: todas as empresas numa linha cada, as mais sensíveis primeiro (ou as que mais emails enviam)
 function renderEmpresas() {
   if (!estado.empresas.length) return;
   const container = document.getElementById('companies-container');
   const query = document.getElementById('search-input').value.toLowerCase();
   const lista = visiveis();
   const filtradas = lista
-    .filter((empresa) => filtroSetor === 'todos' || empresa.sector === filtroSetor)
     .filter((empresa) => filtroTipo === 'todas' || tiposDe(empresa).includes(filtroTipo))
     .filter((empresa) => `${empresa.name} ${empresa.domain} ${SECTORS[empresa.sector]?.label || ''}`.toLowerCase().includes(query))
-    .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || (b.evidence?.count || 0) - (a.evidence?.count || 0));
+    .sort(ordemDaLista);
 
-  document.getElementById('list-title').textContent = filtroSetor === 'todos' ? tt('Todas as empresas') : SECTORS[filtroSetor].label;
-  document.getElementById('service-total').textContent = tt('{0} de {1}{2}', [filtradas.length, lista.length, estado.demo ? ' · ' + tt('exemplo') : '']);
+  // Dois menus em vez de uma fila de botões
+  const filtro = document.getElementById('filtro-tipo');
+  filtro.innerHTML = [['todas', `Todas (${lista.length})`], ...KIND_ORDER.map((chave) => [chave, `${KINDS[chave].filtro} (${lista.filter((empresa) => tiposDe(empresa).includes(chave)).length})`])]
+    .map(([chave, texto]) => `<option value="${chave}">${esc(texto)}</option>`).join('');
+  filtro.value = filtroTipo;
+  document.getElementById('ordem-lista').value = ordemLista;
 
+  const caixa = (linhas) => `<div class="divide-y divide-slate-800 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/30">${linhas}</div>`;
   if (!filtradas.length) {
-    container.innerHTML = `<p class="py-8 text-center text-sm text-mist lg:col-span-full">${tt('Nenhuma empresa encontrada.')}</p>`;
-  } else if (filtroSetor === 'todos' && !query && filtroTipo === 'todas') {
-    // Sem filtros: agrupar por área, sensíveis primeiro.
-    const grupos = SECTOR_ORDER
-      .map((chave) => ({ chave, empresas: filtradas.filter((empresa) => empresa.sector === chave) }))
-      .filter((grupo) => grupo.empresas.length)
-      .sort((a, b) => (SECTORS[b.chave].sensitive - SECTORS[a.chave].sensitive) || (b.empresas.length - a.empresas.length));
-    container.innerHTML = grupos.map((grupo) => `
-      <h3 class="mt-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] lg:col-span-full lg:mt-4 ${SECTORS[grupo.chave].sensitive ? 'text-rose-200' : 'text-slate-400'}">
-        ${icone(grupo.chave, 'h-4 w-4')}${esc(SECTORS[grupo.chave].label)} · ${grupo.empresas.length}
-      </h3>
-      ${grupo.empresas.map(criarCard).join('')}`).join('');
+    container.innerHTML = caixa('<p class="px-4 py-8 text-center text-sm text-slate-300">Nenhuma empresa encontrada.</p>');
+  } else if (ordemLista !== 'gravidade') {
+    container.innerHTML = caixa(filtradas.map(linhaEmpresa).join(''));
   } else {
-    container.innerHTML = filtradas.map(criarCard).join('');
+    // Por sensibilidade, para a lista não ficar enorme: as mais sensíveis abertas (até LIMITE_GRUPO),
+    // a média e a baixa fechadas. Com pesquisa ou filtro, tudo aberto.
+    const tudoAberto = Boolean(query) || filtroTipo !== 'todas';
+    const escolhida = selecaoMapa?.tipo === 'empresa' && !selecaoMapa.auto ? selecaoMapa.chave : null;
+    container.innerHTML = SEVERITY_ORDER.map((chave) => {
+      const empresas = filtradas.filter((empresa) => gravidadeDe(empresa).chave === chave);
+      if (!empresas.length) return '';
+      const g = SEVERITY[chave];
+      const aberto = tudoAberto || gruposAbertos.has(chave) || empresas.some((empresa) => empresa.id === escolhida);
+      const titulo = `<span class="flex items-center gap-2">${iconeGravidade(chave, 10)}<span class="text-sm font-semibold ${g.texto}">Sensibilidade ${g.label.toLowerCase()}</span><span class="text-sm text-slate-300">· ${empresas.length}</span></span>`;
+      if (!aberto) {
+        return `<button data-action="abrir-grupo" data-grupo="${chave}" type="button" aria-expanded="false"
+          class="mt-3 flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/30 px-4 py-3.5 text-left transition first:mt-0 hover:border-slate-600">
+          ${titulo}<span class="flex items-center gap-1 text-xs font-semibold text-slate-200">Mostrar <svg viewBox="0 0 16 16" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></span>
+        </button>`;
+      }
+      const completo = tudoAberto || gruposCompletos.has(chave) || empresas.length <= LIMITE_GRUPO + 1;
+      const visiveisGrupo = completo ? empresas : empresas.slice(0, LIMITE_GRUPO);
+      const resto = empresas.length - visiveisGrupo.length;
+      const fechar = !tudoAberto && !['critica', 'alta'].includes(chave)
+        ? `<button data-action="fechar-grupo" data-grupo="${chave}" type="button" aria-expanded="true" class="text-xs font-semibold text-slate-300">Esconder</button>` : '';
+      return `<section class="mt-5 first:mt-0">
+        <h3 class="mb-2 flex items-center justify-between gap-3 px-1">${titulo}${fechar}</h3>
+        ${caixa(visiveisGrupo.map(linhaEmpresa).join('') + (resto ? `<button data-action="mais-grupo" data-grupo="${chave}" type="button" class="flex w-full items-center justify-center gap-1 px-4 py-3 text-xs font-semibold text-slate-200 hover:bg-slate-800/40">Ver mais ${resto} ${plural(resto, 'empresa', 'empresas')}</button>` : ''))}
+      </section>`;
+    }).join('');
   }
 
   const descartadas = estado.empresas.length - lista.length;
@@ -1796,48 +2578,134 @@ function renderEmpresas() {
   linha.innerHTML = descartadas ? `<button data-action="repor-descartadas" type="button" class="text-xs font-semibold text-slate-500 underline decoration-slate-700 underline-offset-4">Repor ${descartadas} ${descartadas === 1 ? tt('empresa descartada') : tt('empresas descartadas')}</button>` : '';
 }
 
-function criarCard(empresa) {
-  const tipo = KINDS[empresa.kind] || KINDS.unknown;
-  const setor = SECTORS[empresa.sector] || SECTORS.outros;
+// Uma empresa numa linha simples: o nome, a área e a sensibilidade. As notícias e os pedidos estão na empresa.
+function linhaEmpresa(empresa) {
   const ev = empresa.evidence || {};
-  const ultimo = estado.pedidos
-    .filter((pedido) => pedido.companyId === empresa.id && pedido.status !== 'draft')
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
-  const recebidos = ev.totalRecebidos ?? ev.count ?? 0;
-
+  const setor = SECTORS[empresa.sector] || SECTORS.outros;
   const gravidade = gravidadeDe(empresa).chave;
+  const recebidos = ev.totalRecebidos ?? ev.count ?? 0;
+  const ultimo = ultimoPedidoDe(empresa.id);
+  const situacao = estadoDaEmpresa(empresa, ultimo);
+  const aberta = selecaoMapa?.tipo === 'empresa' && selecaoMapa.chave === empresa.id;
+  const tipos = tiposDe(empresa).map((chave) => KINDS[chave].label).join(', ');
+  return `<button data-action="abrir-empresa" data-id="${esc(empresa.id)}" type="button" aria-current="${aberta}" aria-label="${esc(empresa.name)}: sensibilidade ${SEVERITY[gravidade].label.toLowerCase()}${situacao ? `. ${esc(situacao.texto)}` : ''}. Abrir"
+    class="flex w-full items-center gap-3 px-4 py-3 text-left transition ${aberta ? 'bg-slate-800/70' : 'hover:bg-slate-800/40'}">
+    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${situacao ? `${ESTADOS_EMPRESA[situacao.chave].fundo} text-white` : 'bg-slate-800 text-slate-100'}"${situacao ? ` title="${esc(situacao.texto)}"` : ''}>${esc(empresa.icon)}</span>
+    <span class="min-w-0 flex-1">
+      <span class="block truncate text-sm font-semibold">${esc(empresa.name)}</span>
+      <span class="mt-0.5 block truncate text-xs text-mist">${esc(setor.short)} · ${esc(tipos)} · ≈ ${recebidos} ${plural(recebidos, 'email', 'emails')}</span>
+      ${ultimo ? `<span class="mt-1 flex items-center gap-1.5 truncate text-xs text-slate-200"><span class="truncate">${esc(RIGHTS[ultimo.right].short)}: ${esc(descreverPedido(ultimo))}</span></span>`
+        : situacao ? `<span class="mt-1 flex items-center gap-1.5 truncate text-xs text-slate-200"><span class="truncate">${esc(situacao.texto)}</span></span>` : ''}
+      ${empresa.unsubscribedAt ? '<span class="mt-1 block text-xs text-slate-400">Subscrição cancelada</span>' : ''}
+    </span>
+    <span class="flex shrink-0 items-center gap-1.5 text-xs font-semibold ${SEVERITY[gravidade].texto}">${iconeGravidade(gravidade)}<span class="hidden w-[4.5rem] sm:inline">${SEVERITY[gravidade].label}</span></span>
+    <span class="shrink-0 text-slate-600">${icone('seta', 'h-4 w-4')}</span>
+  </button>`;
+}
 
-  const estadoPedido = ultimo ? `
-    <a href="#pedidos" data-action="ver-no-mapa" data-id="${esc(empresa.id)}" class="mt-3 flex items-center gap-2 rounded-xl border border-slate-800 px-3 py-2 text-[11px] text-slate-300">
-      <span class="inline-block h-2 w-2 rounded-full ${BUCKETS[baldeDoPedido(ultimo)]?.dot || 'bg-slate-500'}"></span>${esc(RIGHTS[ultimo.right].short)}: ${esc(descreverPedido(ultimo))}
-    </a>` : '';
+// Por área: um mosaico por área e, por baixo, as empresas da área escolhida (ou de todas, agrupadas)
+function renderAreas() {
+  const lista = visiveis();
+  const areas = SECTOR_ORDER
+    .map((chave) => ({ chave, empresas: lista.filter((empresa) => empresa.sector === chave) }))
+    .filter((area) => area.empresas.length)
+    .sort((a, b) => SEVERITY_ORDER.indexOf(SECTORS[a.chave].gravidade) - SEVERITY_ORDER.indexOf(SECTORS[b.chave].gravidade) || (b.empresas.length - a.empresas.length));
+  if (filtroSetor !== 'todos' && !areas.some((area) => area.chave === filtroSetor)) filtroSetor = 'todos';
+  document.getElementById('sector-grid').innerHTML = areas.map(({ chave, empresas }) => {
+    const setor = SECTORS[chave];
+    const ativo = filtroSetor === chave;
+    return `<button data-action="setor" data-sector="${chave}" type="button" aria-pressed="${ativo}"
+      aria-label="${esc(setor.label)}: ${empresas.length} ${plural(empresas.length, 'empresa', 'empresas')}, gravidade ${SEVERITY[setor.gravidade].label.toLowerCase()}"
+      class="flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition ${ativo ? 'border-slate-500 bg-slate-800/70' : 'border-slate-800 hover:border-slate-600'}">
+      <span class="text-slate-300">${icone(chave, 'h-5 w-5')}</span>
+      <span class="min-w-0 flex-1">
+        <span class="block truncate text-sm font-semibold">${esc(setor.short)}</span>
+        <span class="block">${seloGravidade(setor.gravidade, '')}</span>
+      </span>
+      <span class="font-display text-xl font-semibold">${empresas.length}</span>
+    </button>`;
+  }).join('');
 
-  const cancelada = empresa.unsubscribedAt ? `
-    <p class="mt-3 rounded-xl bg-amber-400/10 px-3 py-2 text-[11px] leading-4 text-amber-100">${tt('Subscrição cancelada. A')} ${esc(empresa.name)} ${tt('continua a guardar os teus dados.')}</p>` : '';
+  const ordenar = (empresas) => [...empresas].sort((a, b) => SEVERITY_ORDER.indexOf(gravidadeDe(a).chave) - SEVERITY_ORDER.indexOf(gravidadeDe(b).chave)
+    || (b.evidence?.totalRecebidos ?? 0) - (a.evidence?.totalRecebidos ?? 0));
+  const grupo = ({ chave, empresas }, comExplicacao) => `
+    <h3 class="mt-6 flex items-center gap-2 text-sm font-semibold text-slate-200 first:mt-0"><span class="text-slate-400">${icone(chave, 'h-4 w-4')}</span>${esc(SECTORS[chave].label)} <span class="font-normal text-mist">· ${empresas.length}</span></h3>
+    ${comExplicacao ? `<p class="mt-1.5 text-xs leading-5 text-mist">${esc(SECTORS[chave].porque)}</p>` : ''}
+    <div class="mt-2 divide-y divide-slate-800 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/30">${ordenar(empresas).map(linhaEmpresa).join('')}</div>`;
+  const escolhida = areas.find((area) => area.chave === filtroSetor);
+  document.getElementById('area-lista').innerHTML = escolhida
+    ? `${grupo(escolhida, true)}<button data-action="setor" data-sector="todos" type="button" class="mt-4 text-xs font-semibold text-lime">Ver todas as áreas</button>`
+    : areas.map((area) => grupo(area, false)).join('');
+}
 
-  // O essencial à vista; o porquê fica um toque abaixo
-  return `<article class="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-    <div class="flex items-center gap-3">
-      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-base font-bold text-ink">${esc(empresa.icon)}</div>
-      <div class="min-w-0 flex-1">
-        <div class="flex flex-wrap items-center gap-x-2 gap-y-1"><h4 class="truncate font-semibold">${esc(empresa.name)}</h4>${tiposDe(empresa).map((chave) => `<span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${KINDS[chave].style}">${KINDS[chave].label}</span>`).join('')}</div>
-        <p class="mt-0.5 truncate text-xs text-mist">${tt('≈ {0} emails · {1} gastos', [recebidos, duracaoCurta(tempoPerdidoS(empresa))])}</p>
-      </div>
-      <span class="mt-1 shrink-0" title="${tt('Gravidade {0}', [SEVERITY[gravidade].label.toLowerCase()])}" aria-label="${tt('Gravidade {0}', [SEVERITY[gravidade].label.toLowerCase()])}" role="img">${iconeGravidade(gravidade)}</span>
-    </div>
-    ${estadoPedido}
-    ${cancelada}
-    <div class="mt-3 flex gap-2">
-      <button data-action="gerir" data-id="${esc(empresa.id)}" type="button" class="flex-1 rounded-lg bg-white py-2.5 text-xs font-bold text-ink">${tt('Gerir os meus dados')}</button>
-      ${empresa.unsubscribe && !empresa.unsubscribedAt ? `<button data-action="cancelar-subscricao" data-id="${esc(empresa.id)}" type="button" class="rounded-lg bg-slate-800 px-3 py-2.5 text-xs font-bold text-slate-200">${tt('Cancelar subscrição')}</button>` : ''}
-    </div>
-    ${!estado.demo ? `<button data-action="apagar-emails" data-id="${esc(empresa.id)}" type="button" class="mt-3 block text-[11px] font-semibold text-rose-200/90 underline decoration-rose-300/30 underline-offset-4">${tt('Apagar os emails desta empresa no Gmail')}</button>` : ''}
-    <details class="mt-2 text-xs leading-5 text-mist">
-      <summary class="cursor-pointer font-semibold text-slate-500">${tt('Porquê esta empresa?')}</summary>
-      ${porqueEstaEmpresa(empresa)}
-      <button data-action="descartar" data-id="${esc(empresa.id)}" type="button" class="mt-2 font-semibold text-slate-400 underline decoration-slate-700 underline-offset-4">${tt('Não tenho dados aqui')}</button>
-    </details>
-  </article>`;
+// Mapa: só se desenha quando o separador está à vista (precisa da largura real)
+function renderMapa() {
+  const nos = nosDoMapa();
+  if (!nos.length) return;
+  const rede = construirRede(nos);
+  validarSelecao(nos, rede);
+  document.getElementById('dot-map').innerHTML = desenharRede(rede);
+  aplicarZoom();
+  animarMapa = false;
+  document.getElementById('map-legend').innerHTML = legendaDaRede(rede);
+}
+
+// A escolha pode deixar de existir (empresa descartada, análise nova...)
+function validarSelecao(nos, rede) {
+  if (!selecaoMapa) return;
+  const existe = {
+    empresa: () => nos.some((no) => no.id === selecaoMapa.chave),
+    setor: () => nos.some((no) => no.sector === selecaoMapa.chave),
+    terceiro: () => rede.terceiros.some((t) => t.id === selecaoMapa.chave)
+  }[selecaoMapa.tipo];
+  if (!existe || !existe()) selecaoMapa = null;
+}
+
+// A empresa aberta: coluna ao lado no computador; no telemóvel, um ecrã próprio com «Resultados» para voltar
+function renderPainelEmpresa() {
+  const painel = document.getElementById('painel-empresa');
+  const nos = nosDoMapa();
+  const rede = construirRede(nos);
+  validarSelecao(nos, rede);
+  const aberto = Boolean(selecaoMapa) && nos.length > 0;
+  // "Mais opções" continua aberto se se voltar a desenhar a mesma empresa
+  const mais = painel.querySelector('details[data-mais]');
+  renderPainelEmpresa.maisAberto = mais?.open ? mais.dataset.mais : null;
+  painel.innerHTML = nos.length ? detalheDoMapa(nos, rede) : '';
+  painel.classList.toggle('max-lg:hidden', !aberto);
+  // Com a empresa aberta no telemóvel, a página por trás não se mexe
+  document.body.classList.toggle('max-lg:overflow-hidden', aberto && vistaAtual() === 'resultados');
+  const assinatura = JSON.stringify(selecaoMapa);
+  if (renderPainelEmpresa.ultima !== assinatura) {
+    painel.scrollTop = 0;
+    if (aberto && !ecraGrande()) {
+      painel.classList.remove('painel-entra');
+      void painel.offsetWidth; // recomeça a animação
+      painel.classList.add('painel-entra');
+      painel.focus({ preventScroll: true });
+    }
+  }
+  renderPainelEmpresa.ultima = assinatura;
+}
+
+function abrirEmpresa(empresaId) {
+  if (!obterEmpresa(empresaId) && !estado.pedidos.some((pedido) => pedido.companyId === empresaId)) return;
+  const nova = !(selecaoMapa?.tipo === 'empresa' && selecaoMapa.chave === empresaId && !selecaoMapa.auto);
+  selecaoMapa = { tipo: 'empresa', chave: empresaId };
+  if (nova) registarEmpresaAberta(empresaId);
+  if (modoResultados === 'noticias') modoResultados = 'lista';
+  if (vistaAtual() !== 'resultados') location.hash = '#resultados';
+  else renderPainel();
+}
+
+function fecharPainelEmpresa() {
+  selecaoMapa = null;
+  renderPainel();
+}
+
+function registarEmpresaAberta(empresaId) {
+  const empresa = obterEmpresa(empresaId);
+  registarEvento('empresa_aberta', { modo: modoResultados, area: empresa?.sector || 'outros', gravidade: gravidadeDe(empresa || { sector: 'outros' }).chave });
 }
 
 // "Porquê esta empresa?": o que encontrámos na caixa, o que estas empresas costumam guardar e a área.
@@ -1862,23 +2730,21 @@ function porqueEstaEmpresa(empresa) {
   const qual = eOUltimo ? tt('O último') : tt('Um deles');
   const exemplo = `${ev.sampleSubject ? `: «${esc(ocultarCodigos(ev.sampleSubject))}»` : ''}${ev.sampleDate && !eOUltimo ? tt(', de {0}', [formatarData(ev.sampleDate)]) : ''}`;
   const sinal = {
-    likely_account: tt('{0} é de boas-vindas, registo ou palavra-passe{1}. Por isso, deves ter conta.', [qual, exemplo]),
-    purchase: tt('{0} é um recibo, fatura ou encomenda{1}. Por isso, deves ter comprado lá.', [qual, exemplo]),
-    newsletter: tt('Trazem um link para cancelar a subscrição: estás na lista de marketing.'),
-    unknown: tt('Nenhum indica conta, compra ou marketing. Confirma se a empresa é tua.')
+    likely_account: `${qual} é de boas-vindas, registo ou palavra-passe${exemplo}. Por isso, deves ter conta.`,
+    purchase: `${qual} é um recibo, fatura ou encomenda${exemplo}. Por isso, deves ter comprado lá.`,
+    newsletter: 'São publicidade, com promoções ou novidades: estás na lista de marketing.',
+    unknown: 'Nenhum indica conta, compra ou marketing. Confirma se a empresa é tua.'
   }[empresa.kind] || '';
   const linha = (titulo, texto) => `<div><dt class="font-semibold text-slate-300">${titulo}</dt><dd class="mt-0.5">${texto}</dd></div>`;
   return `<dl class="mt-2 space-y-2">
-    ${linha(tt('O que encontrámos'), tt('Recebeste ≈ {0} {1} de {2}{3}.{4} {5}', [recebidos, plural(recebidos, tt('email'), tt('emails')), esc(dominios), ev.lastDate ? tt(', o último a {0}', [formatarData(ev.lastDate)]) : '', ev.enviados ? tt(' Escreveste-lhes {0} {1}.', [ev.enviados, plural(ev.enviados, tt('vez'), tt('vezes'))]) : '', sinal]))}
-    ${linha(tt('O que costumam guardar'), O_QUE_GUARDAM[empresa.kind] || O_QUE_GUARDAM.unknown)}
-    ${linha(tt('Área'), `${esc(setor.label)}${empresa.sectorEstimated ? ' ' + tt('(estimada pelo nome)') : ''}. ${esc(setor.porque || '')}`)}
+    ${linha('O que encontrámos', `Recebeste ≈ ${recebidos} ${plural(recebidos, 'email', 'emails')} de ${esc(dominios)}${ev.lastDate ? `, o último a ${formatarData(ev.lastDate)}` : ''}.${ev.enviados ? ` Escreveste-lhes ${ev.enviados} ${plural(ev.enviados, 'vez', 'vezes')}.` : ''}${empresa.sentVia ? ` Chegam através de ${esc(empresa.sentVia)}, uma plataforma de envio de emails.` : ''} ${sinal}`)}
+    ${linha('O que costumam guardar', O_QUE_GUARDAM[empresa.kind] || O_QUE_GUARDAM.unknown)}
+    ${linha('Área', `${esc(setor.label)}${empresa.sectorEstimated ? ' (estimada pelo nome)' : ''}. ${esc(setor.porque || '')}`)}
   </dl>`;
 }
 
 function irParaMapa(empresaId) {
-  selecaoMapa = { tipo: 'empresa', chave: empresaId };
-  if (vistaAtual() === 'pedidos') renderPedidos();
-  else location.hash = '#pedidos';
+  abrirEmpresa(empresaId);
 }
 
 // Cancelar a subscrição não apaga os dados: a app diz isso antes e depois.
@@ -1886,11 +2752,11 @@ function cancelarSubscricao(empresaId) {
   const empresa = obterEmpresa(empresaId);
   if (!empresa?.unsubscribe) return;
   abrirFolha({
-    titulo: tt('Cancelar a subscrição da {0}?', [empresa.name]),
-    texto: tt('Deixas de receber os emails de marketing, mas a {0} continua a guardar os teus dados. Para os apagar, faz um pedido de apagamento no mapa de exposição.', [empresa.name]),
+    titulo: `Cancelar a subscrição da ${empresa.name}?`,
+    texto: `Deixas de receber os emails de marketing, mas a ${empresa.name} continua a guardar os teus dados. Para os apagar, faz um pedido de apagamento.`,
     opcoes: [
       { label: tt('Cancelar subscrição'), estilo: 'primary', acao: () => abrirCancelamento(empresa) },
-      { label: tt('Gerir os meus dados no mapa'), estilo: 'secondary', acao: () => irParaMapa(empresa.id) },
+      { label: tt('Pedir que apaguem os meus dados'), estilo: 'secondary', acao: () => prepararPedido(empresa.id, 'erasure') },
       { label: tt('Agora não'), estilo: 'ghost', acao: () => {} }
     ]
   });
@@ -1912,16 +2778,34 @@ function abrirCancelamento(empresa) {
   empresa.unsubscribedAt = new Date().toISOString();
   guardarEstado();
   renderTudo();
-  registarEvento('subscricao_cancelada', { area: empresa.sector, demo: estado.demo });
+  registarEvento('subscricao_cancelada', { area: empresa.sector, gravidade: gravidadeDe(empresa).chave, demo: estado.demo });
   if (porEmail) return; // a escolha da app de email já está no ecrã
   abrirFolha({
     titulo: tt('Subscrição cancelada'),
     texto: tt('A {0} deixa de te enviar marketing, mas os teus dados continuam lá. Queres pedir que os apague?', [empresa.name]),
     opcoes: [
-      { label: tt('Pedir apagamento no mapa'), estilo: 'primary', acao: () => irParaMapa(empresa.id) },
+      { label: tt('Pedir que apaguem os meus dados'), estilo: 'primary', acao: () => prepararPedido(empresa.id, 'erasure') },
       { label: tt('Agora não'), estilo: 'ghost', acao: () => {} }
     ]
   });
+}
+
+// De onde vem o contacto de privacidade, em texto simples
+function descreverContacto(empresa) {
+  const formulario = empresa.privacyForm ? empresa.privacyForm.replace(/^https?:\/\/(www\.)?/, '').split(/[/?#]/)[0] : '';
+  if (empresa.contactExample) return `Contacto de exemplo: ${empresa.dpo_email}.`;
+  if (empresa.contactVerifiedAt) {
+    const quando = formatarData(empresa.contactVerifiedAt.slice(0, 10));
+    const canal = empresa.dpo_email
+      ? `${empresa.dpo_email}${formulario ? ` (ou o formulário em ${formulario})` : ''}`
+      : `formulário oficial em ${formulario}`;
+    const fonte = empresa.contactOrigin === 'datenanfragen'
+      ? `registado na base de dados Datenanfragen.de, atualizada a ${quando}`
+      : `verificado pela equipa do Veto a ${quando}`;
+    return `Contacto publicado pela empresa, ${fonte}: ${canal}.${empresa.contactNotes ? ` ${empresa.contactNotes}` : ''}`;
+  }
+  if (empresa.contactUser && empresa.dpo_email) return `Contacto indicado por ti: ${empresa.dpo_email}.`;
+  return 'Ainda não temos um contacto verificado para esta empresa. Antes do pedido, confirmas o email na política de privacidade dela.';
 }
 
 function mostrarMaisOpcoes(empresaId) {
@@ -1929,10 +2813,7 @@ function mostrarMaisOpcoes(empresaId) {
   if (!empresa) return;
   abrirFolha({
     titulo: empresa.name,
-    texto: (!empresa.dpo_email ? tt('Ainda não temos um contacto de privacidade para esta empresa.')
-      : empresa.contactExample ? tt('Contacto de exemplo: {0}. Na versão final, o contacto vem de um catálogo verificado.', [empresa.dpo_email])
-      : tt('Contacto de privacidade: {0}', [empresa.dpo_email]))
-      + (empresa.privacyForm ? tt(' Esta empresa recebe pedidos no formulário oficial: {0}', [empresa.privacyForm.replace(/^https?:\/\/(www\.)?/, '')]) : ''),
+    texto: descreverContacto(empresa),
     opcoes: [
       { label: RIGHTS.erasure.label, estilo: 'secondary', acao: () => prepararPedido(empresa.id, 'erasure') },
       { label: RIGHTS.objection.label, estilo: 'secondary', acao: () => prepararPedido(empresa.id, 'objection') },
@@ -1943,35 +2824,13 @@ function mostrarMaisOpcoes(empresaId) {
 }
 
 function renderPedidos() {
-  const nos = nosDoMapa();
   const temPedidos = estado.pedidos.length > 0;
-  const temMapa = nos.length > 0;
   renderLimitePedidos();
-  document.getElementById('map-empty').classList.toggle('hidden', temMapa || temPedidos);
-  document.getElementById('map-content').classList.toggle('hidden', !temMapa && !temPedidos);
-  if (!temMapa && !temPedidos) return;
-
-  document.getElementById('map-card').classList.toggle('hidden', !temMapa);
-  if (temMapa) {
-    const rede = construirRede(nos);
-    // A seleção pode deixar de existir (empresa descartada, análise nova...)
-    if (selecaoMapa) {
-      const existe = {
-        empresa: () => nos.some((no) => no.id === selecaoMapa.chave),
-        setor: () => nos.some((no) => no.sector === selecaoMapa.chave),
-        terceiro: () => rede.terceiros.some((t) => t.id === selecaoMapa.chave),
-        incidente: () => rede.incidentes.some((inc) => inc.id === selecaoMapa.chave)
-      }[selecaoMapa.tipo];
-      if (!existe || !existe()) selecaoMapa = null;
-    }
-    document.getElementById('dot-map').innerHTML = desenharRede(rede);
-    aplicarZoom();
-    animarMapa = false;
-    document.getElementById('map-legend').innerHTML = legendaDaRede(rede);
-    document.getElementById('map-detail').innerHTML = detalheDoMapa(nos, rede);
-  }
-
+  const entradaLote = document.getElementById('lote-entrada');
+  entradaLote.classList.toggle('hidden', visiveis().length < 2);
+  entradaLote.classList.toggle('inline-flex', visiveis().length >= 2);
   document.getElementById('no-requests').classList.toggle('hidden', temPedidos);
+  document.querySelector('#no-requests [data-action="lote"]').classList.toggle('hidden', visiveis().length < 2);
   document.getElementById('requests-section').classList.toggle('hidden', !temPedidos);
   if (!temPedidos) return;
 
@@ -1980,7 +2839,7 @@ function renderPedidos() {
   // À espera: os que precisam de uma ação tua primeiro, depois pelo prazo
   const espera = pedidos.filter((pedido) => !concluido(pedido))
     .sort((a, b) => precisaDeAtencao(b) - precisaDeAtencao(a) || (a.dueDate || '9').localeCompare(b.dueDate || '9'));
-  const concluidos = pedidos.filter((pedido) => pedido.status === 'closed' || (pedido.status === 'reply_received' && pedido.holdsData !== null))
+  const concluidos = pedidos.filter(concluido)
     .sort((a, b) => (b.closedAt || b.replyAt || '').localeCompare(a.closedAt || a.replyAt || ''));
 
   preencherGrupo('group-waiting', espera, tt('Nenhum pedido à espera de resposta.'));
@@ -2022,6 +2881,26 @@ function terceiroDe(empresa) {
   // A mesma marca noutro domínio (vinted.pt e vinted.com) não é um terceiro
   if (dominio.split('.')[0] === proprio.split('.')[0]) return null;
   return { id: `t:${dominio}`, dominio, nome: TERCEIROS[dominio] || dominio };
+}
+
+// Todas as notícias sobre a empresa (fugas, burlas e multas), da mais recente para a mais antiga
+function noticiasDaEmpresa(empresa) {
+  if (!empresa?.domain) return [];
+  return NOTICIAS.filter((noticia) => (noticia.dominios || []).some((dominio) => empresa.domain === dominio || empresa.domain.endsWith(`.${dominio}`)))
+    .sort((a, b) => b.data.localeCompare(a.data));
+}
+
+// A área de uma notícia: a que vem escrita nela ou, se não vier, a da empresa de que fala
+function areaDaNoticia(noticia) {
+  return noticia.setores?.[0] || estimarSetor(noticia.dominios?.[0] || '', noticia.empresa);
+}
+
+// Casos noutras empresas da mesma área: mostram porque é que a área é grave quando a empresa não tem notícias
+function noticiasDaArea(empresa) {
+  if (!empresa?.sector || empresa.sector === 'outros') return [];
+  const proprias = new Set(noticiasDaEmpresa(empresa));
+  return NOTICIAS.filter((noticia) => !proprias.has(noticia) && ((noticia.setores || []).includes(empresa.sector) || areaDaNoticia(noticia) === empresa.sector))
+    .sort((a, b) => b.data.localeCompare(a.data));
 }
 
 // Fugas e burlas das Notícias que envolvem a empresa (as multas ficam de fora)
@@ -2089,7 +2968,7 @@ function desenharRede(rede) {
   const proporcaoMax = computador ? Math.min(1.2, Math.max(0.5, (window.innerHeight - 230) / larguraPx)) : 1.3;
   const proporcaoMin = computador ? 0.45 : 0.8;
   const pesoX = Math.min(1.05, Math.max(0.6, proporcaoMax * 0.85));
-  const letra = computador ? 12 : REDE.LETRA;
+  const letra = computador ? 13.5 : REDE.LETRA;
 
   // 2. As áreas arrumam-se lado a lado, as mais sensíveis primeiro (ao centro).
   //    Cada nova área encosta-se às que já estão, no sítio livre mais perto do centro.
@@ -2138,7 +3017,7 @@ function desenharRede(rede) {
     raios.set(`s:${g.chave}`, 2.6);
     g.pontos.forEach(({ no, dx, dy }) => {
       pos.set(no.id, { x: g.x - cx + dx, y: g.y - cy + dy, grupo: g.chave });
-      raios.set(no.id, (RAIO_EMPRESA[no.gravidade] || 3.5) + (no.balde !== 'sempedido' ? 2.2 : 0));
+      raios.set(no.id, RAIO_EMPRESA[no.gravidade] || 4);
     });
   });
 
@@ -2150,7 +3029,7 @@ function desenharRede(rede) {
 
   // 4. O que se escolhe: uma empresa mostra os seus terceiros à volta dela;
   //    um terceiro mostra todas as empresas que o usam. O resto esbate-se.
-  //    As fugas e burlas não entram no mapa: aparecem só no bloco da empresa.
+  //    As fugas, burlas e multas pintam o ícone de vermelho; o pormenor fica no bloco da empresa.
   let acesos = null;
   const satelites = [];
   const relacoes = [];
@@ -2203,51 +3082,58 @@ function desenharRede(rede) {
 
   // 5. Desenho. As posições no ecrã são postas por aplicarZoom(), logo a seguir.
   const linha = (de, para, cor, largura, opacidade, tracejado) => `<line data-de="${esc(de)}" data-para="${esc(para)}" stroke="${cor}" stroke-width="${r1(largura * u)}" stroke-opacity="${opacidade}" stroke-linecap="round"${tracejado ? ` stroke-dasharray="${r1(2.5 * u)} ${r1(3 * u)}"` : ''}/>`;
-  const fundos = grupos.map((g) => `<circle data-grupo="${g.chave}" data-raio="${r1(g.raio)}" fill="#2c2330" fill-opacity="${aceso(`s:${g.chave}`) || (acesos && g.nos.some((no) => acesos.has(no.id))) ? 0.45 : 0.2}" pointer-events="none"/>`).join('');
+  const fundos = grupos.map((g) => `<circle data-grupo="${g.chave}" data-raio="${r1(g.raio)}" fill="${modoClaro() ? '#d9cde6' : '#2c2330'}" fill-opacity="${aceso(`s:${g.chave}`) || (acesos && g.nos.some((no) => acesos.has(no.id))) ? 0.45 : 0.2}" pointer-events="none"/>`).join('');
   const raiosAreas = rede.empresas.map((no) => linha(`s:${no.sector}`, no.id, REDE.EMPRESA, 0.5, aceso(no.id) ? (acesos ? 0.45 : 0.18) : 0.04)).join('');
   const linhasRel = relacoes.map((l) => linha(l.de, l.para, REDE.TERCEIRO, 1, 0.9, true)).join('');
 
   let ordem2 = 0;
-  const ponto = ({ id, r, cor, brilho, acao, titulo, anel, pulsar }) => {
+  const ponto = ({ id, r, cor, brilho, acao, titulo, anel, pulsar, letra, corLetra, contorno }) => {
     const ligado = aceso(id);
     const entrada = animarMapa ? ` class="dot-in" style="animation-delay:${Math.min(ordem2++ * 6, 700)}ms"` : '';
     return `<g data-no="${esc(id)}" opacity="${ligado ? 1 : 0.22}"><g${entrada}>
       ${brilho ? `<circle r="${r1(r * 2.6)}" fill="url(#${brilho})" pointer-events="none"/>` : ''}
       ${pulsar ? `<circle r="${r}" fill="none" stroke="${cor}" stroke-width="1.2" class="ponto-radar" pointer-events="none"/>` : ''}
       ${anel ? `<circle r="${r1(r + 2.2)}" fill="none" stroke="${REDE.PORMENOR}" stroke-width="1.4" pointer-events="none"/>` : ''}
-      <circle r="${r}" fill="${cor}" stroke="${sel.chave === id ? '#ffffff' : 'none'}" stroke-width="1.6" pointer-events="none"/>
+      <circle r="${r}" fill="${cor}" stroke="${sel.chave === id ? (modoClaro() ? '#211923' : '#ffffff') : 'none'}" stroke-width="1.6" pointer-events="none"/>
       <circle ${acao} r="${r1(Math.max(r + 3, 7 * u))}" fill="transparent" class="cursor-pointer"><title>${esc(titulo)}</title></circle>
     </g></g>`;
   };
-  const nucleos = grupos.map((g) => `<g data-no="s:${g.chave}" opacity="${aceso(`s:${g.chave}`) ? 1 : 0.35}">
-      <circle r="2.6" fill="${REDE.NUCLEO}" pointer-events="none"/>
-      <circle data-action="mapa-setor" data-sector="${g.chave}" r="${r1(Math.max(6, 8 * u))}" fill="transparent" class="cursor-pointer"><title>${esc(SECTORS[g.chave].label)}</title></circle>
-    </g>`).join('');
+  // No centro de cada área, o símbolo da área (o mesmo das listas), num distintivo redondo
+  const nucleos = grupos.map((g) => {
+    const escolhida = sel.tipo === 'setor' && sel.chave === g.chave;
+    return `<g data-no="s:${g.chave}" opacity="${aceso(`s:${g.chave}`) ? 1 : 0.35}">
+      <circle r="7.6" fill="#1d1620" stroke="${escolhida ? '#ffffff' : '#5d5462'}" stroke-width="${escolhida ? 1.2 : 0.8}" pointer-events="none"/>
+      ${iconeNoMapa(g.chave, 0, 0, 9, escolhida ? '#ffffff' : '#d3ccd6')}
+      <circle data-action="mapa-setor" data-sector="${g.chave}" r="${r1(Math.max(8, 9 * u))}" fill="transparent" class="cursor-pointer"><title>${esc(SECTORS[g.chave].label)}</title></circle>
+    </g>`;
+  }).join('');
   const pontosEmpresas = grupos.flatMap((g) => g.nos).map((no) => ponto({
-    id: no.id, r: RAIO_EMPRESA[no.gravidade] || 3.5, cor: SEVERITY[no.gravidade].hex, brilho: `brilho-${no.gravidade}`,
-    acao: `data-action="mapa-empresa" data-id="${esc(no.id)}"`, titulo: tt('{0}: gravidade {1}', [no.name, SEVERITY[no.gravidade].label.toLowerCase()]),
-    anel: no.balde !== 'sempedido'
+    id: no.id, r: RAIO_EMPRESA[no.gravidade] || 4, cor: no.situacao ? ESTADOS_EMPRESA[no.situacao.chave].hex : COR_NO_MAPA[no.gravidade] || COR_NO_MAPA.media, brilho: null,
+    acao: `data-action="mapa-empresa" data-id="${esc(no.id)}"`,
+    titulo: `${no.name}: sensibilidade ${SEVERITY[no.gravidade].label.toLowerCase()}${no.situacao ? `. ${no.situacao.texto}` : ''}`,
+    anel: null, contorno: true,
+    letra: (no.empresa?.icon || no.name[0] || '?').toUpperCase(), corLetra: no.situacao ? '#ffffff' : LETRA_NO_MAPA[no.gravidade] || LETRA_NO_MAPA.media
   })).join('');
   const nomeDe = (s) => rede.terceiros.find((x) => x.id === s.id);
   const pontosSatelites = satelites.map((s) => ponto({
-    id: s.id, r: 4.6, cor: REDE.TERCEIRO, brilho: 'brilho-terceiro',
-    acao: `data-action="mapa-terceiro" data-id="${esc(s.id)}"`, titulo: tt('{0}: terceiro', [nomeDe(s).nome])
+    id: s.id, r: 4.6, cor: REDE.TERCEIRO, brilho: null,
+    acao: `data-action="mapa-terceiro" data-id="${esc(s.id)}"`, titulo: `${nomeDe(s).nome}: terceiro`
   })).join('');
 
   // 6. Nomes. Os das áreas veem-se sempre; os das empresas só com zoom (ou ligadas ao que escolheste),
   //    por ordem de importância e sem taparem nada. O escolhido e os seus terceiros, sempre.
   const ordemClasse = { fixa: 0, setor: 1, ligada: 2, normal: 3 };
   const etiquetas = [
-    ...satelites.map((s) => ({ id: s.id, texto: nomeDe(s).nome, cor: '#d9cdfb', classe: 'fixa', peso: 0 })),
-    ...grupos.map((g) => ({ id: `s:${g.chave}`, texto: `${SECTORS[g.chave].short} · ${g.nos.length}`, cor: sel.tipo === 'setor' && sel.chave === g.chave ? '#ffffff' : '#a39ca7', classe: 'setor', setor: g.chave, peso: 0 })),
+    ...satelites.map((s) => ({ id: s.id, texto: nomeDe(s).nome, cor: modoClaro() ? '#6a4cc0' : '#d9cdfb', classe: 'fixa', peso: 0 })),
+    ...grupos.map((g) => ({ id: `s:${g.chave}`, texto: `${SECTORS[g.chave].short} · ${g.nos.length}`, cor: sel.tipo === 'setor' && sel.chave === g.chave ? (modoClaro() ? '#211923' : '#ffffff') : (modoClaro() ? '#6e6475' : '#a39ca7'), classe: 'setor', setor: g.chave, peso: 0 })),
     ...grupos.flatMap((g) => g.nos).map((no, i) => ({
-      id: no.id, texto: no.name, cor: '#e4e0e6', peso: i, esbatido: !aceso(no.id),
+      id: no.id, texto: no.name, cor: modoClaro() ? '#3a3040' : '#e4e0e6', peso: i, esbatido: !aceso(no.id),
       classe: no.id === sel.chave ? 'fixa' : acesos?.has(no.id) ? 'ligada' : 'normal'
     }))
   ].map((et) => ({ ...et, texto: et.texto.length > 20 ? `${et.texto.slice(0, 19)}…` : et.texto }))
     .sort((a, b) => ordemClasse[a.classe] - ordemClasse[b.classe] || a.peso - b.peso);
   const textos = etiquetas.map((et, i) => `<text data-et="${i}" display="none" font-size="${r1(letra * u)}" font-weight="600" fill="${et.cor}"${et.esbatido ? ' opacity="0.3"' : ''}
-    stroke="#19131b" stroke-width="${r1(3 * u)}" stroke-linejoin="round" paint-order="stroke"
+    stroke="${modoClaro() ? '#efe9f5' : '#19131b'}" stroke-width="${r1(3 * u)}" stroke-linejoin="round" paint-order="stroke"
     ${et.setor ? `pointer-events="auto" data-action="mapa-setor" data-sector="${et.setor}" class="cursor-pointer"` : 'pointer-events="none"'}>${esc(et.texto)}</text>`).join('');
 
   redeDesenhada = { pos, raios, W, H, u, letra, larguraPx, etiquetas, zoomMax, zoomNomes, grupos: new Map(grupos.map((g) => [g.chave, g.raio])) };
@@ -2263,7 +3149,7 @@ function desenharRede(rede) {
       <g>${textos}</g>
     </svg>
     <div class="mt-2 flex items-center justify-between gap-3">
-      <p id="map-zoom-hint" class="text-[11px] leading-4 text-mist">${tt('Aproxima para veres os nomes.')}</p>
+      <p id="map-zoom-hint" class="text-xs leading-4 text-mist">Aproxima para veres os nomes.</p>
       <div class="flex shrink-0 gap-1.5">
         ${botao('menos', 'Afastar', traco('M4 8h8'))}
         ${botao('mais', 'Aproximar', traco('M4 8h8M8 4v8'))}
@@ -2311,6 +3197,10 @@ function aplicarZoom() {
   svg.querySelectorAll('g[data-no]').forEach((g) => {
     const p = posicoes.get(g.dataset.no);
     g.setAttribute('transform', `translate(${r1(p.x)} ${r1(p.y)}) scale(${Math.round(s * 100) / 100})`);
+  });
+  // A inicial dentro de cada ícone só aparece quando o ícone tem tamanho para ela (com muitas empresas, ao aproximar)
+  svg.querySelectorAll('text[data-letra]').forEach((t) => {
+    t.setAttribute('display', (Number(t.dataset.r) * s) / u >= 6.5 ? 'inline' : 'none');
   });
 
   // Nomes: os mais importantes primeiro; um nome que tape outro (ou um ponto) fica escondido
@@ -2512,11 +3402,21 @@ function ligarZoomDoMapa() {
 
 function legendaDaRede(rede) {
   const areas = new Set(rede.empresas.map((no) => no.sector)).size;
-  return `<p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-      <span class="text-slate-300"><span class="font-semibold text-white">${rede.empresas.length}</span> ${plural(rede.empresas.length, tt('empresa'), tt('empresas'))} ${tt('em')} <span class="font-semibold text-white">${areas}</span> ${plural(areas, tt('área'), tt('áreas'))}</span>
-      ${SEVERITY_ORDER.map((chave) => `<span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full" style="background:${SEVERITY[chave].hex};box-shadow:0 0 8px ${SEVERITY[chave].hex}"></span><span class="text-slate-300">${SEVERITY[chave].label}</span></span>`).join('')}
-    </p>
-    <p class="mt-2 text-[11px] leading-4 text-mist">${tt('A cor e o tamanho mostram a gravidade de uma fuga. O anel verde marca um pedido enviado.')}</p>`;
+  // Cada exemplo é desenhado como o ícone no mapa: a cor diz o risco ou o estado do pedido
+  const exemplo = (fundo, letra, anel = null) => `<svg viewBox="0 0 22 22" width="22" height="22" class="shrink-0" aria-hidden="true">
+      ${anel ? `<circle cx="11" cy="11" r="9.6" fill="none" stroke="${anel}" stroke-width="1.6"/>` : ''}
+      <circle cx="11" cy="11" r="8" fill="${fundo}" stroke="#ffffff" stroke-opacity="0.28" stroke-width="0.8"/>
+      <text x="11" y="11" dy="0.36em" text-anchor="middle" font-size="9" font-weight="700" fill="${letra}">A</text>
+    </svg>`;
+  const item = (icone, texto) => `<li class="flex items-center gap-2">${icone}<span>${texto}</span></li>`;
+  return `<p class="text-xs text-slate-300"><span class="font-semibold text-white">${rede.empresas.length}</span> ${plural(rede.empresas.length, 'empresa', 'empresas')} em <span class="font-semibold text-white">${areas}</span> ${plural(areas, 'área', 'áreas')}</p>
+    <ul class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs leading-4 text-slate-200">
+      ${item(exemplo(ESTADOS_EMPRESA.atencao.hex, '#ffffff'), 'Risco: sensibilidade alta ou muito alta, ou algo correu mal')}
+      ${item(exemplo(COR_NO_MAPA.media, LETRA_NO_MAPA.media), 'Menos sensíveis, sem pedidos')}
+      ${item(exemplo(ESTADOS_EMPRESA.pendente.hex, '#ffffff'), 'Pedido a decorrer')}
+      ${item(exemplo(ESTADOS_EMPRESA.concluido.hex, '#ffffff'), 'Pedido concluído')}
+    </ul>
+    <p class="mt-3 text-xs leading-4 text-mist"><span class="lg:hidden">Toca</span><span class="hidden lg:inline">Clica</span> numa empresa para veres o que se passa e o que lhe podes pedir.</p>`;
 }
 
 // Todas as empresas da análise, mais as que têm pedidos mas já não estão na lista.
@@ -2528,142 +3428,230 @@ function nosDoMapa() {
     const gravidade = gravidadeDe(empresa);
     return {
       id: empresa.id, name: empresa.name, sector: empresa.sector || 'outros', balde: item?.balde || 'sempedido',
-      ultimo: item?.ultimo || null, empresa, gravidade: gravidade.chave, motivo: gravidade.motivo
+      ultimo: item?.ultimo || null, empresa, gravidade: gravidade.chave, motivo: gravidade.motivo,
+      situacao: estadoDaEmpresa(empresa, item?.ultimo || null)
     };
   });
   comPedidos.forEach((item) => {
     const empresa = obterEmpresa(item.id) || null;
     const gravidade = gravidadeDe(empresa || { sector: item.sector || 'outros' });
-    nos.push({ ...item, sector: item.sector || 'outros', empresa, gravidade: gravidade.chave, motivo: gravidade.motivo });
+    nos.push({ ...item, sector: item.sector || 'outros', empresa, gravidade: gravidade.chave, motivo: gravidade.motivo, situacao: estadoDaEmpresa(empresa || { domain: item.id }, item.ultimo) });
   });
   return nos;
 }
 
 function detalheDoMapa(nos, rede) {
   const sel = selecaoMapa;
-  const fechar = `<button data-action="mapa-limpar" type="button" class="shrink-0 text-xs font-semibold text-slate-400">${tt('Fechar')}</button>`;
-  const cabecalho = (marca, titulo, subtitulo) => `
-    <div class="flex items-start justify-between gap-3">
-      <div class="min-w-0">
-        <p class="flex items-center gap-2 font-semibold">${marca}${titulo}</p>
-        ${subtitulo ? `<p class="mt-0.5 text-xs text-mist">${subtitulo}</p>` : ''}
+  // No telemóvel, uma barra fixa no topo para voltar à lista; no computador só o mapa tem "Fechar"
+  // (o painel não tem margem em cima nem em baixo no telemóvel: as barras fixas ficam encostadas aos limites do ecrã)
+  const voltar = `<div class="sticky top-0 z-20 -mx-5 mb-5 flex items-center bg-ink/95 px-5 py-3 backdrop-blur lg:hidden">
+      <button data-action="fechar-painel" type="button" class="-ml-1 flex items-center gap-1 rounded-lg py-1 pr-2 text-sm font-semibold text-slate-100">${icone('voltar', 'h-4 w-4')}Resultados</button>
+    </div>`;
+  const fechar = modoResultados === 'mapa' ? '<button data-action="mapa-limpar" type="button" class="hidden shrink-0 self-start text-xs font-semibold text-slate-300 lg:inline">Fechar</button>' : '';
+  const cabecalho = (titulo, subtitulo, marca = '') => `${voltar}
+    <div class="flex items-center gap-3.5">
+      ${marca}
+      <div class="min-w-0 flex-1">
+        <h2 class="font-display text-2xl font-semibold leading-tight text-white">${titulo}</h2>
+        ${subtitulo ? `<p class="mt-0.5 text-sm text-slate-300">${subtitulo}</p>` : ''}
       </div>
-      ${sel ? fechar : ''}
+      ${fechar}
     </div>`;
-  const bola = (cor) => `<span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background:${cor};box-shadow:0 0 8px ${cor}"></span>`;
-  const porque = (chave, texto) => `
-    <div class="mt-3 flex gap-2.5 rounded-xl bg-ink/60 px-3 py-2.5 text-xs leading-5 text-slate-300">
-      <span class="mt-1">${iconeGravidade(chave)}</span>
-      <p><span class="font-semibold text-white">${tt('Gravidade {0}.', [SEVERITY[chave].label.toLowerCase()])}</span> ${esc(texto)}</p>
+  const avatar = (conteudo, situacao = null) => `<span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${situacao ? ESTADOS_EMPRESA[situacao.chave].fundo : 'bg-slate-800'} font-display text-xl font-semibold text-white lg:h-11 lg:w-11"${situacao ? ` title="${esc(situacao.texto)}"` : ''}>${conteudo}</span>`;
+  // A sensibilidade numa caixa própria: o nível e o que a empresa costuma guardar
+  const sensibilidade = (chave, texto) => `
+    <div class="mt-5 rounded-2xl border ${SEVERITY[chave].borda} ${['critica', 'alta'].includes(chave) ? 'bg-risco/25' : 'bg-slate-900'} p-4 lg:mt-4 lg:p-3.5">
+      <p class="flex items-center gap-2 text-sm font-semibold ${SEVERITY[chave].texto}">${iconeGravidade(chave, 11)}Sensibilidade ${SEVERITY[chave].label.toLowerCase()}</p>
+      <p class="mt-1.5 text-sm leading-6 text-slate-100">${esc(texto)}</p>
     </div>`;
+  const titulo = (texto, extra = '') => `<h3 class="flex items-baseline justify-between gap-3 text-base font-semibold text-white">${texto}${extra}</h3>`;
   const ordenar = (lista) => [...lista].sort((a, b) => SEVERITY_ORDER.indexOf(a.gravidade) - SEVERITY_ORDER.indexOf(b.gravidade)
     || MAP_ORDER.indexOf(a.balde) - MAP_ORDER.indexOf(b.balde) || a.name.localeCompare(b.name));
-  const linhas = (lista, mostrarArea) => `<div class="mt-2">${ordenar(lista).map((no) => linhaDoMapa(no, mostrarArea)).join('')}</div>`;
-  const contar = (n) => `${n} ${plural(n, tt('empresa'), tt('empresas'))}`;
+  const linhas = (lista, mostrarArea) => `<div class="mt-2 divide-y divide-slate-800">${ordenar(lista).map((no) => linhaDoMapa(no, mostrarArea)).join('')}</div>`;
+  const contar = (n) => `${n} ${plural(n, 'empresa', 'empresas')}`;
   const nomes = (lista) => {
     const n = lista.map((no) => no.name);
     return n.length > 1 ? `${n.slice(0, -1).join(', ')} e ${n[n.length - 1]}` : n[0];
   };
+  // Uma linha de uma lista de opções: o nome, uma frase (só no computador, se não for essencial) e a seta
+  // Uma linha de uma lista de opções: o nome, uma frase só quando é precisa (as outras ficam na dica) e a seta
+  const opcao = (atributos, nome, frase = '', extra = '', fraseSempre = false) => `<button ${atributos} type="button"${frase && !fraseSempre ? ` title="${frase}"` : ''} class="flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-slate-800/50 lg:py-3">
+      <span class="min-w-0 flex-1"><span class="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-100">${nome}${extra}</span>${frase && fraseSempre ? `<span class="mt-0.5 block text-xs leading-5 text-slate-300">${frase}</span>` : ''}</span>
+      <span class="shrink-0 text-slate-400">${icone('seta', 'h-4 w-4')}</span>
+    </button>`;
+  const caixa = (conteudo) => `<div class="mt-3 divide-y divide-slate-800 overflow-hidden rounded-2xl border border-slate-700/70 bg-slate-900">${conteudo}</div>`;
 
-  // Nada escolhido: uma frase e as três empresas mais graves
+  // Nada escolhido (só no mapa, no computador): uma frase e as três mais sensíveis
   if (!sel) {
     const primeiras = ordenar(nos).slice(0, 3);
-    return `<p class="text-sm text-slate-300"><span class="lg:hidden">${tt('Toca')}</span><span class="hidden lg:inline">${tt('Clica')}</span> ${tt('num ponto para veres o que podes fazer.')}</p>
-      ${primeiras.length ? `<p class="mt-3 text-xs font-semibold text-slate-400">${tt('Começa pelas mais graves')}</p>${linhas(primeiras, true)}` : ''}`;
+    return `<p class="text-sm leading-6 text-slate-200"><span class="lg:hidden">Toca</span><span class="hidden lg:inline">Clica</span> numa empresa para veres o que guarda e o que lhe podes pedir.</p>
+      ${primeiras.length ? `<div class="mt-5">${titulo('Começa pelas mais sensíveis')}${linhas(primeiras, true)}</div>` : ''}`;
   }
 
   if (sel.tipo === 'terceiro') {
     const t = rede.terceiros.find((item) => item.id === sel.chave);
     const uma = t.ligados.length === 1;
-    return `${cabecalho(bola(REDE.TERCEIRO), esc(t.nome), `${tt('Terceiro')} · ${esc(t.dominio)}`)}
-      <p class="mt-3 text-sm leading-5 text-slate-300">${esc(nomes(t.ligados))} ${uma ? tt('usa') : tt('usam')} ${tt('o')} ${esc(t.nome)} ${tt('para te enviar emails. O')} ${esc(t.nome)} ${tt('recebe o teu endereço em nome')} ${uma ? tt('dela') : tt('delas')} ${tt('e pode registar quando abres as mensagens.')}</p>
-      <p class="mt-2 text-xs leading-5 text-mist">${tt('Não comprou os teus dados: trabalha por conta')} ${uma ? tt('da empresa') : tt('das empresas')}${tt('. Se pedires o apagamento,')} ${uma ? tt('ela tem') : tt('elas têm')} ${tt('de avisar o')} ${esc(t.nome)} ${tt('(artigo 19.º do RGPD).')}</p>
-      ${linhas(t.ligados, true)}`;
+    return `${cabecalho(esc(t.nome), `Terceiro · ${esc(t.dominio)}`, avatar(esc((t.nome[0] || '?').toUpperCase())))}
+      <p class="mt-5 text-[0.9375rem] leading-6 text-slate-100">${esc(nomes(t.ligados))} ${uma ? 'usa' : 'usam'} o ${esc(t.nome)} para te enviar emails. O ${esc(t.nome)} recebe o teu endereço em nome ${uma ? 'dela' : 'delas'} e pode registar quando abres as mensagens.</p>
+      <p class="mt-2 text-sm leading-6 text-slate-300">Não comprou os teus dados: trabalha por conta ${uma ? 'da empresa' : 'das empresas'}. Se pedires o apagamento, ${uma ? 'ela tem' : 'elas têm'} de avisar o ${esc(t.nome)} (artigo 19.º do RGPD).</p>
+      <div class="mt-7">${titulo(uma ? 'A empresa' : 'As empresas')}${linhas(t.ligados, true)}</div>`;
   }
 
   if (sel.tipo === 'setor') {
     const setor = SECTORS[sel.chave];
     const daArea = nos.filter((no) => no.sector === sel.chave);
-    return `${cabecalho(`<span class="text-slate-300">${icone(sel.chave, 'h-5 w-5')}</span>`, esc(setor.label), contar(daArea.length))}
-      ${porque(setor.gravidade, setor.porque)}
-      ${linhas(daArea, false)}`;
+    return `${cabecalho(esc(setor.label), contar(daArea.length), avatar(icone(sel.chave, 'h-6 w-6')))}
+      ${sensibilidade(setor.gravidade, setor.porque)}
+      <div class="mt-7">${titulo('Empresas desta área')}${linhas(daArea, false)}</div>`;
   }
 
-  // Uma empresa
+  // Uma empresa, por esta ordem: o que guarda, as notícias, o pedido principal (fixo em baixo no telemóvel),
+  // os outros pedidos e, fechado em "Mais opções", tudo o resto
   const no = nos.find((item) => item.id === sel.chave);
   const setor = SECTORS[no.sector] || SECTORS.outros;
   const ev = no.empresa?.evidence;
   const pedidosDaEmpresa = estado.pedidos
     .filter((pedido) => pedido.companyId === no.id && pedido.status !== 'draft')
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  const historico = pedidosDaEmpresa.map((pedido) => `
-    <div class="flex items-center justify-between gap-3 border-b border-slate-800 py-2 last:border-b-0">
-      <span class="text-xs text-slate-300">${esc(RIGHTS[pedido.right].short)}: ${esc(descreverPedido(pedido))}</span>
-      <button data-action="ver-pedido" data-id="${esc(pedido.id)}" type="button" class="shrink-0 text-[11px] font-bold text-lime">${tt('Ver pedido')}</button>
-    </div>`).join('');
-  const semContacto = !no.empresa?.dpo_email;
-  // Com quem partilha e onde já houve problemas, só se houver
+  const aberto = (right) => pedidosDaEmpresa.find((pedido) => pedido.right === right && pedido.status !== 'closed');
+
+  // As notícias: só a mais recente à vista; as outras abrem com "Ver mais"
+  const proprias = noticiasDaEmpresa(no.empresa);
+  const daArea = proprias.length ? [] : noticiasDaArea(no.empresa).slice(0, 2);
+  const todas = [...proprias.map((noticia) => [noticia, false]), ...daArea.map((noticia) => [noticia, true])];
+  const verTodas = renderPainelEmpresa.todasAsNoticias === no.id;
+  const aVista = verTodas ? todas : todas.slice(0, 1);
+  const noticias = todas.length ? `
+    <section class="mt-6 lg:mt-5">
+      ${titulo(proprias.length ? `Notícias sobre ${esc(no.name)}` : 'Notícias da mesma área', todas.length > 1 ? `<span class="text-sm font-normal text-slate-300">${todas.length}</span>` : '')}
+      ${proprias.length ? '' : `<p class="mt-1 text-sm leading-6 text-slate-300">Não conhecemos casos sobre ${esc(no.name)}. ${daArea.length > 1 ? 'Estes são' : 'Este é'} de outras empresas de ${esc(setor.label.toLowerCase())}.</p>`}
+      <div class="mt-3 flex flex-col gap-3">${aVista.map(([noticia, comEmpresa]) => itemDeNoticia(noticia, comEmpresa)).join('')}</div>
+      ${todas.length > aVista.length ? `<button data-action="mais-noticias" data-id="${esc(no.id)}" type="button" class="mt-3 text-sm font-semibold text-slate-100 underline decoration-slate-500 underline-offset-4">Ver mais ${todas.length - aVista.length} ${plural(todas.length - aVista.length, 'notícia', 'notícias')}</button>` : ''}
+    </section>` : '';
+
+  let principal = '';
+  let outrosPedidos = '';
+  if (no.empresa) {
+    const apagamento = aberto('erasure');
+    principal = `<div class="sticky bottom-0 z-10 -mx-5 mt-6 lg:mt-5 border-t border-slate-800 bg-ink/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+      ${apagamento
+        ? `<button data-action="ver-pedido" data-id="${esc(apagamento.id)}" type="button" class="flex w-full items-center gap-3 rounded-xl border border-slate-600 bg-slate-900 px-4 py-3 text-left">
+            <span class="min-w-0 flex-1"><span class="block text-[0.9375rem] font-semibold text-white">Pediste que apaguem os teus dados</span><span class="mt-0.5 block truncate text-xs ${corDoPedido(apagamento)}">${marcaDoPedido(apagamento)}${esc(descreverPedido(apagamento))}</span></span>
+            <span class="shrink-0 text-sm font-semibold text-slate-100">Ver</span>
+          </button>`
+        : `<button data-action="pedido" data-id="${esc(no.id)}" data-right="erasure" type="button" class="flex w-full items-center justify-center rounded-xl bg-lime px-4 py-3.5 text-[0.9375rem] font-bold text-ink transition hover:brightness-95 active:scale-[.98]">Pedir que apaguem os meus dados</button>
+          <p class="mt-2 text-center text-xs leading-5 text-slate-300">${no.empresa.dpo_email ? 'O Veto escreve o pedido e envia-o pelo teu Gmail, se aceitares.' : 'O Veto escreve o pedido e tu envias.'} Têm um mês para responder.</p>`}
+    </div>`;
+    const frases = { access: 'Saber que dados têm e receber uma cópia', portability: 'Num formato que podes levar para outro serviço', objection: 'Deixam de usar os teus dados para publicidade' };
+    outrosPedidos = `<section class="mt-6 lg:mt-5">
+        ${titulo('Outros pedidos')}
+        ${caixa(['access', 'portability', 'objection'].map((right) => {
+          const pedido = aberto(right);
+          return pedido
+            ? opcao(`data-action="ver-pedido" data-id="${esc(pedido.id)}"`, esc(RIGHTS[right].label), `<span class="${corDoPedido(pedido)}">${marcaDoPedido(pedido)}${esc(descreverPedido(pedido))}</span>`, '', true)
+            : opcao(`data-action="pedido" data-id="${esc(no.id)}" data-right="${right}"`, esc(RIGHTS[right].label), esc(frases[right]));
+        }).join(''))}
+      </section>`;
+  }
+
+  // Mais opções, fechado: cancelar a subscrição, apagar os emails (Veto+), o terceiro, os pedidos anteriores,
+  // porque aparece aqui, "não tenho dados aqui" e de onde vem o contacto
   const terceiro = no.empresa ? terceiroDe(no.empresa) : null;
-  const incidentes = incidentesDe(no.empresa);
-  const ligacoes = terceiro || incidentes.length ? `
-    <p class="mt-4 text-xs font-semibold text-slate-400">${terceiro && incidentes.length ? tt('Terceiros e fugas') : terceiro ? tt('Terceiros') : tt('Fugas conhecidas')}</p>
-    <div class="mt-2 flex flex-col gap-1.5">
-      ${terceiro ? `<button data-action="mapa-terceiro" data-id="${esc(terceiro.id)}" type="button" class="flex items-center gap-2 text-left text-xs text-slate-300">${bola(REDE.TERCEIRO)}${tt('Usa o')} ${esc(terceiro.nome)} ${tt('para te enviar emails')}</button>` : ''}
-      ${incidentes.map((n) => `<p class="flex items-center gap-2 text-xs text-slate-300"><span class="text-slate-400">${icone('alerta', 'h-3.5 w-3.5')}</span>${n.tipo === 'fuga' ? tt('Teve uma fuga de dados') : tt('Foi usada numa burla')} ${tt('em')} ${n.data.slice(0, 4)} · <a href="${esc(n.fonte.url)}" target="_blank" rel="noopener noreferrer" data-action="abrir-fonte" data-id="${esc(n.id)}" class="text-slate-400 underline underline-offset-2">${tt('notícia')}</a></p>`).join('')}
-    </div>` : '';
-  // Os quatro direitos: cada um mostra se já há um pedido aberto
-  const direitos = no.empresa ? `
-    <p class="mt-4 text-xs font-semibold text-slate-400">${tt('O que podes pedir')}</p>
-    <div class="mt-2 grid grid-cols-2 gap-2">
-      ${DIREITOS_NO_MAPA.map(({ right, titulo, frase }) => {
-        const aberto = pedidosDaEmpresa.find((pedido) => pedido.right === right && pedido.status !== 'closed');
-        return `<button data-action="pedido" data-id="${esc(no.id)}" data-right="${right}" type="button" ${semContacto ? 'disabled' : ''}
-          class="flex flex-col rounded-xl border p-3 text-left transition ${aberto ? 'border-lime/40 bg-lime/5' : 'border-slate-800 bg-ink/60 hover:border-slate-600'} ${semContacto ? 'opacity-40' : ''}">
-          <span class="text-sm font-semibold">${titulo}</span>
-          <span class="mt-1 text-[11px] leading-4 text-mist">${frase}</span>
-          ${aberto ? `<span class="mt-2 text-[10px] font-bold text-lime">${esc(descreverPedido(aberto))}</span>` : ''}
-        </button>`;
-      }).join('')}
-    </div>` : '';
-  return `${cabecalho(bola((SEVERITY[no.gravidade] || SEVERITY.media).hex), esc(no.name), `${esc(setor.label)}${ev ? tt(' · ≈ {0} emails', [ev.totalRecebidos ?? ev.count]) : ''}`)}
-    ${porque(no.gravidade, no.motivo)}
-    ${ligacoes}
-    ${direitos}
-    ${no.empresa?.dpo_email ? `<p class="mt-2 truncate text-[11px] text-slate-500">${no.empresa.contactExample ? tt('Contacto por verificar') : tt('Contacto')}: ${esc(no.empresa.dpo_email)}</p>` : ''}
-    ${historico ? `<p class="mt-4 text-xs font-semibold text-slate-400">${tt('Os teus pedidos')}</p><div class="mt-1">${historico}</div>` : ''}`;
+  const extras = [
+    no.empresa?.unsubscribe && !no.empresa.unsubscribedAt ? opcao(`data-action="cancelar-subscricao" data-id="${esc(no.id)}"`, 'Cancelar a subscrição', 'Deixas de receber publicidade. Os dados ficam lá', '', true) : '',
+    no.empresa?.unsubscribedAt ? '<p class="px-4 py-3.5 text-sm leading-6 text-slate-300">Cancelaste a subscrição. A empresa continua a guardar os teus dados.</p>' : '',
+    no.empresa && !estado.demo ? opcao(`data-action="apagar-emails" data-id="${esc(no.id)}"`, 'Apagar os emails desta empresa', no.empresa.limpeza ? `Moveste ${no.empresa.limpeza.quantos} para o Lixo a ${formatarData(no.empresa.limpeza.em)}` : 'Vão para o Lixo do Gmail. A empresa continua com os dados', SELO_PLUS, true) : '',
+    terceiro ? opcao(`data-action="mapa-terceiro" data-id="${esc(terceiro.id)}"`, `Usa o ${esc(terceiro.nome)}`, 'Um terceiro que te envia os emails por ela', '', true) : '',
+    ...pedidosDaEmpresa.filter((pedido) => pedido.status === 'closed').map((pedido) => opcao(`data-action="ver-pedido" data-id="${esc(pedido.id)}"`, `Pedido anterior: ${esc(RIGHTS[pedido.right].short.toLowerCase())}`, esc(descreverPedido(pedido)), '', true))
+  ].join('');
+  const mais = no.empresa ? `<details data-mais="${esc(no.id)}" class="guia mt-6 lg:mt-5 overflow-hidden rounded-2xl border border-slate-700/70 bg-slate-900"${renderPainelEmpresa.maisAberto === no.id ? ' open' : ''}>
+      <summary class="flex cursor-pointer items-center justify-between gap-3 px-4 py-3.5 text-[0.9375rem] font-semibold text-slate-100 lg:py-3">Mais opções
+        <svg viewBox="0 0 16 16" class="guia-seta h-4 w-4 shrink-0 text-slate-400 transition" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+      </summary>
+      <div class="divide-y divide-slate-800 border-t border-slate-800">
+        ${extras}
+        <div class="px-4 py-3.5 text-sm leading-6 text-slate-300">
+          <p class="font-semibold text-slate-100">Porque aparece aqui</p>
+          ${porqueEstaEmpresa(no.empresa)}
+          <button data-action="descartar" data-id="${esc(no.id)}" type="button" class="mt-3 font-semibold text-slate-100 underline decoration-slate-500 underline-offset-4">Não tenho dados aqui</button>
+        </div>
+        <p class="px-4 py-3.5 text-xs leading-5 text-slate-300">${esc(descreverContacto(no.empresa))}${no.empresa.contactSource ? ` <a href="${esc(no.empresa.contactSource)}" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-100 underline underline-offset-2">Fonte</a>` : ''}</p>
+      </div>
+    </details>` : '';
+
+  // No computador, se a empresa não couber na coluna, um esbatido em baixo mostra que há mais (em vez de um corte seco)
+  const fimDoPainel = '<div class="pointer-events-none sticky -bottom-5 -mx-5 -mb-5 hidden h-8 bg-gradient-to-t from-[#262028] to-transparent lg:block" aria-hidden="true"></div>';
+  return `${cabecalho(esc(no.name), `${esc(setor.label)}${ev ? ` · ≈ ${ev.totalRecebidos ?? ev.count} emails` : ''}`, avatar(esc(no.empresa?.icon || (no.name[0] || '?').toUpperCase()), no.situacao))}
+    ${sensibilidade(no.gravidade, no.motivo)}
+    ${noticias}
+    ${principal}
+    ${outrosPedidos}
+    ${mais}
+    <div class="h-12 lg:hidden" aria-hidden="true"></div>
+    ${fimDoPainel}`;
+}
+
+// A cor do estado de um pedido: âmbar se está atrasado, verde se já foi enviado (é algo que fizeste)
+function corDoPedido() {
+  return 'text-slate-200';
+}
+
+// Um quadrado pequeno da cor do estado do pedido, antes do texto
+function marcaDoPedido(pedido) {
+  return `<span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm align-[-1px] ${ESTADOS_EMPRESA[estadoDoPedido(pedido).chave].fundo}"></span>`;
+}
+
+// Uma notícia na empresa: o título e porque importa, com dois botões à vista:
+// "Ler o resumo" abre o resto aqui mesmo, e o outro leva à notícia original (noticiasAbertas: no início do ficheiro)
+function itemDeNoticia(noticia, comEmpresa = false) {
+  const tipo = TIPOS_NOTICIA[noticia.tipo]?.label || 'Notícia';
+  const proprio = comEmpresa ? ` · ${esc(noticia.empresa)}` : '';
+  const aberta = noticiasAbertas.has(noticia.id);
+  return `<article class="rounded-2xl border border-slate-700/70 bg-slate-900 p-4 lg:p-3.5">
+    <p class="text-xs font-semibold text-slate-300">${esc(tipo)}${proprio} · ${formatarData(noticia.data)} · ${esc(noticia.fonte.nome)}${noticia.estado === 'por_confirmar' ? ' · por confirmar' : ''}</p>
+    <p class="mt-1.5 text-[0.9375rem] font-semibold leading-snug text-white">${esc(noticia.titulo)}</p>
+    ${aberta
+      ? `<p class="mt-2 text-sm leading-6 text-slate-200">${esc(noticia.resumo)}</p>
+         <p class="mt-2 text-sm leading-6 text-slate-200"><span class="font-semibold text-white">Porque importa:</span> ${esc(noticia.importa)}</p>`
+      : `<p class="mt-1.5 line-clamp-2 text-sm leading-6 text-slate-200">${esc(noticia.importa)}</p>`}
+    <div class="mt-3 flex flex-wrap gap-2">
+      <button data-action="expandir-noticia" data-id="${esc(noticia.id)}" type="button" aria-expanded="${aberta}"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-600 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:border-slate-400">
+        ${aberta ? 'Mostrar menos' : 'Ler o resumo'}
+        <svg viewBox="0 0 16 16" class="h-3.5 w-3.5 transition ${aberta ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+      </button>
+      <a href="${esc(noticia.fonte.url)}" target="_blank" rel="noopener noreferrer" data-action="abrir-fonte" data-id="${esc(noticia.id)}"
+        class="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-ink transition hover:bg-white" aria-label="Abrir a notícia em ${esc(noticia.fonte.nome)}">Abrir a notícia <span aria-hidden="true">↗</span></a>
+    </div>
+  </article>`;
 }
 
 function linhaDoMapa(no, mostrarArea) {
   const setor = SECTORS[no.sector] || SECTORS.outros;
-  const semContacto = !no.empresa?.dpo_email;
-  const texto = no.ultimo
-    ? `${RIGHTS[no.ultimo.right].short}: ${descreverPedido(no.ultimo)}`
-    : semContacto ? tt('Ainda sem pedido · contacto por verificar') : tt('Ainda sem pedido');
-  let acao = '';
-  if (no.ultimo) {
-    acao = `<button data-action="ver-pedido" data-id="${esc(no.ultimo.id)}" type="button" class="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-[11px] font-bold text-slate-200">${tt('Ver pedido')}</button>`;
-  } else if (no.empresa && !semContacto) {
-    acao = `<button data-action="mapa-empresa" data-id="${esc(no.id)}" type="button" class="shrink-0 rounded-lg bg-white px-3 py-1.5 text-[11px] font-bold text-ink">${tt('Ver opções')}</button>`;
-  }
-  const cor = SEVERITY[no.gravidade].hex;
-  return `<div class="flex items-center gap-3 border-b border-slate-800 py-2.5 last:border-b-0">
-    <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background:${cor}"></span>
-    <button data-action="mapa-empresa" data-id="${esc(no.id)}" type="button" class="min-w-0 flex-1 text-left">
-      <span class="flex items-center gap-1.5 truncate text-sm font-semibold">${esc(no.name)}${mostrarArea ? `<span class="text-slate-500" title="${esc(setor.label)}">${icone(no.sector, 'h-3.5 w-3.5')}</span>` : ''}</span>
-      <span class="mt-0.5 flex items-center gap-1.5 truncate text-[11px] text-mist">${iconeGravidade(no.gravidade, 8)}<span>${SEVERITY[no.gravidade].label}</span><span>·</span><span class="truncate">${esc(texto)}</span></span>
-    </button>
-    ${acao}
-  </div>`;
+  const texto = no.ultimo ? `${RIGHTS[no.ultimo.right].short}: ${descreverPedido(no.ultimo)}` : 'Ainda sem pedido';
+  return `<button data-action="abrir-empresa" data-id="${esc(no.id)}" type="button" class="flex w-full items-center gap-3 py-2.5 text-left">
+    <span class="min-w-0 flex-1">
+      <span class="block truncate text-sm font-semibold">${esc(no.name)}</span>
+      <span class="mt-0.5 flex items-center gap-1.5 truncate text-xs text-mist">${iconeGravidade(no.gravidade, 8)}<span>${SEVERITY[no.gravidade].label}</span>${mostrarArea ? `<span>·</span><span>${esc(setor.short)}</span>` : ''}<span>·</span><span class="truncate">${esc(texto)}</span></span>
+    </span>
+    <span class="shrink-0 text-slate-500">${icone('seta', 'h-4 w-4')}</span>
+  </button>`;
 }
 
 function alternarSelecao(tipo, chave) {
   const igual = selecaoMapa && selecaoMapa.tipo === tipo && selecaoMapa.chave === chave;
   selecaoMapa = igual ? null : { tipo, chave };
-  renderPedidos();
-  if (selecaoMapa) document.getElementById('map-detail').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (selecaoMapa?.tipo === 'empresa') registarEmpresaAberta(chave);
+  renderPainel();
 }
 
 function mostrarPedido(pedidoId) {
+  // Os pedidos estão na página Pedidos: vai até lá e realça o cartão
+  if (vistaAtual() !== 'pedidos') {
+    location.hash = '#pedidos';
+    setTimeout(() => mostrarPedido(pedidoId), 350);
+    return;
+  }
   const cartao = document.getElementById(`pedido-${pedidoId}`);
   if (!cartao) return;
   cartao.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2683,8 +3671,8 @@ function criarCartaoPedido(pedido) {
   let linhaPrazo = '';
   if (pedido.status === 'sent' && prazo !== null) {
     linhaPrazo = prazo >= 0
-      ? `<span class="text-slate-300">${tt('Prazo:')} ${formatarData(pedido.dueDate)} · ${prazo === 0 ? tt('termina hoje') : tt('faltam {0} {1}', [prazo, prazo === 1 ? tt('dia') : tt('dias')])}</span>`
-      : `<span class="font-semibold text-orange-300">${tt('Prazo terminou a {0} · há {1} {2}', [formatarData(pedido.dueDate), -prazo, prazo === -1 ? tt('dia') : tt('dias')])}</span>`;
+      ? `<span class="text-slate-300">Prazo: ${formatarData(pedido.dueDate)} · ${prazo === 0 ? 'termina hoje' : `faltam ${prazo} ${prazo === 1 ? 'dia' : 'dias'}`}</span>`
+      : `<span class="font-semibold text-white">Prazo terminou a ${formatarData(pedido.dueDate)} · há ${-prazo} ${prazo === -1 ? 'dia' : 'dias'}</span>`;
   }
 
   const acoes = [];
@@ -2701,22 +3689,27 @@ function criarCartaoPedido(pedido) {
     acoes.push(botao('resposta', pedido.id, tt('Registar o resultado'), 'primary'));
   }
   if (balde === 'confirmado' && pedido.right !== 'erasure' && obterEmpresa(pedido.companyId)) {
-    acoes.push(`<button data-action="pedido" data-id="${esc(pedido.companyId)}" data-right="erasure" type="button" class="rounded-lg bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-200">${tt('Pedir apagamento')}</button>`);
+    acoes.push(`<button data-action="pedido" data-id="${esc(pedido.companyId)}" data-right="erasure" type="button" class="rounded-lg bg-white px-3 py-2 text-xs font-bold text-ink">Pedir apagamento</button>`);
   }
 
-  const resultado = pedido.outcome ? `<span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${balde === 'confirmado' ? 'bg-rose-400/10 text-rose-200' : balde === 'atraso' ? 'bg-orange-400/10 text-orange-200' : 'bg-lime/10 text-lime'}">${esc(OUTCOMES[pedido.outcome].badge)}</span>` : '';
+  // "Enviar novamente" em todos os pedidos ainda abertos (também com uma resposta por registar)
+  const reenviar = pedido.email && (['sent', 'awaiting_confirmation'].includes(pedido.status) || (pedido.status === 'reply_received' && pedido.holdsData === null));
+  const resultado = pedido.outcome ? `<span class="shrink-0 rounded-full bg-slate-800 px-2 py-0.5 text-[0.6875rem] font-bold text-slate-200">${esc(OUTCOMES[pedido.outcome].badge)}</span>` : '';
 
   return `<article id="pedido-${esc(pedido.id)}" class="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 transition">
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
-        <p class="flex items-center gap-2 font-semibold"><span class="h-2 w-2 shrink-0 rounded-full ${balde ? BUCKETS[balde].dot : 'bg-slate-500'}"></span>${esc(pedido.companyName)} <span class="text-slate-500" title="${esc(setor.label)}">${icone(pedido.companySector || 'outros', 'h-3.5 w-3.5')}</span></p>
+        <p class="flex items-center gap-2 font-semibold"><span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white ${['critica', 'alta'].includes(gravidadeDe(obterEmpresa(pedido.companyId) || { sector: pedido.companySector || 'outros' }).chave) ? 'bg-risco' : 'bg-slate-800'}" aria-hidden="true">${esc((pedido.companyName[0] || '?').toUpperCase())}</span>${esc(pedido.companyName)} <span class="text-slate-500" title="${esc(setor.label)}">${icone(pedido.companySector || 'outros', 'h-3.5 w-3.5')}</span></p>
         <p class="mt-0.5 text-xs text-mist">${esc(direito.short)} · ${esc(direito.article)}</p>
       </div>
-      ${resultado || (['sent', 'awaiting_confirmation'].includes(pedido.status) && pedido.email ? `<button data-action="enviar-novamente" data-id="${esc(pedido.id)}" type="button" class="shrink-0 rounded-lg border border-slate-700 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 hover:border-slate-500">${tt('Enviar novamente')}</button>` : '')}
+      ${(reenviar) || resultado ? `<div class="flex shrink-0 flex-col items-end gap-1.5">
+        ${reenviar ? `<button data-action="enviar-novamente" data-id="${esc(pedido.id)}" type="button" class="rounded-lg border border-slate-700 px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:border-slate-500">Enviar novamente</button>` : ''}
+        ${resultado}
+      </div>` : ''}
     </div>
-    <div class="mt-3 flex flex-col gap-1 text-[11px] text-mist">
-      <span>${esc(STATUS_LABELS[pedido.status])}</span>
-      ${pedido.sentAt ? `<span>${tt('Enviado a')} ${formatarData(pedido.sentAt)}${pedido.followUpAt ? tt(' · insistência a {0}', [formatarData(pedido.followUpAt)]) : ''}</span>` : ''}
+    <div class="mt-3 flex flex-col gap-1 text-xs text-mist">
+      <span>${esc(pedido.via === 'veto' && pedido.status === 'sent' ? 'Enviado pelo Veto, do teu Gmail' : STATUS_LABELS[pedido.status])}</span>
+      ${pedido.sentAt ? `<span>Enviado a ${formatarData(pedido.sentAt)}${pedido.email ? ` para ${esc(pedido.email.replace(/^https?:\/\/(www\.)?/, '').split(/[/?#]/)[0])}` : ''}${pedido.followUpAt ? ` · insistência a ${formatarData(pedido.followUpAt)}` : ''}</span>` : ''}
       ${linhaPrazo}
       ${pedido.replyAt && pedido.outcome !== 'no_reply' ? `<span>${tt('Resposta a')} ${formatarData(pedido.replyAt)}</span>` : ''}
     </div>
@@ -2741,6 +3734,572 @@ function descreverPedido(pedido) {
   }
   if (pedido.outcome) return OUTCOMES[pedido.outcome].badge.toLowerCase();
   return STATUS_LABELS[pedido.status].toLowerCase();
+}
+
+/* ==========================================================================
+   Ações no Gmail (Veto+, abertas a todos durante o teste)
+   - Pedir a várias empresas: o mesmo direito, um email a cada empresa, enviado
+     pelo Gmail só depois de a pessoa ver exatamente o que sai e aceitar.
+   - Apagar os emails de uma empresa: o Veto move-os para o Lixo do Gmail.
+   Cada ação pede ao Google só a autorização de que precisa, no próprio clique,
+   e cancela-a logo a seguir, como na análise.
+   ========================================================================== */
+// Tem de correr no próprio clique: senão, o browser bloqueia a janela do Google.
+function autorizarGmail(scopes, aoAutorizar, aoFalhar) {
+  const clientId = document.getElementById('google-client-id').value.trim() || GOOGLE_CLIENT_ID;
+  if (!clientId || location.protocol === 'file:') {
+    aoFalhar('A autorização do Google não está disponível. Recarrega a página e tenta outra vez.');
+    return;
+  }
+  if (!googlePronto()) {
+    // Não se pode esperar aqui (a janela do Google tem de abrir no clique): tenta carregar para o próximo
+    const bloqueado = window.vetoGoogle === 'falhou' || window.vetoGoogle === 'carregou';
+    esperarGoogle();
+    aoFalhar(bloqueado ? textoGoogleIndisponivel('bloqueado') : 'O login do Google ainda está a carregar. Tenta outra vez daqui a uns segundos.');
+    return;
+  }
+  const cliente = google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: scopes.join(' '),
+    include_granted_scopes: false,
+    // Sugere ao Google a conta que foi analisada
+    ...(estado.contaEmail ? { login_hint: estado.contaEmail } : {}),
+    error_callback: (erro) => aoFalhar(erro?.type === 'popup_failed_to_open'
+      ? 'O browser bloqueou a janela do Google. Permite pop-ups para este site e tenta outra vez.'
+      : 'A janela do Google fechou antes de terminares.'),
+    callback: (resposta) => {
+      if (resposta.error) {
+        aoFalhar(resposta.error === 'access_denied' ? 'Não deste autorização no Google.' : `O Google recusou a autorização (${resposta.error}).`);
+        return;
+      }
+      if (google.accounts.oauth2.hasGrantedAllScopes?.(resposta, ...scopes) === false) {
+        revogarAcesso(resposta.access_token);
+        aoFalhar('No ecrã do Google, a permissão ficou por marcar. Tenta outra vez e marca a caixa.');
+        return;
+      }
+      aoAutorizar(resposta.access_token);
+    }
+  });
+  cliente.requestAccessToken();
+}
+
+function revogarAcesso(token) {
+  try { google.accounts.oauth2.revoke(token, () => {}); } catch (erro) { /* o acesso já expirou */ }
+}
+
+// Tudo acontece na conta que foi analisada: é a esse endereço que as empresas associam os dados.
+async function confirmarConta(token, comGmail) {
+  let conta = '';
+  if (comGmail) {
+    conta = (await gmailFetch('/profile', token, GMAIL_QUOTA.CUSTO_LIST).catch(() => null))?.emailAddress || '';
+  } else {
+    const resposta = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null);
+    conta = resposta?.ok ? ((await resposta.json().catch(() => ({}))).email || '') : '';
+  }
+  if (!conta) throw new Error('Não conseguimos confirmar a tua conta Google. Tenta outra vez.');
+  if (estado.contaEmail && conta.toLowerCase() !== estado.contaEmail.toLowerCase()) {
+    throw new Error(`Escolheste ${conta} no Google, mas analisaste ${estado.contaEmail}. Tenta outra vez com ${estado.contaEmail}.`);
+  }
+  if (!estado.contaEmail) {
+    estado.contaEmail = conta;
+    guardarEstado();
+  }
+  return conta;
+}
+
+function abrirSeparador(url) {
+  const janela = window.open(url, '_blank');
+  if (janela) janela.opener = null;
+  else window.location.href = url;
+}
+
+function urlPesquisaGmail(pesquisa) {
+  return `https://mail.google.com/mail/${estado.contaEmail ? `?authuser=${encodeURIComponent(estado.contaEmail)}` : 'u/0/'}#search/${encodeURIComponent(pesquisa)}`;
+}
+
+// Email em texto simples, no formato que o Gmail espera (RFC 2822, em base64url).
+// O assunto e o texto vão em UTF-8 (base64), para os acentos chegarem certos.
+function base64Utf8(texto) {
+  const bytes = new TextEncoder().encode(texto);
+  let binario = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) binario += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(binario);
+}
+
+function cabecalhoUtf8(texto) {
+  // Palavras codificadas com até 75 caracteres cada (RFC 2047)
+  const partes = [];
+  let atual = '';
+  for (const letra of texto) {
+    if (new TextEncoder().encode(atual + letra).length > 45) {
+      partes.push(atual);
+      atual = '';
+    }
+    atual += letra;
+  }
+  if (atual) partes.push(atual);
+  return partes.map((parte) => `=?UTF-8?B?${base64Utf8(parte)}?=`).join('\r\n ');
+}
+
+const EMAIL_SEGURO = /^[^\s@<>,;:"()[\]\\]+@[^\s@<>,;:"()[\]\\]+\.[a-z]{2,}$/i;
+function mensagemRaw(para, assunto, corpo) {
+  if (!EMAIL_SEGURO.test(para)) throw new Error('o endereço da empresa não é válido');
+  const mensagem = [
+    `To: ${para}`,
+    `Subject: ${cabecalhoUtf8(assunto)}`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/plain; charset="UTF-8"',
+    'Content-Transfer-Encoding: base64',
+    '',
+    base64Utf8(corpo.replace(/\r?\n/g, '\r\n')).replace(/.{76}/g, '$&\r\n')
+  ].join('\r\n');
+  return base64Utf8(mensagem).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/* --- Pedir a várias empresas ---------------------------------------------- */
+
+// Todas as empresas, com o motivo por que algumas ficam fora deste envio
+function empresasParaLote(right) {
+  return visiveis().map((empresa) => {
+    const aberto = estado.pedidos.some((pedido) => pedido.companyId === empresa.id && pedido.right === right && !['closed', 'draft'].includes(pedido.status));
+    let fora = '';
+    if (aberto) fora = 'aberto';
+    else if (!empresa.dpo_email) fora = empresa.privacyForm ? 'formulario' : 'sem_contacto';
+    return { empresa, fora, gravidade: gravidadeDe(empresa).chave };
+  }).sort((a, b) => SEVERITY_ORDER.indexOf(a.gravidade) - SEVERITY_ORDER.indexOf(b.gravidade) || a.empresa.name.localeCompare(b.empresa.name));
+}
+
+function abrirLote(onde = 'pedidos', right = 'access') {
+  lote = { passo: 'escolher', right, selecionadas: new Set(), envios: [], erro: '', onde };
+  registarEvento('lote_aberto', { onde });
+  const caixa = document.getElementById('lote');
+  caixa.classList.remove('hidden');
+  caixa.classList.add('flex');
+  renderLote();
+  document.getElementById('lote-painel').focus();
+}
+
+function fecharLote() {
+  if (!lote || lote.passo === 'enviar') return; // a meio do envio, a janela fica aberta
+  const acabou = lote.passo === 'fim';
+  lote = null;
+  const caixa = document.getElementById('lote');
+  caixa.classList.add('hidden');
+  caixa.classList.remove('flex');
+  document.getElementById('lote-painel').innerHTML = '';
+  if (acabou) renderTudo();
+}
+
+function renderLote() {
+  if (!lote) return;
+  const painel = document.getElementById('lote-painel');
+  const direito = RIGHTS[lote.right];
+  const conta = estado.contaEmail;
+  const contar = (n, um, varios) => `${n} ${plural(n, um, varios)}`;
+  const fechar = lote.passo === 'enviar' ? '' : `<button data-action="lote-fechar" type="button" aria-label="Fechar" class="-mr-1 -mt-1 shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"><svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`;
+  const topo = (titulo, texto) => `
+    <div class="flex items-start justify-between gap-3 px-5 pt-5 lg:px-7 lg:pt-7">
+      <div class="min-w-0">
+        <h2 id="lote-titulo" class="flex items-center gap-2 font-display text-lg font-semibold">${titulo}</h2>
+        ${texto ? `<p class="mt-1 text-sm leading-5 text-mist">${texto}</p>` : ''}
+      </div>
+      ${fechar}
+    </div>`;
+  const rodape = (botoes) => `<div class="flex flex-col-reverse gap-2 border-t border-slate-800 px-5 py-4 lg:flex-row lg:justify-end lg:px-7">${botoes}</div>`;
+  const botaoLote = (acao, texto, estilo, extra = '') => `<button data-action="${acao}" type="button" ${extra} class="rounded-xl px-4 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40 ${estilo === 'primary' ? 'bg-white text-ink' : estilo === 'secondary' ? 'bg-slate-800 text-slate-100' : 'text-slate-400'}">${texto}</button>`;
+  const erro = lote.erro ? `<p role="alert" class="mt-4 rounded-xl border border-rose-400/30 bg-rose-400/10 px-3 py-2.5 text-xs leading-5 text-rose-100">${esc(lote.erro)}</p>` : '';
+
+  if (lote.passo === 'escolher') {
+    const todas = empresasParaLote(lote.right);
+    const prontas = todas.filter((item) => !item.fora);
+    const fora = todas.filter((item) => item.fora);
+    // Sai da seleção quem deixou de poder ir (por exemplo, ao mudar de direito)
+    lote.selecionadas.forEach((id) => { if (!prontas.some((item) => item.empresa.id === id)) lote.selecionadas.delete(id); });
+    const n = lote.selecionadas.size;
+    // "Fora deste envio" fica como estava (aberto por quem o abriu, ou aberto se não houver mais nada)
+    const detalhesFora = painel.querySelector('details[data-lote-fora]');
+    const foraAberto = detalhesFora ? detalhesFora.open : !prontas.length;
+    const textoAberto = Boolean(painel.querySelector('details[data-lote-texto]')?.open);
+    const semCatalogo = avisoDoCatalogo();
+    const linha = ({ empresa, gravidade }) => `
+      <label class="flex cursor-pointer items-center gap-3 border-b border-slate-800 py-2.5 last:border-b-0">
+        <input type="checkbox" data-lote-empresa="${esc(empresa.id)}" class="h-4 w-4 shrink-0 accent-lime"${lote.selecionadas.has(empresa.id) ? ' checked' : ''}>
+        <span class="min-w-0 flex-1">
+          <span class="flex items-center gap-1.5 text-sm font-semibold"><span class="truncate">${esc(empresa.name)}</span><span class="text-slate-500" title="${esc((SECTORS[empresa.sector] || SECTORS.outros).label)}">${icone(empresa.sector || 'outros', 'h-3.5 w-3.5')}</span></span>
+          <span class="mt-0.5 flex items-center gap-1.5 text-xs text-mist">${iconeGravidade(gravidade, 8)}<span class="truncate">${esc(empresa.dpo_email)}</span></span>
+        </span>
+      </label>`;
+    const motivos = {
+      aberto: `Já tens um pedido de ${direito.short.toLowerCase()} aberto`,
+      formulario: 'Só aceita o formulário dela: pede-lhe nos resultados',
+      sem_contacto: 'Contacto por confirmar'
+    };
+    const linhaFora = ({ empresa, fora: motivo }) => `
+      <div class="flex items-center gap-3 border-b border-slate-800 py-2.5 last:border-b-0">
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm font-semibold text-slate-300">${esc(empresa.name)}</span>
+          <span class="mt-0.5 block text-xs text-mist">${motivos[motivo]}</span>
+        </span>
+        ${motivo === 'sem_contacto' ? `<button data-action="lote-indicar" data-id="${esc(empresa.id)}" type="button" class="shrink-0 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-200">Indicar email</button>` : ''}
+      </div>`;
+    painel.innerHTML = `
+      ${topo(`Pedir a várias empresas ${SELO_PLUS}`, `O mesmo pedido, um email a cada empresa, enviado do teu Gmail${conta ? ` (${esc(conta)})` : ''}. Antes de sair, vês tudo o que vai ser enviado.`)}
+      <div class="min-h-0 flex-1 overflow-y-auto px-5 pb-5 lg:px-7">
+        ${semCatalogo ? `<p role="status" class="mt-5 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2.5 text-xs leading-5 text-amber-100">${esc(semCatalogo)} Até lá, indica o email de cada empresa em «Fora deste envio».</p>` : ''}
+        <p class="mt-5 text-xs font-semibold text-slate-400">O que pedes</p>
+        <div class="mt-2 grid grid-cols-2 gap-2">
+          ${DIREITOS_NO_MAPA.map(({ right, titulo, frase }) => `
+            <button data-action="lote-direito" data-right="${right}" type="button" aria-pressed="${right === lote.right}"
+              class="flex flex-col rounded-xl border p-3 text-left transition ${right === lote.right ? 'border-lime bg-lime/10' : 'border-slate-800 bg-ink/60 hover:border-slate-600'}">
+              <span class="text-sm font-semibold">${titulo}</span>
+              <span class="mt-1 text-xs leading-4 text-mist">${frase}</span>
+            </button>`).join('')}
+        </div>
+        <!-- O texto que vai sair, visível antes de escolher a quem -->
+        <details data-lote-texto class="mt-3 rounded-xl border border-slate-800 px-3"${textoAberto ? ' open' : ''}>
+          <summary class="cursor-pointer py-2.5 text-xs font-semibold text-slate-300">Ver o texto do email</summary>
+          <p class="text-xs leading-4 text-mist">Assunto: ${esc(direito.subject)}</p>
+          <div class="mb-3 mt-2 max-h-56 overflow-y-auto whitespace-pre-wrap rounded-lg bg-ink/70 p-3 text-xs leading-5 text-slate-200">${esc(direito.body('[nome da empresa]'))}</div>
+        </details>
+        <div class="mt-6 flex items-end justify-between gap-3">
+          <p class="text-xs font-semibold text-slate-400">A quem · ${contar(prontas.length, 'empresa com email', 'empresas com email')}</p>
+          ${prontas.length ? `<button data-action="lote-todas" type="button" class="shrink-0 text-xs font-semibold text-lime">${n === prontas.length ? 'Limpar a seleção' : 'Selecionar todas'}</button>` : ''}
+        </div>
+        <div class="mt-1">${prontas.length ? prontas.map(linha).join('') : '<p class="py-4 text-center text-xs text-mist">Nenhuma empresa com email para este pedido.</p>'}</div>
+        ${fora.length ? `
+          <details data-lote-fora class="mt-5 rounded-xl border border-slate-800 px-3"${foraAberto ? ' open' : ''}>
+            <summary class="cursor-pointer py-2.5 text-xs font-semibold text-slate-400">Fora deste envio · ${fora.length}</summary>
+            <div class="pb-1">${fora.map(linhaFora).join('')}</div>
+          </details>` : ''}
+      </div>
+      ${rodape(botaoLote('lote-rever', n ? `Rever ${contar(n, 'pedido', 'pedidos')}` : 'Escolhe as empresas', 'primary', n ? '' : 'disabled'))}`;
+    return;
+  }
+
+  if (lote.passo === 'rever') {
+    const envios = lote.envios;
+    const primeira = envios[0];
+    const unica = lote.unica;
+    painel.innerHTML = `
+      ${unica
+        ? topo(`Pedir à ${esc(primeira.nome)}: ${esc(direito.label.toLowerCase())}`, 'Se aceitares, o Veto envia este email pelo teu Gmail. Se preferires enviá-lo tu, abre-o no teu email.')
+        : topo('Confirma o que vai ser enviado', `Depois de aceitares, o Veto envia ${envios.length === 1 ? 'este email' : `estes ${envios.length} emails`} pelo teu Gmail, sem mais perguntas.`)}
+      <div class="min-h-0 flex-1 overflow-y-auto px-5 pb-5 lg:px-7">
+        ${erro}
+        <dl class="mt-4 grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-3 gap-y-2.5 text-sm">
+          <dt class="text-mist">De</dt><dd class="truncate font-semibold">${conta ? esc(conta) : 'A conta que escolheres no Google (usa a que analisaste)'}</dd>
+          <dt class="text-mist">Para</dt>
+          <dd>
+            ${unica
+              ? `<span class="font-semibold">${esc(primeira.email)}</span>`
+              : `<ul class="max-h-40 overflow-y-auto rounded-xl border border-slate-800 px-3">
+              ${envios.map((envio) => `<li class="flex items-baseline justify-between gap-3 border-b border-slate-800 py-2 last:border-b-0"><span class="truncate font-semibold">${esc(envio.nome)}</span><span class="truncate text-xs text-mist">${esc(envio.email)}</span></li>`).join('')}
+            </ul>`}
+          </dd>
+          <dt class="text-mist">Assunto</dt><dd class="font-semibold leading-5">${esc(direito.subject)}</dd>
+        </dl>
+        ${lote.right === 'erasure' ? `<p class="mt-4 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2.5 text-xs leading-5 text-amber-100">${unica
+          ? `Se ainda usas a tua conta na ${esc(primeira.nome)}, pensa bem: o apagamento pode fechá-la.`
+          : 'Se ainda usas alguma destas contas, volta atrás e tira-a da lista: o apagamento pode fechá-la.'}</p>` : ''}
+        <p class="mt-4 flex gap-2.5 rounded-xl bg-ink/70 px-3 py-2.5 text-xs leading-5 text-slate-300"><span class="mt-0.5 text-lime">${icone('cadeado', 'h-4 w-4')}</span><span>O Google vai pedir-te autorização para enviar emails em teu nome. O Veto usa-a só para ${envios.length === 1 ? 'este email' : `estes ${envios.length} emails`} e cancela-a logo a seguir. As cópias ficam na tua pasta Enviados e as respostas chegam à tua caixa de entrada.</span></p>
+        <p class="mt-5 text-xs font-semibold text-slate-400">Texto do email${envios.length > 1 ? ` à ${esc(primeira.nome)}` : ''}</p>
+        <div class="mt-2 max-h-64 overflow-y-auto whitespace-pre-wrap rounded-xl bg-ink/70 p-3.5 text-xs leading-5 text-slate-200">${esc(direito.body(primeira.nome))}</div>
+        ${envios.length > 1 ? '<p class="mt-2 text-xs leading-4 text-mist">Em cada email muda só o nome da empresa.</p>' : ''}
+      </div>
+      ${rodape(unica
+        ? `${botaoLote('lote-manual', 'Abrir no meu email', 'secondary')}${botaoLote('lote-enviar', 'Aceitar e enviar', 'primary')}`
+        : `${botaoLote('lote-voltar', 'Voltar', 'ghost')}${botaoLote('lote-enviar', `Aceitar e enviar ${contar(envios.length, 'pedido', 'pedidos')}`, 'primary')}`)}`;
+    return;
+  }
+
+  // A enviar e no fim: uma linha por empresa, com o que aconteceu
+  const enviados = lote.envios.filter((envio) => envio.estado === 'enviado').length;
+  const falhados = lote.envios.filter((envio) => envio.estado === 'falhou');
+  const estadoDoEnvio = {
+    espera: '<span class="text-xs text-slate-500">Na fila</span>',
+    a_enviar: '<span class="text-xs font-semibold text-slate-200"><span class="animate-pulse">A enviar</span></span>',
+    enviado: '<span class="flex items-center gap-1 text-xs font-semibold text-lime"><svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Enviado</span>',
+    falhou: '<span class="text-xs font-semibold text-rose-200">Não enviado</span>'
+  };
+  const lista = `<ul class="mt-4 rounded-xl border border-slate-800 px-3" aria-live="polite">
+    ${lote.envios.map((envio) => `<li class="border-b border-slate-800 py-2.5 last:border-b-0">
+      <div class="flex items-center justify-between gap-3"><span class="truncate text-sm font-semibold">${esc(envio.nome)}</span>${estadoDoEnvio[envio.estado]}</div>
+      ${envio.motivo ? `<p class="mt-1 text-xs leading-4 text-rose-100/80">${esc(envio.motivo)}</p>` : ''}
+    </li>`).join('')}
+  </ul>`;
+
+  if (lote.passo === 'enviar') {
+    const feitos = lote.envios.filter((envio) => ['enviado', 'falhou'].includes(envio.estado)).length;
+    painel.innerHTML = `
+      ${lote.unica ? topo('A enviar o pedido', 'Não feches esta página até terminar.') : topo('A enviar os pedidos', `${feitos} de ${lote.envios.length}. Não feches esta página até terminar.`)}
+      <div class="min-h-0 flex-1 overflow-y-auto px-5 pb-6 lg:px-7">${lista}</div>`;
+    return;
+  }
+
+  const prazo = estado.pedidos.find((pedido) => pedido.lote === lote.id)?.dueDate;
+  if (lote.unica) {
+    const nome = esc(lote.envios[0].nome);
+    painel.innerHTML = `
+      ${topo(enviados ? `Pedido enviado à ${nome}` : 'O pedido não saiu',
+        enviados ? `A ${nome} tem até ${formatarData(prazo)} para responder. Acompanha-o na página Pedidos.` : 'Vê o motivo abaixo. Podes tentar de novo ou abri-lo no teu email.')}
+      <div class="min-h-0 flex-1 overflow-y-auto px-5 pb-5 lg:px-7">${lista}</div>
+      ${rodape(enviados
+        ? `${botaoLote('lote-gmail', 'Ver no Gmail', 'secondary')}${botaoLote('lote-mapa', 'Ver os pedidos', 'primary')}`
+        : `${botaoLote('lote-manual', 'Abrir no meu email', 'ghost')}${botaoLote('lote-repetir', 'Tentar de novo', 'primary')}`)}`;
+    return;
+  }
+  painel.innerHTML = `
+    ${topo(enviados === lote.envios.length ? `${contar(enviados, 'pedido enviado', 'pedidos enviados')}` : `${enviados} de ${lote.envios.length} pedidos enviados`,
+      enviados ? `As empresas têm até ${formatarData(prazo)} para responder. Acompanha-os na página Pedidos.` : 'Nenhum pedido saiu. Vê o motivo abaixo.')}
+    <div class="min-h-0 flex-1 overflow-y-auto px-5 pb-5 lg:px-7">${lista}</div>
+    ${rodape(`${falhados.length ? botaoLote('lote-repetir', `Tentar de novo ${falhados.length === 1 ? 'o que falhou' : `os ${falhados.length} que falharam`}`, 'ghost') : ''}${enviados ? botaoLote('lote-gmail', 'Ver no Gmail', 'secondary') : ''}${botaoLote(enviados ? 'lote-mapa' : 'lote-fechar', enviados ? 'Ver os pedidos' : 'Fechar', 'primary')}`)}`;
+}
+
+function reverLote(empresasIds = [...lote.selecionadas]) {
+  lote.envios = empresasIds.map(obterEmpresa).filter((empresa) => empresa?.dpo_email)
+    .map((empresa) => ({ id: empresa.id, nome: empresa.name, email: empresa.dpo_email, estado: 'espera', motivo: '' }));
+  if (!lote.envios.length) return;
+  lote.passo = 'rever';
+  lote.erro = '';
+  registarEvento('lote_revisto', { direito: lote.right, pedidos: lote.envios.length });
+  renderLote();
+}
+
+// Chamado no clique em "Aceitar e enviar"
+function aceitarLote() {
+  if (!lote || lote.passo !== 'rever') return;
+  lote.erro = '';
+  autorizarGmail([GMAIL_SEND_SCOPE, EMAIL_SCOPE], (token) => enviarLote(token), (mensagem) => {
+    if (!lote) return;
+    lote.erro = `${mensagem} Nenhum pedido foi enviado.`;
+    registarEvento('lote_interrompido', { motivo: 'autorizacao' });
+    renderLote();
+  });
+}
+
+async function enviarLote(token) {
+  try {
+    await confirmarConta(token, false);
+  } catch (erro) {
+    revogarAcesso(token);
+    lote.erro = `${erro.message} Nenhum pedido foi enviado.`;
+    registarEvento('lote_interrompido', { motivo: 'conta' });
+    renderLote();
+    return;
+  }
+  const direito = RIGHTS[lote.right];
+  lote.id = gerarId();
+  lote.passo = 'enviar';
+  renderLote();
+  // Um de cada vez: cada email só sai depois de o anterior estar confirmado
+  for (const envio of lote.envios) {
+    envio.estado = 'a_enviar';
+    envio.motivo = '';
+    renderLote();
+    const empresa = obterEmpresa(envio.id);
+    try {
+      const resposta = await gmailFetch('/messages/send', token, GMAIL_QUOTA.CUSTO_SEND, 0, {
+        corpo: { raw: mensagemRaw(envio.email, direito.subject, direito.body(envio.nome)) },
+        repetirSeFalhar: false
+      });
+      criarPedidoEnviado(empresa || { id: envio.id, name: envio.nome, sector: 'outros', domain: envio.id }, lote.right, envio.email, { lote: lote.id, gmailThreadId: resposta.threadId || '' }, lote.unica ? 'veto' : 'veto_lote');
+      envio.estado = 'enviado';
+    } catch (erro) {
+      envio.estado = 'falhou';
+      envio.motivo = `Não foi enviado: ${erro.message}.`;
+    }
+  }
+  revogarAcesso(token);
+  const enviados = lote.envios.filter((envio) => envio.estado === 'enviado').length;
+  if (!lote.unica) registarEvento('lote_enviado', { direito: lote.right, pedidos: enviados, falhados: lote.envios.length - enviados, onde: lote.onde });
+  lote.passo = 'fim';
+  renderLote();
+}
+
+// Um pedido que saiu pelo Gmail: já está enviado e o prazo começa a contar
+function criarPedidoEnviado(empresa, right, email, extra = {}, app = 'veto_lote') {
+  const agora = new Date().toISOString();
+  const pedido = {
+    id: gerarId(), companyId: empresa.id, companyName: empresa.name, companySector: empresa.sector, domain: empresa.domain,
+    channel: 'email', email, right, status: 'sent', createdAt: agora, sentAt: agora, dueDate: estimarPrazo(agora),
+    replyAt: null, closedAt: null, closeReason: null, outcome: null, holdsData: null, followUpAt: null,
+    demo: false, via: 'veto', ...extra, timeline: [{ to: 'sent', at: agora }]
+  };
+  estado.pedidos.push(pedido);
+  guardarEstado(); // guardado logo, para não se perder se a página fechar a meio
+  registarEvento('pedido_enviado', { demo: false, direito: right, area: empresa.sector, canal: 'email', app, contacto: origemDoContacto(empresa) });
+  return pedido;
+}
+
+// O mesmo que em "Confirma o contacto": o email vem da política de privacidade, indicado pela pessoa
+function indicarContactoNoLote(empresaId) {
+  const empresa = obterEmpresa(empresaId);
+  if (!empresa || !lote) return;
+  const email = (window.prompt(`Email de privacidade da ${empresa.name} (está na política de privacidade dela):`) || '').trim();
+  if (!email) return;
+  if (!EMAIL_SEGURO.test(email)) {
+    mostrarToast('Esse email não parece válido.');
+    return;
+  }
+  empresa.dpo_email = email;
+  empresa.contactUser = true;
+  guardarEstado();
+  registarEvento('contacto_indicado', { area: empresa.sector, onde: 'lote' });
+  if (!empresasParaLote(lote.right).find((item) => item.empresa.id === empresaId)?.fora) lote.selecionadas.add(empresaId);
+  renderLote();
+}
+
+function tratarCliqueLote(acao, alvo) {
+  if (!lote) return;
+  switch (acao) {
+    case 'lote-fechar': fecharLote(); break;
+    case 'lote-direito': lote.right = alvo.dataset.right; renderLote(); break;
+    case 'lote-todas': {
+      const prontas = empresasParaLote(lote.right).filter((item) => !item.fora).map((item) => item.empresa.id);
+      lote.selecionadas = lote.selecionadas.size === prontas.length ? new Set() : new Set(prontas);
+      renderLote();
+      break;
+    }
+    case 'lote-indicar': indicarContactoNoLote(alvo.dataset.id); break;
+    case 'lote-rever': reverLote(); break;
+    case 'lote-voltar': lote.passo = 'escolher'; lote.erro = ''; renderLote(); break;
+    case 'lote-enviar': aceitarLote(); break;
+    case 'lote-manual': {
+      // A pessoa prefere enviar ela: o pedido abre no email dela, como antes
+      const empresa = obterEmpresa(lote.envios[0]?.id);
+      const right = lote.right;
+      lote.passo = 'escolher';
+      fecharLote();
+      if (empresa) prepararPedidoManual(empresa, right, true);
+      break;
+    }
+    case 'lote-repetir': {
+      const falhados = lote.envios.filter((envio) => envio.estado === 'falhou').map((envio) => envio.id);
+      lote.selecionadas = new Set(falhados);
+      reverLote(falhados);
+      break;
+    }
+    case 'lote-gmail': abrirSeparador(urlPesquisaGmail(`in:sent subject:"${RIGHTS[lote.right].subject}"`)); break;
+    case 'lote-mapa': fecharLote(); location.hash = '#pedidos'; renderTudo(); break;
+    default: break;
+  }
+}
+
+/* --- Apagar os emails de uma empresa ------------------------------------- */
+function pesquisaDaEmpresa(empresa) {
+  const dominios = empresa.domains?.length ? empresa.domains : [empresa.domain];
+  return `{${dominios.map((domain) => `from:${domain}`).join(' ')}}`;
+}
+
+function apagarEmailsEmpresa(empresaId) {
+  const empresa = obterEmpresa(empresaId);
+  if (!empresa) return;
+  const ev = empresa.evidence || {};
+  // Depois de uma limpeza, a contagem da análise já não vale
+  const quantos = empresa.limpeza ? 0 : (ev.totalRecebidos ?? ev.count ?? 0);
+  const pesquisa = `${pesquisaDaEmpresa(empresa)} -in:trash -in:spam -in:drafts -in:chats`;
+  registarEvento('apagar_aberto', { area: empresa.sector });
+  abrirFolha({
+    titulo: `Apagar os emails da ${empresa.name}?`,
+    texto: empresa.limpeza
+      ? `Já moveste ${empresa.limpeza.quantos} emails para o Lixo a ${formatarData(empresa.limpeza.em)}. O Veto procura os que chegaram depois e move-os também.`
+      : `O Veto move para o Lixo do Gmail os ${quantos ? `≈ ${quantos} ` : ''}emails que a ${empresa.name} te enviou. Ficam lá 30 dias: até lá, podes recuperá-los.`,
+    lista: [
+      ['Só os emails desta empresa', `Os que recebeste de ${(empresa.domains?.length ? empresa.domains : [empresa.domain]).join(', ')}. Os que tu lhe escreveste ficam onde estão.`],
+      ['Uma autorização só para isto', 'O Google vai dizer que o Veto pode ler, escrever e enviar emails: é a autorização mais pequena que o Gmail tem para mover emails para o Lixo. O Veto usa-a só nesta limpeza e cancela-a logo a seguir.']
+    ],
+    nota: 'Função do Veto+, aberta a todos durante o teste.',
+    opcoes: [
+      { label: quantos ? `Mover ${quantos} emails para o Lixo` : 'Mover os emails para o Lixo', estilo: 'primary', acao: () => moverParaLixo(empresa.id) },
+      { label: 'Prefiro fazer eu no Gmail', estilo: 'secondary', acao: () => { registarEvento('apagar_no_gmail', { area: empresa.sector }); abrirSeparador(urlPesquisaGmail(pesquisa)); } },
+      { label: 'Cancelar', estilo: 'ghost', acao: () => {} }
+    ]
+  });
+}
+
+// Chamado no clique em "Mover para o Lixo"
+function moverParaLixo(empresaId) {
+  const empresa = obterEmpresa(empresaId);
+  if (!empresa) return;
+  autorizarGmail([GMAIL_MODIFY_SCOPE], (token) => limparEmpresa(empresa, token), (mensagem) => abrirFolha({
+    titulo: 'Os emails não foram apagados',
+    texto: mensagem,
+    opcoes: [
+      { label: 'Tentar outra vez', estilo: 'primary', acao: () => apagarEmailsEmpresa(empresa.id) },
+      { label: 'Fechar', estilo: 'ghost', acao: () => {} }
+    ]
+  }));
+}
+
+async function limparEmpresa(empresa, token) {
+  const titulo = `A limpar os emails da ${empresa.name}`;
+  // A janela de progresso pode ser fechada: a limpeza continua e o resultado aparece no fim
+  const progresso = (texto, primeira = false) => {
+    if (primeira) abrirFolha({ titulo, texto, nota: 'Podes fechar esta janela: avisamos quando terminar.', opcoes: [] });
+    else if (folhaAberta && document.getElementById('sheet-title').textContent === titulo) document.getElementById('sheet-text').textContent = texto;
+  };
+  progresso('A confirmar a conta…', true);
+  let metodo = 'lote';
+  try {
+    await confirmarConta(token, true);
+    progresso('A procurar os emails desta empresa…');
+    const ids = [];
+    let pagina = '';
+    do {
+      const resposta = await gmailFetch(`/messages?maxResults=500&fields=messages/id,nextPageToken&q=${encodeURIComponent(`${pesquisaDaEmpresa(empresa)} -in:trash -in:spam -in:drafts -in:chats`)}${pagina ? `&pageToken=${encodeURIComponent(pagina)}` : ''}`, token, GMAIL_QUOTA.CUSTO_LIST);
+      ids.push(...(resposta.messages || []).map((mensagem) => mensagem.id));
+      pagina = resposta.nextPageToken || '';
+    } while (pagina && ids.length < LIMPEZA_MAX);
+    const todos = ids.slice(0, LIMPEZA_MAX);
+    if (!todos.length) {
+      revogarAcesso(token);
+      abrirFolha({ titulo: 'Não há emails para apagar', texto: `Não encontrámos emails da ${empresa.name} na tua caixa (fora do Lixo e do spam).`, opcoes: [{ label: 'OK', estilo: 'primary', acao: () => {} }] });
+      return;
+    }
+    let movidos = 0;
+    progresso(`A mover ${todos.length} emails para o Lixo…`);
+    try {
+      // Até 1000 de cada vez (pôr a etiqueta Lixo é o mesmo que mover para o Lixo)
+      for (let i = 0; i < todos.length; i += 1000) {
+        await gmailFetch('/messages/batchModify', token, GMAIL_QUOTA.CUSTO_BATCH, 0, { corpo: { ids: todos.slice(i, i + 1000), addLabelIds: ['TRASH'] } });
+        movidos = Math.min(i + 1000, todos.length);
+        progresso(`${movidos} de ${todos.length} emails movidos para o Lixo…`);
+      }
+    } catch (erro) {
+      // Se o Gmail não aceitar em bloco, um a um
+      metodo = 'um_a_um';
+      await emLotes(todos.slice(movidos), GMAIL_PARALELO, (id) => gmailFetch(`/messages/${id}/trash`, token, GMAIL_QUOTA.CUSTO_TRASH, 0, { corpo: {} }), (feitos) => {
+        progresso(`${movidos + feitos} de ${todos.length} emails movidos para o Lixo…`);
+      });
+    }
+    revogarAcesso(token);
+    empresa.limpeza = { em: new Date().toISOString(), quantos: todos.length };
+    guardarEstado();
+    registarEvento('emails_apagados', { area: empresa.sector, quantos: todos.length, metodo });
+    renderTudo();
+    const apagamentoAberto = estado.pedidos.some((pedido) => pedido.companyId === empresa.id && pedido.right === 'erasure' && !['closed', 'draft'].includes(pedido.status));
+    abrirFolha({
+      titulo: `${todos.length} ${plural(todos.length, 'email movido', 'emails movidos')} para o Lixo`,
+      texto: `Os emails da ${empresa.name} estão no Lixo do Gmail, onde ficam 30 dias. Até lá, podes recuperá-los.`,
+      nota: apagamentoAberto ? '' : `A ${empresa.name} continua com os teus dados. Para que os apague, envia-lhe um pedido de apagamento.`,
+      opcoes: [
+        ...(apagamentoAberto ? [] : [{ label: 'Pedir que apaguem os meus dados', estilo: 'primary', acao: () => prepararPedido(empresa.id, 'erasure') }]),
+        { label: 'Ver o Lixo no Gmail', estilo: 'secondary', acao: () => abrirSeparador(urlPesquisaGmail(`in:trash ${pesquisaDaEmpresa(empresa)}`)) },
+        { label: 'Fechar', estilo: apagamentoAberto ? 'primary' : 'ghost', acao: () => {} }
+      ]
+    });
+  } catch (erro) {
+    revogarAcesso(token);
+    registarEvento('apagar_interrompido', { area: empresa.sector });
+    abrirFolha({
+      titulo: 'Os emails não foram todos apagados',
+      texto: `${erro.message.replace(/^o Gmail/, 'O Gmail')} Os que já foram para o Lixo ficam lá: podes tentar outra vez para mover os restantes.`,
+      opcoes: [
+        { label: 'Tentar outra vez', estilo: 'primary', acao: () => apagarEmailsEmpresa(empresa.id) },
+        { label: 'Fechar', estilo: 'ghost', acao: () => {} }
+      ]
+    });
+  }
 }
 
 /* ==========================================================================
@@ -2853,20 +4412,39 @@ function quererPlus(plano, onde) {
 function tratarClique(evento) {
   const alvo = evento.target.closest('[data-action]');
   if (!alvo) return;
-  const { action, id, right, kind, sector, bucket, index } = alvo.dataset;
+  const { action, id, right, kind, sector, bucket, index, modo, ordem, grupo } = alvo.dataset;
   switch (action) {
+    case 'abrir-grupo': gruposAbertos.add(grupo); renderEmpresas(); break;
+    case 'fechar-grupo': gruposAbertos.delete(grupo); gruposCompletos.delete(grupo); renderEmpresas(); break;
+    case 'mais-grupo': gruposCompletos.add(grupo); renderEmpresas(); break;
+    case 'mais-noticias': renderPainelEmpresa.todasAsNoticias = id; renderPainelEmpresa(); break;
+    case 'expandir-noticia':
+      if (noticiasAbertas.has(id)) noticiasAbertas.delete(id); else noticiasAbertas.add(id);
+      renderPainelEmpresa();
+      break;
     case 'setor':
       filtroSetor = filtroSetor === sector ? 'todos' : sector;
-      filtroTipo = 'todas';
+      if (selecaoMapa?.auto) selecaoMapa = null;
       renderPainel();
-      renderEmpresas();
-      if (filtroSetor !== 'todos') document.getElementById('list-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (filtroSetor !== 'todos') document.getElementById('area-lista').scrollIntoView({ behavior: 'smooth', block: 'start' });
       break;
-    case 'filtro': filtroTipo = kind; renderPainel(); renderEmpresas(); break;
+    case 'filtro': filtroTipo = kind; renderEmpresas(); break;
+    case 'ordem-lista':
+      ordemLista = ordem === 'emails' ? 'emails' : 'gravidade';
+      if (selecaoMapa?.auto) selecaoMapa = null;
+      renderPainel();
+      break;
+    case 'modo-resultados': mudarModoResultados(modo); break;
+    case 'abrir-empresa': abrirEmpresa(id); break;
+    case 'fechar-painel': fecharPainelEmpresa(); break;
     case 'pedido': prepararPedido(id, right); break;
     case 'mais': mostrarMaisOpcoes(id); break;
-    case 'gerir': irParaMapa(id); break;
-    case 'ver-area': selecaoMapa = { tipo: 'setor', chave: sector }; location.hash = '#pedidos'; break;
+    case 'gerir': abrirEmpresa(id); break;
+    case 'ver-area':
+      filtroSetor = sector;
+      selecaoMapa = null;
+      mudarModoResultados('areas');
+      break;
     case 'entrar-teste': entrarNoTeste(); break;
     case 'recusar-teste': recusarTeste(); break;
     case 'saber-mais-teste': mostrarOQueEEnviado(); break;
@@ -2883,6 +4461,8 @@ function tratarClique(evento) {
     case 'abrir-fonte': registarEvento('noticia_aberta', { noticia: id }); break; // o link abre normalmente
     case 'cancelar-subscricao': cancelarSubscricao(id); break;
     case 'apagar-emails': apagarEmailsEmpresa(id); break;
+    case 'lote': abrirLote(alvo.dataset.onde, right); break;
+    case 'ir-faq': document.getElementById('news-faq').scrollIntoView({ behavior: 'smooth', block: 'start' }); break;
     case 'mapa-zoom': botaoDeZoom(alvo.dataset.zoom); break;
     case 'plus': abrirPlus(alvo.dataset.onde); break;
     case 'descartar': definirDescartada(id, true); break;
@@ -2896,6 +4476,7 @@ function tratarClique(evento) {
     case 'sem-resposta': aplicarResultado(id, 'no_reply'); break;
     case 'apagar-tudo': confirmarApagarTudo(); break;
     case 'alternar-menu': alternarMenu(); break;
+    case 'alternar-tema': alternarTema(); break;
     case 'enviar-novamente': {
       const pedido = obterPedido(id);
       if (!pedido) break;
@@ -2909,6 +4490,7 @@ function tratarClique(evento) {
         guardarEstado();
         registarEvento('pedido_reenviado', { direito: pedido.right, area: pedido.companySector });
         renderLimitePedidos();
+        enviarPedido(pedido, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName));
       }
       abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => {});
       break;
@@ -2918,16 +4500,17 @@ function tratarClique(evento) {
     case 'mapa-setor': alternarSelecao('setor', sector); break;
     case 'mapa-empresa': alternarSelecao('empresa', id); break;
     case 'mapa-terceiro': alternarSelecao('terceiro', id); break;
-    case 'mapa-limpar': selecaoMapa = null; renderPedidos(); break;
+    case 'mapa-limpar': fecharPainelEmpresa(); break;
     case 'ver-pedido': mostrarPedido(id); break;
-    case 'ver-no-mapa': selecaoMapa = { tipo: 'empresa', chave: id }; break; // o link muda a página
     case 'opcao-folha': {
       const opcao = opcoesFolha[Number(index)];
       fecharFolha();
       if (opcao) opcao.acao();
       break;
     }
-    default: break;
+    default:
+      if (action.startsWith('lote-')) tratarCliqueLote(action, alvo);
+      break;
   }
 }
 
@@ -2983,13 +4566,44 @@ function resumoParaEventos(empresas) {
     empresas: empresas.length,
     porGravidade: contar(SEVERITY_ORDER, (empresa) => gravidadeDe(empresa).chave),
     porArea: contar(SECTOR_ORDER, (empresa) => empresa.sector),
-    comCancelamento: empresas.filter((empresa) => empresa.unsubscribe).length
+    comCancelamento: empresas.filter((empresa) => empresa.unsubscribe).length,
+    // Quantas ficaram sem tipo claro e quantas têm contacto verificado no catálogo
+    porTipo: contar(KIND_ORDER, (empresa) => (tiposDe(empresa).includes(empresa.kind) ? empresa.kind : tiposDe(empresa)[0])),
+    semTipo: empresas.filter((empresa) => tiposDe(empresa).every((tipo) => tipo === 'unknown')).length,
+    noCatalogo: empresas.filter((empresa) => empresa.contactVerifiedAt).length,
+    comTerceiro: empresas.filter((empresa) => terceiroDe(empresa)).length
   };
 }
 
 function registarEvento(evento, detalhes = {}) {
   if (!estado.teste?.consentimento) return;
-  porNaFila({ codigo: estado.teste.codigo, dispositivo: estado.teste.dispositivo, evento, detalhes: { ...detalhes, origem: estado.teste.origem || undefined } });
+  porNaFila({ codigo: estado.teste.codigo, dispositivo: estado.teste.dispositivo, evento, detalhes: { ...detalhes, origem: estado.teste.origem || undefined, ecra: tipoDeEcra() } });
+}
+
+// Telemóvel ou tablet (ecrã tátil) ou computador: só para saber onde o Veto é usado
+function tipoDeEcra() {
+  return window.matchMedia?.('(pointer: coarse)').matches ? 'telemovel' : 'computador';
+}
+
+// Que páginas são abertas: uma vez por página e por dia (a primeira já conta como "app_aberta")
+function registarPaginaVista(vista) {
+  if (!estado.teste?.consentimento) return;
+  const hoje = dataLocalISO(new Date());
+  const vistas = estado.teste.paginasHoje?.dia === hoje ? estado.teste.paginasHoje.vistas : [];
+  if (vistas.includes(vista)) return;
+  estado.teste.paginasHoje = { dia: hoje, vistas: [...vistas, vista] };
+  registarEvento('pagina_vista', { vista });
+}
+
+// O motivo de uma falha, numa categoria fixa (nunca a mensagem de erro, que pode ter dados)
+function motivoDoErro(erro) {
+  const texto = String(erro?.message || '');
+  if (/API não está ativada/i.test(texto)) return 'api_desativada';
+  if (/permissão para ler/i.test(texto)) return 'sem_permissao';
+  if (/quota|429/i.test(texto)) return 'quota';
+  if (/failed to fetch|network|load failed/i.test(texto)) return 'rede';
+  if (/respondeu com 401/.test(texto)) return 'sessao_expirada';
+  return 'outro';
 }
 
 function enviosConfirmadosHoje() {
@@ -3073,6 +4687,33 @@ async function enviarFila() {
 
 // Enquanto a app está em teste no Google, só contas na lista de testadores podem ligar o Gmail.
 // Quem quer entrar deixa o email; a equipa acrescenta-o na Google Cloud. É o único email que o Veto recebe.
+// Tema claro / escuro (o escuro é o de origem). A escolha fica neste browser.
+function modoClaro() { return document.documentElement.classList.contains('light'); }
+function atualizarBotaoTema() {
+  const botao = document.getElementById('tema-botao');
+  const texto = modoClaro() ? 'Ativar o modo escuro' : 'Ativar o modo claro';
+  if (botao) {
+    botao.setAttribute('aria-label', texto);
+    botao.setAttribute('aria-pressed', modoClaro() ? 'true' : 'false');
+    botao.title = texto;
+  }
+  const estado = document.getElementById('tema-definicoes-estado');
+  if (estado) estado.textContent = modoClaro() ? 'Tema claro ativo' : 'Tema escuro ativo';
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', modoClaro() ? '#f1ecf6' : '#211923');
+}
+function alternarTema(claro = !modoClaro()) {
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
+  document.documentElement.classList.toggle('light', claro);
+  try { localStorage.setItem('veto-tema', claro ? 'claro' : 'escuro'); } catch (erro) { /* sem armazenamento: só vale nesta visita */ }
+  atualizarBotaoTema();
+  // A troca de classes é suficiente para a interface. Re-renderizar tudo aqui
+  // recriava os cartões e podia alterar a posição do scroll/layout durante a troca.
+  if (vistaAtual() === 'pedidos') renderPedidos(); // atualiza apenas as cores do SVG do mapa
+  requestAnimationFrame(() => window.scrollTo(scrollX, scrollY));
+}
+atualizarBotaoTema();
+
 // Menu lateral (computador): aberto ou só com ícones; a escolha fica neste browser
 function alternarMenu(fechado = !document.body.classList.contains('menu-fechado')) {
   document.body.classList.toggle('menu-fechado', fechado);
@@ -3123,7 +4764,7 @@ function registarAbertura() {
   const hoje = dataLocalISO(new Date());
   if (estado.teste?.consentimento && estado.teste.ultimoDia !== hoje) {
     estado.teste.ultimoDia = hoje;
-    registarEvento('app_aberta', { vista: vistaAtual() });
+    registarEvento('app_aberta', { vista: vistaAtual(), diasDesdeAdesao: estado.teste.desde ? Math.round((Date.now() - new Date(estado.teste.desde).getTime()) / 86400000) : undefined });
   } else {
     enviarFila();
   }
@@ -3214,10 +4855,10 @@ function mostrarOQueEEnviado() {
     titulo: tt('Estatísticas anónimas'),
     texto: tt('Para sabermos se o Veto é útil, contamos de forma anónima o que fazes na app. Podes mudar de ideias quando quiseres, no fim do Início.'),
     lista: [
-      [tt('Um identificador aleatório'), tt('Um código deste dispositivo, que não te identifica, e de onde vieste (por exemplo, LinkedIn).')],
-      [tt('A análise'), tt('Quantos emails e quantas empresas encontrámos, por área e por gravidade.')],
-      [tt('Os pedidos'), tt('O tipo de pedido que preparas, envias ou registas, e a área da empresa.')],
-      [tt('Outras ações'), tt('Quando abres a app, cancelas uma subscrição, abres uma notícia ou uma pergunta do guia, ou vês o Veto+.')]
+      ['Um identificador aleatório', 'Um código deste dispositivo, que não te identifica, de onde vieste (por exemplo, LinkedIn) e se usas telemóvel ou computador.'],
+      ['A análise', 'Quantos emails e quantas empresas encontrámos, por área e por gravidade, e quanto tempo demorou. Se falhar, o tipo de falha.'],
+      ['Os pedidos', 'O tipo de pedido, a área da empresa, se foi por email ou formulário, quanto tempo levaste a enviá-lo e quantos dias a empresa demorou a responder. Num envio a várias empresas, quantos pedidos saíram.'],
+      ['Outras ações', 'Quando abres a app ou uma página, cancelas uma subscrição, apagas os emails de uma empresa (só quantos), abres uma notícia ou uma pergunta, ou vês o Veto+.']
     ],
     nota: tt('Nunca enviamos o teu endereço de email, os nomes das empresas, os assuntos nem o conteúdo dos emails.'),
     opcoes: ligadas

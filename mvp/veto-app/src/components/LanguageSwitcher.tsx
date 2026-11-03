@@ -1,7 +1,7 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import React from "react";
+import { Pressable, StyleSheet, Text } from "react-native";
 
-export type AppLanguage = 'pt' | 'en';
+export type AppLanguage = "pt" | "en";
 
 type LanguageSwitcherProps = {
   language: AppLanguage;
@@ -12,8 +12,8 @@ export function LanguageSwitcher({
   language,
   onChangeLanguage,
 }: LanguageSwitcherProps) {
-  const nextLanguage = language === 'en' ? 'pt' : 'en';
-  const buttonLabel = nextLanguage === 'en' ? 'English' : 'Português';
+  const nextLanguage = language === "en" ? "pt" : "en";
+  const buttonLabel = nextLanguage === "en" ? "English" : "Português";
 
   return (
     <Pressable
@@ -28,16 +28,16 @@ export function LanguageSwitcher({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#1f6feb',
+    backgroundColor: "#1f6feb",
     borderRadius: 999,
     paddingHorizontal: 20,
     paddingVertical: 12,
     marginTop: 20,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
 });

@@ -1,0 +1,781 @@
+{
+ "about": "Empresas verificadas pela equipa do Veto, nas políticas de privacidade oficiais. verifiedAt é a data em que a equipa confirmou o contacto.",
+ "companies": [
+  {
+   "id": "edp.pt",
+   "name": "EDP",
+   "legalName": "EDP Comercial – Comercialização de Energia, S.A.",
+   "domains": [
+    "edp.pt",
+    "edp.com"
+   ],
+   "sector": "servicos",
+   "channel": "email",
+   "privacyEmail": "dpo.pt@edp.com",
+   "privacyUrl": "https://www.edp.pt/media/2167/politica-de-privacidade_05jan.pdf",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados, indicado para exercer direitos. Também por telefone: 808 53 53 53."
+  },
+  {
+   "id": "meo.pt",
+   "name": "MEO",
+   "legalName": "MEO (Altice Portugal)",
+   "domains": [
+    "meo.pt",
+    "telecom.pt"
+   ],
+   "sector": "servicos",
+   "channel": "email",
+   "privacyEmail": "DPOAlticePortugal@telecom.pt",
+   "privacyUrl": "https://conteudos.meo.pt/meo/Documentos/Privacidade-e-Protecao-de-Dados/regulamento-protecao-dados-pessoais.pdf",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Também pela Área de Cliente em meo.pt, numa loja MEO ou por escrito com prova de identidade."
+  },
+  {
+   "id": "nos.pt",
+   "name": "NOS",
+   "legalName": "Grupo NOS (a empresa que presta o serviço)",
+   "domains": [
+    "nos.pt"
+   ],
+   "sector": "servicos",
+   "channel": "email",
+   "privacyEmail": "dpo.privacidade@nos.pt",
+   "privacyUrl": "https://www.nos.pt/pt/institucional/sustentabilidade/gestao-etica-e-responsavel/seguranca-e-privacidade/politica-privacidade-nos/responsavel-pelo-tratamento-e-dpo",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Por carta: NOS-DPO, Rua Actor António Silva, 9, Campo Grande, 1600-404 Lisboa."
+  },
+  {
+   "id": "ctt.pt",
+   "name": "CTT",
+   "legalName": "CTT – Correios de Portugal, S.A.",
+   "domains": [
+    "ctt.pt"
+   ],
+   "sector": "servicos",
+   "channel": "email",
+   "privacyEmail": "privacidade.cliente@ctt.pt",
+   "privacyUrl": "https://www.ctt.pt/home/politica-privacidade/index",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados. A política indica as Lojas CTT e os Postos de Correios para exercer direitos."
+  },
+  {
+   "id": "novobanco.pt",
+   "name": "novobanco",
+   "legalName": "Novo Banco, S.A.",
+   "domains": [
+    "novobanco.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "dpo@novobanco.pt",
+   "privacyUrl": "https://www.novobanco.pt/content/dam/novobancopublicsites/docs/pdfs/privacidade/politica_privacidade_nb_EN.pdf.coredownload.inline.pdf",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Política de julho de 2026. Também por carta ou numa agência."
+  },
+  {
+   "id": "santander.pt",
+   "name": "Santander",
+   "legalName": "Banco Santander Totta, S.A.",
+   "domains": [
+    "santander.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "privacidade@santander.pt",
+   "privacyUrl": "https://www.santander.pt/politica-privacidade",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Política atualizada a 7 de março de 2022. Também ao balcão ou pela SuperLinha (+351 217 807 364)."
+  },
+  {
+   "id": "bancobpi.pt",
+   "name": "BPI",
+   "legalName": "Banco BPI, S.A.",
+   "domains": [
+    "bancobpi.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "dpo.rgpd@bancobpi.pt",
+   "privacyUrl": "https://www.bancobpi.pt/content/conn/UCM/uuid/dDocName:PR_WCS01_UCM01065050",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados, na política de privacidade do banco. Também em qualquer balcão, no BPI Net ou na app BPI."
+  },
+  {
+   "id": "galp.com",
+   "name": "Galp",
+   "legalName": "Petrogal, S.A.",
+   "domains": [
+    "galp.com"
+   ],
+   "sector": "servicos",
+   "channel": "ambos",
+   "privacyEmail": "data.privacy@galp.com",
+   "webFormUrl": "https://direitos.galp.com",
+   "privacyUrl": "https://www.galp.com/pt/energias/system/files/2025-11/Pol%C3%ADtica%20de%20Privacidade.pdf",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Política atualizada a 20 de novembro de 2025. Encarregado de Proteção de Dados: dpo@galp.com."
+  },
+  {
+   "id": "worten.pt",
+   "name": "Worten",
+   "legalName": "Worten – Equipamentos para o Lar, S.A.",
+   "domains": [
+    "worten.pt"
+   ],
+   "sector": "compras",
+   "channel": "formulario",
+   "webFormUrl": "https://www.worten.pt/formulario-de-exercicio-de-direitos",
+   "privacyUrl": "https://www.worten.pt/formulario-de-exercicio-de-direitos",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "continente.pt",
+   "name": "Continente",
+   "legalName": "Modelo Continente Hipermercados, S.A.",
+   "domains": [
+    "continente.pt",
+    "sonaemc.com"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "dadospessoais@sonaemc.com",
+   "privacyUrl": "https://share.continente.pt/files/Politica-de-Privacidade.pdf",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Política versão 5.0, de 11 de junho de 2018. Encarregado de Proteção de Dados: dpo@sonaemc.com."
+  },
+  {
+   "id": "pingodoce.pt",
+   "name": "Pingo Doce",
+   "legalName": "Pingo Doce – Distribuição Alimentar, S.A.",
+   "domains": [
+    "pingodoce.pt"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "cliente@pingodoce.pt",
+   "privacyUrl": "https://www.pingodoce.pt/wp-content/uploads/2023/12/PP_cozinhaberta_PD.pdf",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Endereço indicado para exercer direitos. Encarregado de Proteção de Dados: dpo.portugal@jeronimo-martins.com."
+  },
+  {
+   "id": "lidl.pt",
+   "name": "Lidl",
+   "legalName": "Lidl Stiftung & Co. KG (Lidl Plus)",
+   "domains": [
+    "lidl.pt",
+    "lidlplus.pt"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "protecaodados@lidlplus.pt",
+   "privacyUrl": "https://www.lidl.pt/static/assets/dt_Politica-de-Protecao-de-Dados_LidlPlus_janeiro2026-1969265.pdf",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Contacto do Encarregado de Proteção de Dados da app Lidl Plus (janeiro de 2026). Para a loja online ou a newsletter, a responsável pode ser a Lidl Portugal."
+  },
+  {
+   "id": "fidelidade.pt",
+   "name": "Fidelidade",
+   "legalName": "Fidelidade – Companhia de Seguros, S.A.",
+   "domains": [
+    "fidelidade.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "epdp@fidelidade.pt",
+   "privacyUrl": "https://www.fidelidade.pt/PT/Documents/ecosistema_digital_fidelidade/MyFidelidade/Politica_Privacidade_e_Protecao_Dados_Pessoais_MyFidelidade.pdf",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Atualizada em setembro de 2026. Também pelo Portal do Titular de Dados."
+  },
+  {
+   "id": "multicare.pt",
+   "name": "Multicare",
+   "domains": [
+    "multicare.pt"
+   ],
+   "sector": "saude",
+   "channel": "email",
+   "privacyEmail": "epdp@multicare.pt",
+   "privacyUrl": "https://www.multicare.pt/PT/Documents/RGPD/Politica_de_Privacidade_e_Protecao_de_Dados_Pessoais-MULTICARE.pdf",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "cuf.pt",
+   "name": "CUF",
+   "legalName": "CUF, ACE",
+   "domains": [
+    "cuf.pt"
+   ],
+   "sector": "saude",
+   "channel": "formulario",
+   "webFormUrl": "https://www.cuf.pt/centro-de-apoio-ao-cliente",
+   "privacyUrl": "https://www.cuf.pt/sobre-nos/quem-somos/tratamento-de-dados-pessoais",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "No formulário, escolher o assunto «Proteção de dados»."
+  },
+  {
+   "id": "lusiadas.pt",
+   "name": "Lusíadas Saúde",
+   "domains": [
+    "lusiadas.pt"
+   ],
+   "sector": "saude",
+   "channel": "email",
+   "privacyEmail": "protecaodados@lusiadas.pt",
+   "privacyUrl": "https://www.lusiadas.pt/sites/default/files/2025-12/PoliticaProtecaodeDados_Dez_2025_2.pdf",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Política atualizada a 23 de dezembro de 2025. Também ao balcão de qualquer unidade."
+  },
+  {
+   "id": "cp.pt",
+   "name": "CP",
+   "legalName": "CP – Comboios de Portugal, E.P.E.",
+   "domains": [
+    "cp.pt"
+   ],
+   "sector": "viagens",
+   "channel": "email",
+   "privacyEmail": "protecaodado@cp.pt",
+   "privacyUrl": "https://cp.pt/info/pt/politica-de-privacidade",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Política atualizada a 21 de setembro de 2023. Também pela Área de Cliente."
+  },
+  {
+   "id": "flytap.com",
+   "name": "TAP Air Portugal",
+   "legalName": "Transportes Aéreos Portugueses, S.A.",
+   "domains": [
+    "flytap.com",
+    "tap.pt"
+   ],
+   "sector": "viagens",
+   "channel": "ambos",
+   "privacyEmail": "dpo@tap.pt",
+   "webFormUrl": "https://privacyportal-de.onetrust.com/webform/5395d766-067c-455c-a0af-1ff72db528d7/6a1c665e-e24c-4886-b2b9-50c59b43cfd4",
+   "privacyUrl": "https://www.flytap.com/en-cl/legal-info/privacy",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "A TAP pede os pedidos no portal de privacidade; o email do Encarregado de Proteção de Dados também aceita questões sobre direitos."
+  },
+  {
+   "id": "portaldasfinancas.gov.pt",
+   "name": "Portal das Finanças",
+   "legalName": "Autoridade Tributária e Aduaneira",
+   "domains": [
+    "portaldasfinancas.gov.pt",
+    "at.gov.pt"
+   ],
+   "sector": "publico",
+   "channel": "email",
+   "privacyEmail": "epd@at.gov.pt",
+   "privacyUrl": "https://info.portaldasfinancas.gov.pt/pt/at/Pages/Encarregado_protecao_dados.aspx",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "tinder.com",
+   "name": "Tinder",
+   "legalName": "MTCH Technology Services Limited",
+   "domains": [
+    "tinder.com",
+    "gotinder.com"
+   ],
+   "sector": "encontros",
+   "channel": "formulario",
+   "webFormUrl": "https://www.help.tinder.com/hc/en-us/requests/new?ticket_form_id=360000234472",
+   "privacyUrl": "https://www.help.tinder.com/hc/en-us/articles/5349453268877",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "No formulário, escolher «I have another question about my data» e indicar o email da conta."
+  },
+  {
+   "id": "temu.com",
+   "name": "Temu",
+   "legalName": "Whaleco Technology Limited",
+   "domains": [
+    "temu.com"
+   ],
+   "sector": "compras",
+   "channel": "formulario",
+   "webFormUrl": "https://www.temu.com/data_protection_officer_webform.html",
+   "privacyUrl": "https://www.temu.com/es/privacy-policy.html",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Política atualizada a 21 de maio de 2026. Pedidos de direitos também em https://www.temu.com/bgp-additional-privacy-options.html."
+  },
+  {
+   "id": "paypal.com",
+   "name": "PayPal",
+   "legalName": "PayPal (Europe) S.à r.l. et Cie, S.C.A.",
+   "domains": [
+    "paypal.com",
+    "paypal.pt"
+   ],
+   "sector": "financas",
+   "channel": "formulario",
+   "webFormUrl": "https://www.paypal.com/de/smarthelp/contact-us/privacy",
+   "privacyUrl": "https://paypal.com/ie/legalhub/privacy-full",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Declaração atualizada a 12 de outubro de 2026. Quem tem conta também pode pedir acesso e apagamento na própria conta."
+  },
+  {
+   "id": "idealista.pt",
+   "name": "Idealista",
+   "legalName": "Idealista – Sociedade Unipessoal Lda.",
+   "domains": [
+    "idealista.pt"
+   ],
+   "sector": "outros",
+   "channel": "email",
+   "privacyEmail": "privacidade@idealista.pt",
+   "privacyUrl": "https://www.idealista.pt/apoioutilizador/artigos/aviso-legal-e-condicoes-gerais/",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Endereço de privacidade indicado no aviso legal."
+  },
+  {
+   "id": "decathlon.pt",
+   "name": "Decathlon",
+   "legalName": "SPDAD – Sociedade Portuguesa de Distribuição de Artigos de Desporto, Unipessoal, Lda.",
+   "domains": [
+    "decathlon.pt"
+   ],
+   "sector": "compras",
+   "channel": "formulario",
+   "webFormUrl": "https://datalegaldrive.com/ed/exercer/formulaire_exercice/spdad/pt",
+   "privacyUrl": "https://www.decathlon.pt/dados-pessoais.html",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto",
+   "notes": "Página atualizada a 18 de março de 2026. A Decathlon pede cópia do documento de identificação."
+  },
+  {
+   "id": "samsung.com",
+   "name": "Samsung",
+   "legalName": "Samsung Electrónica Portuguesa, Unipessoal, Lda.",
+   "domains": [
+    "samsung.com"
+   ],
+   "sector": "compras",
+   "channel": "formulario",
+   "webFormUrl": "https://www.europe-samsung.com/gdpr/webform/pt",
+   "privacyUrl": "https://www.samsung.com/pt/info/privacidade-local",
+   "notes": "A política não indica email: os pedidos e o contacto com o Encarregado Europeu de Proteção de Dados são feitos por este formulário.",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "bp.com",
+   "name": "bp",
+   "legalName": "BP Portugal – Comércio de Combustíveis e Lubrificantes, S.A.",
+   "domains": [
+    "bp.com"
+   ],
+   "sector": "servicos",
+   "channel": "email",
+   "privacyEmail": "privacidadededados@bp.com",
+   "privacyUrl": "https://bp.com/content/dam/bp/country-sites/pt_pt/portugal/home/sobre-nós/Politica-Protecao-Dados_Passatempo-95-anos.pdf",
+   "notes": "Contacto de privacidade da BP Portugal, publicado numa política de proteção de dados de março de 2024. Também por carta: Lagoas Park, Edifício 3, 2740-244 Porto Salvo.",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "viaverde.pt",
+   "name": "Via Verde",
+   "legalName": "Via Verde Portugal – Gestão de Sistemas Electrónicos de Cobrança, S.A.",
+   "domains": [
+    "viaverde.pt"
+   ],
+   "sector": "viagens",
+   "channel": "email",
+   "privacyEmail": "privacidade_VVP@viaverde.pt",
+   "privacyUrl": "https://www.viaverde.pt/outros/protecao-de-dados/termos-e-condicoes/politica-de-privacidade-clientes-via-verde",
+   "notes": "Política de clientes, versão 7, de 24 de abril de 2026. Encarregado de Proteção de Dados: epd_vvp@viaverde.pt.",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "medis.pt",
+   "name": "Médis",
+   "legalName": "Médis – Companhia Portuguesa de Seguros de Saúde, S.A.",
+   "domains": [
+    "medis.pt"
+   ],
+   "sector": "saude",
+   "channel": "email",
+   "privacyEmail": "apoioaocliente@medis.pt",
+   "privacyUrl": "https://www.medis.pt/informacao-legal/protecao-de-dados/",
+   "notes": "Endereço indicado para exercer direitos (política de 20 de dezembro de 2024). Encarregado de Proteção de Dados: dpo@medis.pt.",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "wells.pt",
+   "name": "Wells",
+   "legalName": "Pharmacontinente – Saúde e Higiene, S.A.",
+   "domains": [
+    "wells.pt"
+   ],
+   "sector": "saude",
+   "channel": "email",
+   "privacyEmail": "protecaodados@wells.pt",
+   "privacyUrl": "https://wells.pt/politica-privacidade.html",
+   "notes": "Política de 14 de outubro de 2026, que pede que os pedidos sejam feitos só por este endereço.",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "ikea.com",
+   "name": "IKEA",
+   "legalName": "IKEA Portugal – Móveis e Decoração, Lda.",
+   "domains": [
+    "ikea.com",
+    "ikea.pt"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "privacidade@ikea.com",
+   "privacyUrl": "https://www.ikea.com/pt/pt/customer-service/privacy-policy/",
+   "notes": "Política de novembro de 2025. Também por telefone (21 989 99 45) ou carta ao Encarregado de Proteção de Dados.",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "zara.com",
+   "name": "Zara",
+   "legalName": "ITX Portugal – Confecções, S.A. e Industria de Diseño Textil, S.A. (Inditex)",
+   "domains": [
+    "zara.com"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "dataprotection@zara.com",
+   "privacyUrl": "https://static.zara.net/static/pdfs/PT/privacy-policy/privacy-policy-pt_PT-20260401.pdf",
+   "notes": "Política de abril de 2026. A Zara pode pedir cópia do documento de identificação.",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "mbway.pt",
+   "name": "MB WAY",
+   "legalName": "SIBS Forward Payment Solutions, S.A.",
+   "domains": [
+    "mbway.pt",
+    "sibs.com"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "DataProtectionOfficer@sibs.com",
+   "privacyUrl": "https://www.mbway.pt/politica-de-privacidade/",
+   "notes": "Política de 23 de julho de 2025. Nas operações bancárias, a responsável é o teu banco.",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "auchan.pt",
+   "name": "Auchan",
+   "legalName": "Auchan Retail Portugal, S.A.",
+   "domains": [
+    "auchan.pt"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "dpo@auchan.pt",
+   "privacyUrl": "https://www.auchan.pt/pt/termos-condicoes/politica-de-privacidade.html",
+   "notes": "Email do Encarregado de Proteção de Dados. A política também indica os balcões e o apoio ao cliente (apoiocliente@auchan.pt).",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "activobank.pt",
+   "name": "ActivoBank",
+   "legalName": "Banco ActivoBank, S.A.",
+   "domains": [
+    "activobank.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "protecao.dados.pessoais@activobank.pt",
+   "privacyUrl": "https://www.activobank.pt/pt/Documents/footer/PoliticaPrivacidade.pdf",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "bancomontepio.pt",
+   "name": "Banco Montepio",
+   "legalName": "Caixa Económica Montepio Geral, caixa económica bancária, S.A.",
+   "domains": [
+    "bancomontepio.pt",
+    "montepio.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "DPO@montepio.pt",
+   "privacyUrl": "https://www.bancomontepio.pt/content/dam/montepio/partilhado/documentos/pt_PT/pdf-pmc/3010050008.pdf",
+   "notes": "Email do Encarregado de Proteção de Dados, no contrato de abertura de conta (outubro de 2024). Também em qualquer balcão.",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "digi.pt",
+   "name": "DIGI",
+   "legalName": "DIGI Portugal, Lda.",
+   "domains": [
+    "digi.pt"
+   ],
+   "sector": "servicos",
+   "channel": "email",
+   "privacyEmail": "dpo@digi.pt",
+   "privacyUrl": "https://www.digi.pt/legal/politica-de-privacidade",
+   "notes": "Política de 8 de outubro de 2025.",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "endesa.pt",
+   "name": "Endesa",
+   "legalName": "Endesa Energia, S.A. – Sucursal em Portugal",
+   "domains": [
+    "endesa.pt"
+   ],
+   "sector": "servicos",
+   "channel": "email",
+   "privacyEmail": "dpo@endesa.pt",
+   "privacyUrl": "https://www.endesa.pt/politica-privacidade-cookies",
+   "notes": "A Endesa pede nome completo, morada para notificação e documento de identificação. Também pelo formulário em endesa.pt ou na área My Endesa.",
+   "verifiedAt": "2026-10-20",
+   "origin": "veto"
+  },
+  {
+   "id": "creditoagricola.pt",
+   "name": "Crédito Agrícola",
+   "legalName": "Caixa Central de Crédito Agrícola Mútuo, C.R.L.",
+   "domains": [
+    "creditoagricola.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "protecaodedados@creditoagricola.pt",
+   "privacyUrl": "https://www.creditoagricola.pt/-/media/cabullet/institucional/rgpd/deveres-de-informao-v022022.pdf",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email indicado para exercer direitos. Encarregado de Proteção de Dados: dpo@creditoagricola.pt."
+  },
+  {
+   "id": "goldenergy.pt",
+   "name": "Goldenergy",
+   "legalName": "Gold Energy – Comercializadora de Energia, S.A.",
+   "domains": [
+    "goldenergy.pt"
+   ],
+   "sector": "servicos",
+   "channel": "email",
+   "privacyEmail": "protecaodedados@goldenergy.pt",
+   "privacyUrl": "https://goldenergy.pt/politica-de-privacidade/",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email indicado para exercer direitos. Encarregado de Proteção de Dados: dpo@goldenergy.pt."
+  },
+  {
+   "id": "leroymerlin.pt",
+   "name": "Leroy Merlin",
+   "legalName": "BCM – Bricolage, S.A.",
+   "domains": [
+    "leroymerlin.pt"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "epd@leroymerlin.pt",
+   "privacyUrl": "https://www.leroymerlin.pt/politicas-e-condicoes/politica-de-privacidade-e-cookies/",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados."
+  },
+  {
+   "id": "generalitranquilidade.pt",
+   "name": "Generali Tranquilidade",
+   "legalName": "Generali Seguros, S.A.",
+   "domains": [
+    "generalitranquilidade.pt",
+    "tranquilidade.pt",
+    "generali.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "protecaodados.DPO@generali.pt",
+   "privacyUrl": "https://generalitranquilidade.pt/-/media/files/privacidade/politica-privacidade.pdf",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados. Política em vigor desde 2 de outubro de 2020."
+  },
+  {
+   "id": "repsol.pt",
+   "name": "Repsol",
+   "legalName": "Repsol Portuguesa, Lda.",
+   "domains": [
+    "repsol.pt"
+   ],
+   "sector": "servicos",
+   "channel": "email",
+   "privacyEmail": "privacidade@repsol.com",
+   "privacyUrl": "https://www.repsol.pt/politica-de-privacidade/",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email indicado na política de privacidade da Repsol em Portugal."
+  },
+  {
+   "id": "bancoctt.pt",
+   "name": "Banco CTT",
+   "legalName": "Banco CTT, S.A.",
+   "domains": [
+    "bancoctt.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "protecao.dados@bancoctt.pt",
+   "privacyUrl": "https://www.bancoctt.pt/contentAsset/raw-data/95d0f739-fec8-44d7-a1aa-b7025b6dc3e2/ficheiro/export/Politica%20de%20Privacidade.pdf",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Política de setembro de 2024."
+  },
+  {
+   "id": "unibanco.pt",
+   "name": "Unibanco",
+   "legalName": "UNICRE – Instituição Financeira de Crédito, S.A.",
+   "domains": [
+    "unibanco.pt",
+    "unicre.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "dpo@unicre.pt",
+   "privacyUrl": "https://www.unicre.pt/media/2023/03/Politica-Privacidade-e-Protecao-Dados-Pessoais-UNIBANCO.pdf",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados. Política de 23 de março de 2023."
+  },
+  {
+   "id": "radiopopular.pt",
+   "name": "Radio Popular",
+   "legalName": "Radio Popular – Electrodomésticos, S.A.",
+   "domains": [
+    "radiopopular.pt"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "encarregadoprotecaodados@radiopopular.pt",
+   "privacyUrl": "https://www.radiopopular.pt/actualizacaodados/info.php",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados."
+  },
+  {
+   "id": "wizink.pt",
+   "name": "WiZink",
+   "legalName": "WiZink Bank, S.A.U. – Sucursal em Portugal",
+   "domains": [
+    "wizink.pt"
+   ],
+   "sector": "financas",
+   "channel": "email",
+   "privacyEmail": "protecaodedados@wizink.pt",
+   "privacyUrl": "https://www.wizink.pt/public/content/dam/wizink-web-pt/documents/legal/protecao-de-dados/Politica_de_protecao_de_dados_do_WiZink_Bank_SAU.pdf",
+   "verifiedAt": "2026-10-27",
+   "origin": "veto",
+   "notes": "Email do Encarregado de Proteção de Dados."
+  },
+  {
+   "id": "vinted.pt",
+   "name": "Vinted",
+   "legalName": "Vinted, UAB",
+   "domains": [
+    "vinted.pt",
+    "vinted.com"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "privacysupport@vinted.com",
+   "privacyUrl": "https://www.vinted.com/old-privacy-policy",
+   "verifiedAt": "2026-10-28",
+   "origin": "veto",
+   "notes": "Email de privacidade da política da Vinted em vigor até 15/09/2025. A política atual remete para um formulário no Centro de Ajuda: se o email não responder, usa esse formulário."
+  },
+  {
+   "id": "hm.com",
+   "name": "H&M",
+   "legalName": "H & M Hennes & Mauritz Unipessoal, Lda.",
+   "domains": [
+    "hm.com"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "dataprotection.pt@hm.com",
+   "privacyUrl": "https://www2.hm.com/content/dam/Customer-Service/Legal/privacy-notice-pdf/PT_HM%20Group%20Customer%20Privacy%20Notice.pdf",
+   "verifiedAt": "2026-10-28",
+   "origin": "veto",
+   "notes": "Email para exercer direitos em Portugal. Para falar com o Encarregado de Proteção de Dados, a H&M pede «DPO» no assunto."
+  },
+  {
+   "id": "bershka.com",
+   "name": "Bershka",
+   "legalName": "Bershka (Grupo Inditex)",
+   "domains": [
+    "bershka.com"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "dataprotection@bershka.com",
+   "privacyUrl": "https://static.bershka.net/4/static/itxwebstandard/docs/privacypolicy/privacy_policy_es_ES.pdf",
+   "verifiedAt": "2026-10-28",
+   "origin": "veto",
+   "notes": "Email da Delegada de Proteção de Dados e para exercer direitos, na política de privacidade da Bershka (versão de Espanha)."
+  },
+  {
+   "id": "lefties.com",
+   "name": "Lefties",
+   "legalName": "Lefties Portugal e Nikole (Grupo Inditex)",
+   "domains": [
+    "lefties.com"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "dataprotection@lefties.com",
+   "privacyUrl": "https://static.lefties.com/9/static2/itxwebstandard/pdfs/PT/privacy-policy/privacy-policy-pt_PT.pdf",
+   "verifiedAt": "2026-10-28",
+   "origin": "veto",
+   "notes": "Email do Responsável pela Proteção de Dados e para exercer direitos, na política de privacidade de Portugal."
+  },
+  {
+   "id": "mango.com",
+   "name": "Mango",
+   "domains": [
+    "mango.com",
+    "mangooutlet.com"
+   ],
+   "sector": "compras",
+   "channel": "email",
+   "privacyEmail": "personaldata@mango.com",
+   "privacyUrl": "https://shop.mango.com/mz/pt/privacy-policy",
+   "verifiedAt": "2026-10-28",
+   "origin": "veto",
+   "notes": "Email indicado para exercer direitos (política de privacidade da Mango em português). O Encarregado de Proteção de Dados tem outro endereço: dpo@mango.com."
+  }
+ ]
+}

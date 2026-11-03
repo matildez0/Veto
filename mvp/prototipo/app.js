@@ -385,6 +385,7 @@ const GMAIL_PARALELO = 10; // pedidos ao mesmo tempo
 const GMAIL_QUOTA = { UNIDADES: 6000, JANELA_MS: 60000, MARGEM: 0.9, CUSTO_GET: 20, CUSTO_LIST: 5 };
 const RESPONSE_BUFFER_DAYS = 3;
 const STORAGE_KEY = 'veto.prototipo.v2';
+const PEDIDOS_GRATIS_POR_DIA = 3;
 
 const multiPartPublicSuffixes = new Set(['co.uk', 'com.au', 'co.nz', 'co.za', 'com.br', 'com.mx', 'com.pt']);
 const ignoredDomains = new Set([
@@ -1271,6 +1272,10 @@ function prepararPedido(empresaId, right) {
     mostrarToast('Ainda não temos um contacto de privacidade verificado para esta empresa.');
     return;
   }
+  if (!temPedidoDisponivelHoje()) {
+    mostrarLimitePedidosAtingido();
+    return;
+  }
   // Se há um pedido por confirmar, pergunta uma vez; clicar fora da janela segue com o pedido novo
   const pendente = !prepararPedido.semPergunta && estado.pedidos.find((pedido) => pedido.status === 'awaiting_confirmation' && !pedido.perguntaAdiada);
   if (pendente) {
@@ -1289,7 +1294,7 @@ function prepararPedido(empresaId, right) {
     id: gerarId(), companyId: empresa.id, companyName: empresa.name, companySector: empresa.sector, domain: empresa.domain, email: empresa.dpo_email,
     right, status: 'awaiting_confirmation', createdAt: agora, sentAt: null, dueDate: null,
     replyAt: null, closedAt: null, closeReason: null, outcome: null, holdsData: null, followUpAt: null,
-    demo: estado.demo, timeline: [{ to: 'awaiting_confirmation', at: agora }]
+    demo: estado.demo, sentDates: [], timeline: [{ to: 'awaiting_confirmation', at: agora }]
   };
   estado.pedidos.push(pedido);
   registarEvento('pedido_preparado', { demo: pedido.demo, direito: right, area: empresa.sector, gravidade: gravidadeDe(empresa).chave });
@@ -1405,7 +1410,9 @@ function perguntarSeEnviou(pedido, aoFecharFora = null) {
 function confirmarEnvio(pedidoId) {
   const pedido = obterPedido(pedidoId);
   if (!pedido) return;
-  pedido.sentAt = new Date().toISOString();
+  const agora = new Date().toISOString();
+  pedido.sentAt = agora;
+  pedido.sentDates = [...new Set([...(pedido.sentDates || []), agora])];
   pedido.dueDate = estimarPrazo(pedido.sentAt);
   mudarEstado(pedido, 'sent');
   registarEvento('pedido_enviado', { demo: pedido.demo, direito: pedido.right, area: pedido.companySector, app: estado.appEmail || '' });
@@ -1971,6 +1978,7 @@ function renderPedidos() {
   const nos = nosDoMapa();
   const temPedidos = estado.pedidos.length > 0;
   const temMapa = nos.length > 0;
+  renderLimitePedidos();
   document.getElementById('map-empty').classList.toggle('hidden', temMapa || temPedidos);
   document.getElementById('map-content').classList.toggle('hidden', !temMapa && !temPedidos);
   if (!temMapa && !temPedidos) return;
@@ -2922,10 +2930,19 @@ function tratarClique(evento) {
     case 'alternar-menu': alternarMenu(); break;
     case 'enviar-novamente': {
       const pedido = obterPedido(id);
-      if (pedido) {
-        registarEvento('pedido_reenviado', { direito: pedido.right, area: pedido.companySector });
-        abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => {});
+      if (!pedido) break;
+      if (pedido.status === 'sent' && !temPedidoDisponivelHoje()) {
+        mostrarLimitePedidosAtingido();
+        break;
       }
+      if (pedido.status === 'sent') {
+        const agora = new Date().toISOString();
+        pedido.sentDates = [...new Set([...(pedido.sentDates || []), agora])];
+        guardarEstado();
+        registarEvento('pedido_reenviado', { direito: pedido.right, area: pedido.companySector });
+        renderLimitePedidos();
+      }
+      abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => {});
       break;
     }
     case 'pedir-acesso': pedirAcessoAoTeste(); break;
@@ -3005,6 +3022,57 @@ function resumoParaEventos(empresas) {
 function registarEvento(evento, detalhes = {}) {
   if (!estado.teste?.consentimento) return;
   porNaFila({ codigo: estado.teste.codigo, dispositivo: estado.teste.dispositivo, evento, detalhes: { ...detalhes, origem: estado.teste.origem || undefined } });
+}
+
+function enviosConfirmadosHoje() {
+  const hoje = dataLocalISO(new Date());
+  return estado.pedidos.reduce((total, pedido) => {
+    const datas = pedido.sentDates?.length ? pedido.sentDates : (pedido.sentAt ? [pedido.sentAt] : []);
+    return total + datas.filter((data) => dataLocalISO(new Date(data)) === hoje).length;
+  }, 0);
+}
+
+function pedidosRestantesHoje() {
+  return Math.max(0, PEDIDOS_GRATIS_POR_DIA - enviosConfirmadosHoje());
+}
+
+function temPedidoDisponivelHoje() {
+  return pedidosRestantesHoje() > 0;
+}
+
+function proximoDiaLocal() {
+  const amanha = new Date();
+  amanha.setHours(0, 0, 0, 0);
+  amanha.setDate(amanha.getDate() + 1);
+  return amanha;
+}
+
+function textoLimitePedidos() {
+  return `Podes enviar novamente amanhã, ${proximoDiaLocal().toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' })}.`;
+}
+
+function mostrarLimitePedidosAtingido() {
+  registarEvento('limite_atingido', {
+    limite: PEDIDOS_GRATIS_POR_DIA,
+    enviadosHoje: enviosConfirmadosHoje()
+  });
+  abrirFolha({
+    titulo: 'Limite de hoje atingido',
+    texto: `Já confirmaste o envio de ${PEDIDOS_GRATIS_POR_DIA} pedidos hoje. ${textoLimitePedidos()}`,
+    nota: 'Os pedidos que já começaste continuam disponíveis e nunca são interrompidos.',
+    opcoes: [{ label: 'Fechar', estilo: 'primary', acao: () => {} }]
+  });
+}
+
+function renderLimitePedidos() {
+  const el = document.getElementById('requests-limit');
+  if (!el) return;
+  const restantes = pedidosRestantesHoje();
+  el.textContent = restantes
+    ? `${restantes} de ${PEDIDOS_GRATIS_POR_DIA} pedidos hoje`
+    : `0 de ${PEDIDOS_GRATIS_POR_DIA} pedidos hoje · ${textoLimitePedidos()}`;
+  el.classList.toggle('text-rose-200', restantes === 0);
+  el.classList.toggle('text-slate-500', restantes > 0);
 }
 
 function porNaFila(registo) {

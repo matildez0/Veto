@@ -323,7 +323,10 @@
         </div>
 
         <div id="requests-section">
-          <h2 class="mx-5 mt-9 font-display text-xl font-semibold">Os teus pedidos</h2>
+          <div class="mx-5 mt-9 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h2 class="font-display text-xl font-semibold">Os teus pedidos</h2>
+            <p id="requests-limit" class="text-xs text-slate-500" aria-live="polite"></p>
+          </div>
           <div class="lg:grid lg:grid-cols-2 lg:items-start lg:gap-5 lg:px-5">
           <section id="group-waiting" class="mx-5 mt-4 lg:mx-0">
             <h3 class="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">À espera de resposta</h3>

@@ -16,7 +16,7 @@ export default [
     rules: {
       // Podes colocar aqui as regras específicas do teu projeto ou manter as recomendadas
       "no-unused-vars": "warn",
-      "no-console": "off"
+      "no-console": "off",
     },
   },
 ];

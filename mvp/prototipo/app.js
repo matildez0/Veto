@@ -871,11 +871,7 @@ function gravidadeDe(empresa) {
 // Ícone de barras (1 a 4), para a gravidade não depender só da cor
 function iconeGravidade(chave, altura = 12) {
   const g = SEVERITY[chave];
-<<<<<<< HEAD
-  const barras = [0, 1, 2, 3].map((i) => `<rect x="${i * 3.5}" y="${9 - (i + 1) * 2.25}" width="2.5" height="${(i + 1) * 2.25}" rx="0.6" fill="${i < g.nivel ? g.hex : '#463c4c'}"/>`).join('');
-=======
   const barras = [0, 1, 2, 3].map((i) => `<rect x="${i * 3.5}" y="${9 - (i + 1) * 2.25}" width="2.5" height="${(i + 1) * 2.25}" rx="0.6" fill="${i < g.nivel ? g.hex : (modoClaro() ? '#d3c9dc' : '#4d4354')}"/>`).join('');
->>>>>>> a1d29ed (light mode)
   return `<svg viewBox="0 0 13.5 9" width="${Math.round(altura * 1.5)}" height="${altura}" aria-hidden="true" class="inline-block shrink-0">${barras}</svg>`;
 }
 
@@ -941,15 +937,9 @@ const MODOS_RESULTADOS = [
 
 // Cores e medidas do mapa de exposição (a rede)
 const REDE = {
-<<<<<<< HEAD
-  EMPRESA: '#c2ea5d',   // verde do logo
-  TERCEIRO: '#b9a2f5',  // lilás, a condizer com o fundo
-  PORMENOR: '#c2ea5d',  // verde do logo (pormenores do mapa)
-=======
   get EMPRESA() { return modoClaro() ? '#719b08' : '#c2ea5d'; },   // verde do logo (mais escuro no modo claro)
   get TERCEIRO() { return modoClaro() ? '#8a67de' : '#b9a2f5'; },  // lilás, a condizer com o fundo
   PORMENOR: '#719b08',
->>>>>>> a1d29ed (light mode)
   NUCLEO: '#807785',    // centro de cada área
   PASSO: 14,            // distância entre empresas vizinhas (unidades do desenho)
   FOLGA: 22,            // espaço entre áreas, onde cabe o nome da área
@@ -3116,13 +3106,8 @@ function desenharRede(rede) {
 
   // 5. Desenho. As posições no ecrã são postas por aplicarZoom(), logo a seguir.
   const linha = (de, para, cor, largura, opacidade, tracejado) => `<line data-de="${esc(de)}" data-para="${esc(para)}" stroke="${cor}" stroke-width="${r1(largura * u)}" stroke-opacity="${opacidade}" stroke-linecap="round"${tracejado ? ` stroke-dasharray="${r1(2.5 * u)} ${r1(3 * u)}"` : ''}/>`;
-<<<<<<< HEAD
-  const fundos = grupos.map((g) => `<circle data-grupo="${g.chave}" data-raio="${r1(g.raio)}" fill="#2c2330" fill-opacity="${aceso(`s:${g.chave}`) || (acesos && g.nos.some((no) => acesos.has(no.id))) ? 0.45 : 0.2}" pointer-events="none"/>`).join('');
-  const raiosAreas = rede.empresas.map((no) => linha(`s:${no.sector}`, no.id, REDE.NUCLEO, 0.5, aceso(no.id) ? (acesos ? 0.6 : 0.3) : 0.06)).join('');
-=======
   const fundos = grupos.map((g) => `<circle data-grupo="${g.chave}" data-raio="${r1(g.raio)}" fill="${modoClaro() ? '#d9cde6' : '#2c2330'}" fill-opacity="${aceso(`s:${g.chave}`) || (acesos && g.nos.some((no) => acesos.has(no.id))) ? 0.45 : 0.2}" pointer-events="none"/>`).join('');
   const raiosAreas = rede.empresas.map((no) => linha(`s:${no.sector}`, no.id, REDE.EMPRESA, 0.5, aceso(no.id) ? (acesos ? 0.45 : 0.18) : 0.04)).join('');
->>>>>>> a1d29ed (light mode)
   const linhasRel = relacoes.map((l) => linha(l.de, l.para, REDE.TERCEIRO, 1, 0.9, true)).join('');
 
   let ordem2 = 0;
@@ -3132,14 +3117,8 @@ function desenharRede(rede) {
     return `<g data-no="${esc(id)}" opacity="${ligado ? 1 : 0.22}"><g${entrada}>
       ${brilho ? `<circle r="${r1(r * 2.6)}" fill="url(#${brilho})" pointer-events="none"/>` : ''}
       ${pulsar ? `<circle r="${r}" fill="none" stroke="${cor}" stroke-width="1.2" class="ponto-radar" pointer-events="none"/>` : ''}
-<<<<<<< HEAD
-      ${anel ? `<circle r="${r1(r + 2.2)}" fill="none" stroke="${anel}" stroke-width="1.4" pointer-events="none"/>` : ''}
-      <circle r="${r}" fill="${cor}" stroke="#ffffff" stroke-opacity="${sel.chave === id ? 1 : contorno ? 0.28 : 0}" stroke-width="${sel.chave === id ? 1.6 : 0.7}" pointer-events="none"/>
-      ${letra ? `<text data-letra data-r="${r}" text-anchor="middle" dy="0.36em" font-size="${r1(r * 1.15)}" font-weight="700" fill="${corLetra}" pointer-events="none">${esc(letra)}</text>` : ''}
-=======
       ${anel ? `<circle r="${r1(r + 2.2)}" fill="none" stroke="${REDE.PORMENOR}" stroke-width="1.4" pointer-events="none"/>` : ''}
       <circle r="${r}" fill="${cor}" stroke="${sel.chave === id ? (modoClaro() ? '#211923' : '#ffffff') : 'none'}" stroke-width="1.6" pointer-events="none"/>
->>>>>>> a1d29ed (light mode)
       <circle ${acao} r="${r1(Math.max(r + 3, 7 * u))}" fill="transparent" class="cursor-pointer"><title>${esc(titulo)}</title></circle>
     </g></g>`;
   };

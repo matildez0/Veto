@@ -25,16 +25,6 @@
             ink: '#211923',   // fundo da app
             oliva: '#719b08', // pormenores (seleções, navegação, destaques)
             lime: '#c2ea5d',  // verde do logo e botões principais
-<<<<<<< HEAD
-            mist: '#a39ca7',
-            // Sensibilidade dos dados: de vermelho escuro (baixa) a vermelho forte (muito alta), só para a sensibilidade.
-            // sens = preenchimentos (barras, pontos); senst = texto, mais claro para se ler bem no fundo escuro
-            sens: { 1: '#6a2228', 2: '#942325', 3: '#c42b2b', 4: '#f0423a' },
-            senst: { 2: '#e0a39d', 3: '#f2877e', 4: '#ff6b61' },
-            risco: { fundo: '#3b1216', borda: '#6b1f24' },
-            // Cinzentos com o tom do fundo
-            slate: { 100: '#f3f1f4', 200: '#e4e0e6', 300: '#c9c4cc', 400: '#a39ca7', 500: '#807785', 600: '#655b6c', 700: '#4d4354', 800: '#3a3040', 900: '#2c2330', 950: '#19131b' }
-=======
             mist: 'rgb(var(--mist) / <alpha-value>)',
             // Cinzentos com o tom do fundo (as variáveis mudam no modo claro)
             slate: {
@@ -43,7 +33,6 @@
               700: 'rgb(var(--s700) / <alpha-value>)', 800: 'rgb(var(--s800) / <alpha-value>)', 900: 'rgb(var(--s900) / <alpha-value>)',
               950: 'rgb(var(--s950) / <alpha-value>)'
             }
->>>>>>> a1d29ed (light mode)
           }
         }
       }
@@ -81,11 +70,6 @@
     }
     /* No computador, tudo um pouco maior (o Tailwind usa rem) */
     @media (min-width: 1024px) { html { font-size: 16.5px; } }
-<<<<<<< HEAD
-    /* No telemóvel, a empresa escolhida entra da direita, como uma página nova */
-    @keyframes painel-entra { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
-    @media (max-width: 1023px) { .painel-entra { animation: painel-entra 0.22s ease-out; } }
-=======
     /* ===== Tema: variáveis. O escuro tem os valores de sempre; o claro só os troca ===== */
     :root {
       --s100: 243 241 244; --s200: 228 224 230; --s300: 201 196 204; --s400: 163 156 167; --s500: 128 119 133;
@@ -134,7 +118,6 @@
     html.light .border-rose-400\/30, html.light .border-rose-400\/40 { border-color: rgb(225 29 72 / 0.35); }
     html.light .bg-black\/60 { background-color: rgb(33 25 35 / 0.45); }
     html.light .shadow-xl { box-shadow: 0 12px 30px -8px rgb(33 25 35 / 0.35); }
->>>>>>> a1d29ed (light mode)
     @media (prefers-reduced-motion: reduce) {
       .dot-in, .ponto-radar, .painel-entra { animation: none; }
       .ponto-radar { display: none; }
@@ -160,17 +143,11 @@
           </svg>
         </a>
         <!-- Veto Plus: sempre visível no topo, em todas as páginas -->
-<<<<<<< HEAD
-        <button data-action="plus" data-onde="topo" class="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-lime/70 px-3 py-1.5 text-xs font-bold text-lime transition hover:bg-lime hover:text-ink active:scale-95" type="button" aria-label="Veto+">
-          Veto +
-        </button>
-=======
         <div class="flex shrink-0 items-center gap-2">
           <button data-action="plus" data-onde="topo" class="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-lime px-3 py-1.5 text-xs font-bold text-ink transition active:scale-95" type="button" aria-label="Veto+">
             Veto +
           </button>
         </div>
->>>>>>> a1d29ed (light mode)
       </div>
     </header>
 

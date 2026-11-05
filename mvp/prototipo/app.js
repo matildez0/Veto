@@ -579,6 +579,7 @@ let estado = { empresas: [], pedidos: [], contas: [], analisadoEm: null, demo: f
 let filtroConta = 'todas';
 let filtroSetor = 'todos';
 let filtroTipo = 'todas';
+let modoResultados = 'lista';
 let selecaoMapa = null; // { tipo: 'empresa' | 'terceiro' | 'setor', chave }
 
 // Cores e medidas do mapa de exposição (a rede)
@@ -1773,7 +1774,7 @@ function precisaDeAtencao(pedido) {
    ========================================================================== */
 function vistaAtual() {
   const vista = location.hash.replace('#', '');
-  return ['inicio', 'resultados', 'pedidos', 'noticias', 'monitorizacao', 'definicoes'].includes(vista) ? vista : 'inicio';
+  return ['inicio', 'resultados', 'pedidos', 'noticias', 'definicoes'].includes(vista) ? vista : 'inicio';
 }
 
 function renderTudo() {
@@ -1798,7 +1799,28 @@ function renderTudo() {
   renderPedidos();
   renderNoticias();
   renderMonitorizacao();
+  aplicarModoResultados();
   if (vista === 'inicio') registarPlusVisto();
+}
+
+function aplicarModoResultados() {
+  const mapa = document.getElementById('results-map');
+  const lista = document.getElementById('res-lista');
+  const areas = document.getElementById('res-areas');
+  if (!mapa || !lista || !areas) return;
+  mapa.classList.toggle('hidden', modoResultados !== 'mapa');
+  lista.classList.toggle('hidden', modoResultados !== 'lista');
+  areas.classList.toggle('hidden', modoResultados !== 'areas');
+  document.querySelectorAll('[data-action="modo-resultados"]').forEach((botao) => {
+    const ativo = botao.dataset.modo === modoResultados;
+    botao.classList.toggle('bg-lime', ativo);
+    botao.classList.toggle('text-ink', ativo);
+    botao.classList.toggle('font-bold', ativo);
+    botao.classList.toggle('border', !ativo);
+    botao.classList.toggle('border-slate-700', !ativo);
+    botao.classList.toggle('text-slate-300', !ativo);
+    botao.setAttribute('aria-selected', String(ativo));
+  });
 }
 
 
@@ -2054,7 +2076,7 @@ function criarCard(empresa) {
   const gravidade = gravidadeDe(empresa).chave;
 
   const estadoPedido = ultimo ? `
-    <a href="#pedidos" data-action="ver-no-mapa" data-id="${esc(empresa.id)}" class="mt-3 flex items-center gap-2 rounded-xl border border-slate-800 px-3 py-2 text-[11px] text-slate-300">
+    <a href="#resultados" data-action="ver-no-mapa" data-id="${esc(empresa.id)}" class="mt-3 flex items-center gap-2 rounded-xl border border-slate-800 px-3 py-2 text-[11px] text-slate-300">
       <span class="inline-block h-2 w-2 rounded-full ${BUCKETS[baldeDoPedido(ultimo)]?.dot || 'bg-slate-500'}"></span>${esc(RIGHTS[ultimo.right].short)}: ${esc(descreverPedido(ultimo))}
     </a>` : '';
 
@@ -3086,6 +3108,11 @@ function tratarClique(evento) {
     case 'sem-resposta': aplicarResultado(id, 'no_reply'); break;
     case 'apagar-tudo': confirmarApagarTudo(); break;
     case 'alternar-menu': alternarMenu(); break;
+    case 'modo-resultados':
+      modoResultados = ['lista', 'areas', 'mapa'].includes(alvo.dataset.modo) ? alvo.dataset.modo : 'lista';
+      aplicarModoResultados();
+      if (modoResultados === 'mapa') renderPedidos();
+      break;
     case 'alternar-tema': alternarTema(); break;
     case 'enviar-novamente': {
       const pedido = obterPedido(id);
@@ -3102,7 +3129,11 @@ function tratarClique(evento) {
     case 'mapa-terceiro': alternarSelecao('terceiro', id); break;
     case 'mapa-limpar': selecaoMapa = null; renderPedidos(); break;
     case 'ver-pedido': mostrarPedido(id); break;
-    case 'ver-no-mapa': selecaoMapa = { tipo: 'empresa', chave: id }; break; // o link muda a página
+    case 'ver-no-mapa':
+      selecaoMapa = { tipo: 'empresa', chave: id };
+      modoResultados = 'mapa';
+      setTimeout(() => { aplicarModoResultados(); renderPedidos(); }, 0);
+      break;
     case 'opcao-folha': {
       const opcao = opcoesFolha[Number(index)];
       fecharFolha();
@@ -3239,7 +3270,8 @@ function alternarMenu(fechado = !document.body.classList.contains('menu-fechado'
     const texto = fechado ? 'Mostrar o menu' : 'Esconder o menu';
     botao.setAttribute('aria-label', texto);
     botao.title = texto;
-    botao.querySelector('.nav-rotulo').textContent = fechado ? 'Mostrar menu' : 'Esconder menu';
+    const rotulo = botao.querySelector('.nav-rotulo');
+    if (rotulo) rotulo.textContent = fechado ? 'Mostrar menu' : 'Esconder menu';
   }
   try { localStorage.setItem('veto-menu-fechado', fechado ? '1' : '0'); } catch (erro) { /* sem armazenamento: só vale nesta visita */ }
   if (vistaAtual() === 'pedidos') setTimeout(renderPedidos, 50); // o mapa ocupa o espaço novo

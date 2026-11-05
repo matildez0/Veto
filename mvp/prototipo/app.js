@@ -544,7 +544,7 @@ function gravidadeDe(empresa) {
 // Ícone de barras (1 a 4), para a gravidade não depender só da cor
 function iconeGravidade(chave, altura = 10) {
   const g = SEVERITY[chave];
-  const barras = [0, 1, 2, 3].map((i) => `<rect x="${i * 3.5}" y="${9 - (i + 1) * 2.25}" width="2.5" height="${(i + 1) * 2.25}" rx="0.6" fill="${i < g.nivel ? g.hex : '#4d4354'}"/>`).join('');
+  const barras = [0, 1, 2, 3].map((i) => `<rect x="${i * 3.5}" y="${9 - (i + 1) * 2.25}" width="2.5" height="${(i + 1) * 2.25}" rx="0.6" fill="${i < g.nivel ? g.hex : (modoClaro() ? '#d3c9dc' : '#4d4354')}"/>`).join('');
   return `<svg viewBox="0 0 13.5 9" width="${Math.round(altura * 1.5)}" height="${altura}" aria-hidden="true" class="inline-block shrink-0">${barras}</svg>`;
 }
 
@@ -583,8 +583,8 @@ let selecaoMapa = null; // { tipo: 'empresa' | 'terceiro' | 'setor', chave }
 
 // Cores e medidas do mapa de exposição (a rede)
 const REDE = {
-  EMPRESA: '#c2ea5d',   // verde do logo
-  TERCEIRO: '#b9a2f5',  // lilás, a condizer com o fundo
+  get EMPRESA() { return modoClaro() ? '#719b08' : '#c2ea5d'; },   // verde do logo (mais escuro no modo claro)
+  get TERCEIRO() { return modoClaro() ? '#8a67de' : '#b9a2f5'; },  // lilás, a condizer com o fundo
   PORMENOR: '#719b08',
   NUCLEO: '#807785',    // centro de cada área
   PASSO: 11,            // distância entre empresas vizinhas (unidades do desenho)
@@ -1773,7 +1773,7 @@ function precisaDeAtencao(pedido) {
    ========================================================================== */
 function vistaAtual() {
   const vista = location.hash.replace('#', '');
-  return ['inicio', 'resultados', 'pedidos', 'noticias', 'monitorizacao'].includes(vista) ? vista : 'inicio';
+  return ['inicio', 'resultados', 'pedidos', 'noticias', 'monitorizacao', 'definicoes'].includes(vista) ? vista : 'inicio';
 }
 
 function renderTudo() {
@@ -2449,7 +2449,7 @@ function desenharRede(rede) {
 
   // 5. Desenho. As posições no ecrã são postas por aplicarZoom(), logo a seguir.
   const linha = (de, para, cor, largura, opacidade, tracejado) => `<line data-de="${esc(de)}" data-para="${esc(para)}" stroke="${cor}" stroke-width="${r1(largura * u)}" stroke-opacity="${opacidade}" stroke-linecap="round"${tracejado ? ` stroke-dasharray="${r1(2.5 * u)} ${r1(3 * u)}"` : ''}/>`;
-  const fundos = grupos.map((g) => `<circle data-grupo="${g.chave}" data-raio="${r1(g.raio)}" fill="#2c2330" fill-opacity="${aceso(`s:${g.chave}`) || (acesos && g.nos.some((no) => acesos.has(no.id))) ? 0.45 : 0.2}" pointer-events="none"/>`).join('');
+  const fundos = grupos.map((g) => `<circle data-grupo="${g.chave}" data-raio="${r1(g.raio)}" fill="${modoClaro() ? '#d9cde6' : '#2c2330'}" fill-opacity="${aceso(`s:${g.chave}`) || (acesos && g.nos.some((no) => acesos.has(no.id))) ? 0.45 : 0.2}" pointer-events="none"/>`).join('');
   const raiosAreas = rede.empresas.map((no) => linha(`s:${no.sector}`, no.id, REDE.EMPRESA, 0.5, aceso(no.id) ? (acesos ? 0.45 : 0.18) : 0.04)).join('');
   const linhasRel = relacoes.map((l) => linha(l.de, l.para, REDE.TERCEIRO, 1, 0.9, true)).join('');
 
@@ -2461,7 +2461,7 @@ function desenharRede(rede) {
       ${brilho ? `<circle r="${r1(r * 2.6)}" fill="url(#${brilho})" pointer-events="none"/>` : ''}
       ${pulsar ? `<circle r="${r}" fill="none" stroke="${cor}" stroke-width="1.2" class="ponto-radar" pointer-events="none"/>` : ''}
       ${anel ? `<circle r="${r1(r + 2.2)}" fill="none" stroke="${REDE.PORMENOR}" stroke-width="1.4" pointer-events="none"/>` : ''}
-      <circle r="${r}" fill="${cor}" stroke="${sel.chave === id ? '#ffffff' : 'none'}" stroke-width="1.6" pointer-events="none"/>
+      <circle r="${r}" fill="${cor}" stroke="${sel.chave === id ? (modoClaro() ? '#211923' : '#ffffff') : 'none'}" stroke-width="1.6" pointer-events="none"/>
       <circle ${acao} r="${r1(Math.max(r + 3, 7 * u))}" fill="transparent" class="cursor-pointer"><title>${esc(titulo)}</title></circle>
     </g></g>`;
   };
@@ -2484,16 +2484,16 @@ function desenharRede(rede) {
   //    por ordem de importância e sem taparem nada. O escolhido e os seus terceiros, sempre.
   const ordemClasse = { fixa: 0, setor: 1, ligada: 2, normal: 3 };
   const etiquetas = [
-    ...satelites.map((s) => ({ id: s.id, texto: nomeDe(s).nome, cor: '#d9cdfb', classe: 'fixa', peso: 0 })),
-    ...grupos.map((g) => ({ id: `s:${g.chave}`, texto: `${SECTORS[g.chave].short} · ${g.nos.length}`, cor: sel.tipo === 'setor' && sel.chave === g.chave ? '#ffffff' : '#a39ca7', classe: 'setor', setor: g.chave, peso: 0 })),
+    ...satelites.map((s) => ({ id: s.id, texto: nomeDe(s).nome, cor: modoClaro() ? '#6a4cc0' : '#d9cdfb', classe: 'fixa', peso: 0 })),
+    ...grupos.map((g) => ({ id: `s:${g.chave}`, texto: `${SECTORS[g.chave].short} · ${g.nos.length}`, cor: sel.tipo === 'setor' && sel.chave === g.chave ? (modoClaro() ? '#211923' : '#ffffff') : (modoClaro() ? '#6e6475' : '#a39ca7'), classe: 'setor', setor: g.chave, peso: 0 })),
     ...grupos.flatMap((g) => g.nos).map((no, i) => ({
-      id: no.id, texto: no.name, cor: '#e4e0e6', peso: i, esbatido: !aceso(no.id),
+      id: no.id, texto: no.name, cor: modoClaro() ? '#3a3040' : '#e4e0e6', peso: i, esbatido: !aceso(no.id),
       classe: no.id === sel.chave ? 'fixa' : acesos?.has(no.id) ? 'ligada' : 'normal'
     }))
   ].map((et) => ({ ...et, texto: et.texto.length > 20 ? `${et.texto.slice(0, 19)}…` : et.texto }))
     .sort((a, b) => ordemClasse[a.classe] - ordemClasse[b.classe] || a.peso - b.peso);
   const textos = etiquetas.map((et, i) => `<text data-et="${i}" display="none" font-size="${r1(letra * u)}" font-weight="600" fill="${et.cor}"${et.esbatido ? ' opacity="0.3"' : ''}
-    stroke="#19131b" stroke-width="${r1(3 * u)}" stroke-linejoin="round" paint-order="stroke"
+    stroke="${modoClaro() ? '#efe9f5' : '#19131b'}" stroke-width="${r1(3 * u)}" stroke-linejoin="round" paint-order="stroke"
     ${et.setor ? `pointer-events="auto" data-action="mapa-setor" data-sector="${et.setor}" class="cursor-pointer"` : 'pointer-events="none"'}>${esc(et.texto)}</text>`).join('');
 
   redeDesenhada = { pos, raios, W, H, u, letra, larguraPx, etiquetas, zoomMax, zoomNomes, grupos: new Map(grupos.map((g) => [g.chave, g.raio])) };
@@ -3086,6 +3086,7 @@ function tratarClique(evento) {
     case 'sem-resposta': aplicarResultado(id, 'no_reply'); break;
     case 'apagar-tudo': confirmarApagarTudo(); break;
     case 'alternar-menu': alternarMenu(); break;
+    case 'alternar-tema': alternarTema(); break;
     case 'enviar-novamente': {
       const pedido = obterPedido(id);
       if (pedido) {
@@ -3203,6 +3204,33 @@ async function enviarFila() {
 
 // Enquanto a app está em teste no Google, só contas na lista de testadores podem ligar o Gmail.
 // Quem quer entrar deixa o email; a equipa acrescenta-o na Google Cloud. É o único email que o Veto recebe.
+// Tema claro / escuro (o escuro é o de origem). A escolha fica neste browser.
+function modoClaro() { return document.documentElement.classList.contains('light'); }
+function atualizarBotaoTema() {
+  const botao = document.getElementById('tema-botao');
+  const texto = modoClaro() ? 'Ativar o modo escuro' : 'Ativar o modo claro';
+  if (botao) {
+    botao.setAttribute('aria-label', texto);
+    botao.setAttribute('aria-pressed', modoClaro() ? 'true' : 'false');
+    botao.title = texto;
+  }
+  const estado = document.getElementById('tema-definicoes-estado');
+  if (estado) estado.textContent = modoClaro() ? 'Tema claro ativo' : 'Tema escuro ativo';
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', modoClaro() ? '#f1ecf6' : '#211923');
+}
+function alternarTema(claro = !modoClaro()) {
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
+  document.documentElement.classList.toggle('light', claro);
+  try { localStorage.setItem('veto-tema', claro ? 'claro' : 'escuro'); } catch (erro) { /* sem armazenamento: só vale nesta visita */ }
+  atualizarBotaoTema();
+  // A troca de classes é suficiente para a interface. Re-renderizar tudo aqui
+  // recriava os cartões e podia alterar a posição do scroll/layout durante a troca.
+  if (vistaAtual() === 'pedidos') renderPedidos(); // atualiza apenas as cores do SVG do mapa
+  requestAnimationFrame(() => window.scrollTo(scrollX, scrollY));
+}
+atualizarBotaoTema();
+
 // Menu lateral (computador): aberto ou só com ícones; a escolha fica neste browser
 function alternarMenu(fechado = !document.body.classList.contains('menu-fechado')) {
   document.body.classList.toggle('menu-fechado', fechado);

@@ -937,7 +937,6 @@ async function analisarCabecalhos(accessToken) {
   const areas = new Set(encontradas.map((empresa) => empresa.sector)).size;
   registo.feito('fim', `Análise concluída: ${encontradas.length} ${plural(encontradas.length, 'empresa', 'empresas')} em ${areas} ${plural(areas, 'área', 'áreas')}`);
   registarEvento('analise_concluida', { demo: false, emails: messages.length, ...resumoParaEventos(encontradas) });
-  location.hash = '#resultados';
 }
 
 async function emLotes(itens, tamanho, tarefa, progresso) {
@@ -1628,14 +1627,14 @@ function confirmarEnvio(pedidoId) {
   pedido.dueDate = estimarPrazo(pedido.sentAt);
   mudarEstado(pedido, 'sent');
   registarEvento('pedido_enviado', { demo: pedido.demo, direito: pedido.right, area: pedido.companySector, app: estado.appEmail || '' });
-  // Depois de enviar, o próximo sítio natural é a página de pedidos.
+  // Depois de enviar, o próximo sítio natural é o mapa dentro dos resultados.
   abrirFolha({
     titulo: 'Pedido enviado',
     texto: `A ${pedido.companyName} tem até ${formatarData(pedido.dueDate)} para responder. Acompanha-o no mapa de exposição.`,
-    opcoes: vistaAtual() === 'pedidos'
+    opcoes: vistaAtual() === 'resultados'
       ? [{ label: 'OK', estilo: 'primary', acao: () => {} }]
       : [
-        { label: 'Ver no mapa', estilo: 'primary', acao: () => { selecaoMapa = { tipo: 'empresa', chave: pedido.companyId }; location.hash = '#pedidos'; } },
+        { label: 'Ver no mapa', estilo: 'primary', acao: () => { selecaoMapa = { tipo: 'empresa', chave: pedido.companyId }; modoResultados = 'mapa'; location.hash = '#resultados'; } },
         { label: 'Continuar nos resultados', estilo: 'secondary', acao: () => {} }
       ]
   });
@@ -1952,13 +1951,6 @@ function renderPainel() {
     ? `${icone('alerta')}<span>${totalSensiveis} em áreas sensíveis: ${sensiveis.map((item) => esc(SECTORS[item.chave].short.toLowerCase())).join(', ')}</span>`
     : '<span>Nenhuma em áreas sensíveis.</span>';
 
-  // Gravidade se os dados se perderem
-  const porGravidade = SEVERITY_ORDER.map((chave) => ({ chave, n: lista.filter((empresa) => gravidadeDe(empresa).chave === chave).length }));
-  document.getElementById('severity-bar').innerHTML = porGravidade.filter((item) => item.n)
-    .map((item) => `<div class="h-full rounded-[3px]" style="width:${(item.n / Math.max(lista.length, 1)) * 100}%;background:${SEVERITY[item.chave].hex}" title="${SEVERITY[item.chave].label}: ${item.n}"></div>`).join('');
-  document.getElementById('severity-legend').innerHTML = porGravidade
-    .map((item) => `<span class="flex items-center gap-1.5 ${item.n ? '' : 'opacity-40'}">${iconeGravidade(item.chave)}<span class="text-slate-300">${SEVERITY[item.chave].label}</span><span class="font-display text-sm font-semibold text-white">${item.n}</span></span>`).join('');
-
   renderFrequencia(lista);
 
   // Grelha por área (sensíveis primeiro, depois por número de empresas)
@@ -2146,8 +2138,13 @@ function porqueEstaEmpresa(empresa) {
 
 function irParaMapa(empresaId) {
   selecaoMapa = { tipo: 'empresa', chave: empresaId };
-  if (vistaAtual() === 'pedidos') renderPedidos();
-  else location.hash = '#pedidos';
+  modoResultados = 'mapa';
+  if (vistaAtual() === 'resultados') {
+    aplicarModoResultados();
+    renderPedidos();
+  } else {
+    location.hash = '#resultados';
+  }
 }
 
 // Cancelar a subscrição não apaga os dados: a app diz isso antes e depois.
@@ -2324,6 +2321,16 @@ function construirRede(nos) {
   return { empresas: nos, terceiros: [...terceiros.values()], incidentes: [...incidentes.values()], ligacoes };
 }
 
+function visualDoMapa(no) {
+  const critico = no.gravidade === 'critica';
+  return {
+    cor: critico ? '#ef4444' : no.balde === 'resolvido' ? '#c2ea5d' : '#facc15',
+    critico,
+    icone: no.empresa?.icon || no.name?.[0] || '?',
+    estado: critico ? 'crítico' : no.balde === 'resolvido' ? 'resolvido' : 'sem resposta'
+  };
+}
+
 function desenharRede(rede) {
   const r1 = (n) => Math.round(n * 10) / 10;
   const sel = selecaoMapa || {};
@@ -2476,14 +2483,16 @@ function desenharRede(rede) {
   const linhasRel = relacoes.map((l) => linha(l.de, l.para, REDE.TERCEIRO, 1, 0.9, true)).join('');
 
   let ordem2 = 0;
-  const ponto = ({ id, r, cor, brilho, acao, titulo, anel, pulsar }) => {
+  const ponto = ({ id, r, cor, brilho, acao, titulo, anel, pulsar, icone, critico }) => {
     const ligado = aceso(id);
     const entrada = animarMapa ? ` class="dot-in" style="animation-delay:${Math.min(ordem2++ * 6, 700)}ms"` : '';
     return `<g data-no="${esc(id)}" opacity="${ligado ? 1 : 0.22}"><g${entrada}>
       ${brilho ? `<circle r="${r1(r * 2.6)}" fill="url(#${brilho})" pointer-events="none"/>` : ''}
       ${pulsar ? `<circle r="${r}" fill="none" stroke="${cor}" stroke-width="1.2" class="ponto-radar" pointer-events="none"/>` : ''}
-      ${anel ? `<circle r="${r1(r + 2.2)}" fill="none" stroke="${REDE.PORMENOR}" stroke-width="1.4" pointer-events="none"/>` : ''}
+      ${critico ? `<path d="M 0 ${r1(-r - 3)} L ${r1(r + 3)} 0 L 0 ${r1(r + 3)} L ${r1(-r - 3)} 0 Z" fill="none" stroke="${cor}" stroke-width="1.3" pointer-events="none"/>` : ''}
+      ${anel && !critico ? `<circle r="${r1(r + 2.2)}" fill="none" stroke="${cor}" stroke-width="1.4" pointer-events="none"/>` : ''}
       <circle r="${r}" fill="${cor}" stroke="${sel.chave === id ? (modoClaro() ? '#211923' : '#ffffff') : 'none'}" stroke-width="1.6" pointer-events="none"/>
+      ${icone ? `<text x="0" y="0.5" text-anchor="middle" dominant-baseline="middle" font-size="${r1(Math.max(3.4, r * 1.25))}" font-weight="700" fill="#211923" pointer-events="none">${esc(icone)}</text>` : ''}
       <circle ${acao} r="${r1(Math.max(r + 3, 7 * u))}" fill="transparent" class="cursor-pointer"><title>${esc(titulo)}</title></circle>
     </g></g>`;
   };
@@ -2491,11 +2500,13 @@ function desenharRede(rede) {
       <circle r="2.6" fill="${REDE.NUCLEO}" pointer-events="none"/>
       <circle data-action="mapa-setor" data-sector="${g.chave}" r="${r1(Math.max(6, 8 * u))}" fill="transparent" class="cursor-pointer"><title>${esc(SECTORS[g.chave].label)}</title></circle>
     </g>`).join('');
-  const pontosEmpresas = grupos.flatMap((g) => g.nos).map((no) => ponto({
-    id: no.id, r: RAIO_EMPRESA[no.gravidade] || 3.5, cor: SEVERITY[no.gravidade].hex, brilho: `brilho-${no.gravidade}`,
+  const pontosEmpresas = grupos.flatMap((g) => g.nos).map((no) => {
+    const visual = visualDoMapa(no);
+    return ponto({
+    id: no.id, r: RAIO_EMPRESA[no.gravidade] || 3.5, cor: visual.cor, brilho: visual.critico ? 'brilho-critica' : undefined,
     acao: `data-action="mapa-empresa" data-id="${esc(no.id)}"`, titulo: `${no.name}: gravidade ${SEVERITY[no.gravidade].label.toLowerCase()}`,
-    anel: no.balde !== 'sempedido'
-  })).join('');
+    anel: no.balde === 'resolvido', icone: visual.icone, critico: visual.critico
+  }); }).join('');
   const nomeDe = (s) => rede.terceiros.find((x) => x.id === s.id);
   const pontosSatelites = satelites.map((s) => ponto({
     id: s.id, r: 4.6, cor: REDE.TERCEIRO, brilho: 'brilho-terceiro',
@@ -2782,9 +2793,11 @@ function legendaDaRede(rede) {
   const areas = new Set(rede.empresas.map((no) => no.sector)).size;
   return `<p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
       <span class="text-slate-300"><span class="font-semibold text-white">${rede.empresas.length}</span> ${plural(rede.empresas.length, 'empresa', 'empresas')} em <span class="font-semibold text-white">${areas}</span> ${plural(areas, 'área', 'áreas')}</span>
-      ${SEVERITY_ORDER.map((chave) => `<span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full" style="background:${SEVERITY[chave].hex};box-shadow:0 0 8px ${SEVERITY[chave].hex}"></span><span class="text-slate-300">${SEVERITY[chave].label}</span></span>`).join('')}
+      <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-lime"></span><span class="text-slate-300">Resolvido</span></span>
+      <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-yellow-300"></span><span class="text-slate-300">Sem resposta</span></span>
+      <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rotate-45 bg-red-500"></span><span class="text-slate-300">Crítico</span></span>
     </p>
-    <p class="mt-2 text-[11px] leading-4 text-mist">A cor e o tamanho mostram a gravidade de uma fuga. O anel verde marca um pedido enviado.</p>`;
+    <p class="mt-2 text-[11px] leading-4 text-mist">Cada ponto mostra a inicial da marca. O losango vermelho identifica uma área crítica.</p>`;
 }
 
 // Todas as empresas da análise, mais as que têm pedidos mas já não estão na lista.
@@ -3071,7 +3084,7 @@ function tratarClique(evento) {
     case 'pedido': prepararPedido(id, right); break;
     case 'mais': mostrarMaisOpcoes(id); break;
     case 'gerir': irParaMapa(id); break;
-    case 'ver-area': selecaoMapa = { tipo: 'setor', chave: sector }; location.hash = '#pedidos'; break;
+    case 'ver-area': selecaoMapa = { tipo: 'setor', chave: sector }; modoResultados = 'mapa'; location.hash = '#resultados'; break;
     case 'entrar-teste': entrarNoTeste(); break;
     case 'recusar-teste': recusarTeste(); break;
     case 'saber-mais-teste': mostrarOQueEEnviado(); break;

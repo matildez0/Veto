@@ -18,6 +18,17 @@
       },
       "predictiveBackGestureEnabled": false
     },
+    "plugins": [
+      "expo-background-task",
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "color": "#C2EA5D"
+        }
+      ],
+      "expo-status-bar"
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     }

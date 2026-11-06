@@ -679,6 +679,10 @@ registarAbertura();
 document.getElementById('analyze-button').addEventListener('click', () => ligarGmail());
 document.getElementById('search-input').addEventListener('input', renderEmpresas);
 document.addEventListener('click', tratarClique);
+document.addEventListener('veto:languagechange', () => {
+  renderTudo();
+  renderTeste();
+});
 // Que perguntas do guia são abertas, uma vez por pergunta em cada visita
 // (o evento "toggle" não sobe, por isso apanha-se na descida)
 const perguntasAbertas = new Set();
@@ -1952,6 +1956,7 @@ function renderPainel() {
     : '<span>Nenhuma em áreas sensíveis.</span>';
 
   renderFrequencia(lista);
+  renderNoticiaDestaque(lista);
 
   // Grelha por área (sensíveis primeiro, depois por número de empresas)
   const areas = SECTOR_ORDER
@@ -2016,6 +2021,26 @@ function renderFrequencia(lista) {
       </div>`
     : '';
   container.innerHTML = ranking + semInformacaoTexto;
+}
+
+function renderNoticiaDestaque(lista) {
+  const bloco = document.getElementById('featured-news');
+  if (!bloco) return;
+  const prioridade = { fuga: 0, fraude: 1, multa: 2 };
+  const noticia = NOTICIAS
+    .filter((item) => empresasDaNoticia(item).some((empresa) => lista.some((detetada) => detetada.id === empresa.id)))
+    .sort((a, b) => prioridade[a.tipo] - prioridade[b.tipo] || b.data.localeCompare(a.data))[0];
+  if (!noticia) {
+    bloco.classList.add('hidden');
+    return;
+  }
+  bloco.classList.remove('hidden');
+  document.getElementById('featured-news-title').textContent = tt(noticia.titulo);
+  document.getElementById('featured-news-meta').textContent = `${noticia.empresa} · ${tt(TIPOS_NOTICIA[noticia.tipo].label)} · ${formatarData(noticia.data)}`;
+  document.getElementById('featured-news-text').textContent = tt(noticia.resumo);
+  const link = document.getElementById('featured-news-link');
+  link.dataset.action = 'noticia-destaque';
+  link.dataset.id = noticia.id;
 }
 
 function renderEmpresas() {
@@ -3093,6 +3118,11 @@ function tratarClique(evento) {
     case 'nota': marcarNota(Number(alvo.dataset.value)); break;
     case 'enviar-opiniao': enviarOpiniao(); break;
     case 'filtro-noticias': filtroNoticias = alvo.dataset.filter; renderNoticias(); break;
+    case 'noticia-destaque':
+      filtroNoticias = 'minhas';
+      location.hash = '#noticias';
+      renderNoticias();
+      break;
     case 'ver-casos':
       filtroNoticias = alvo.dataset.filter;
       renderNoticias();
@@ -3465,7 +3495,7 @@ function dataLocalISO(data) {
 function formatarData(iso) {
   if (!iso) return '';
   const data = iso.length === 10 ? new Date(`${iso}T00:00:00`) : new Date(iso);
-  return data.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return data.toLocaleDateString(typeof dateLocale === 'function' ? dateLocale() : 'pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 function descreverDia(iso) {

@@ -30,7 +30,10 @@ const TRANSLATIONS = {
     'nav.home': 'Início',
     'nav.results': 'Resultados',
     'nav.map': 'Mapa',
+    'nav.requests': 'Pedidos',
     'nav.news': 'Notícias',
+    'results.featuredNews': 'Atenção sobre uma empresa detetada',
+    'results.readNews': 'Ler a notícia →',
     'nav.menu': 'Esconder menu',
     'language.toggle': 'EN',
     'language.label': 'Idioma'
@@ -52,7 +55,10 @@ const TRANSLATIONS = {
     'nav.home': 'Home',
     'nav.results': 'Results',
     'nav.map': 'Map',
+    'nav.requests': 'Requests',
     'nav.news': 'News',
+    'results.featuredNews': 'Attention about a detected company',
+    'results.readNews': 'Read the news →',
     'nav.menu': 'Hide menu',
     'language.toggle': 'PT',
     'language.label': 'Language'

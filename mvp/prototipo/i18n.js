@@ -34,6 +34,10 @@ const TRANSLATIONS = {
     'nav.news': 'Notícias',
     'results.featuredNews': 'Atenção sobre uma empresa detetada',
     'results.readNews': 'Ler a notícia →',
+    'settings.language.title': 'Idioma',
+    'settings.language.text': 'Escolhe o idioma público da aplicação. A escolha fica guardada neste dispositivo.',
+    'settings.language.public': 'Idioma público',
+    'settings.language.button': 'Mudar para English',
     'nav.menu': 'Esconder menu',
     'language.toggle': 'EN',
     'language.label': 'Idioma'
@@ -59,6 +63,10 @@ const TRANSLATIONS = {
     'nav.news': 'News',
     'results.featuredNews': 'Attention about a detected company',
     'results.readNews': 'Read the news →',
+    'settings.language.title': 'Language',
+    'settings.language.text': 'Choose the public language of the app. Your choice is saved on this device.',
+    'settings.language.public': 'Public language',
+    'settings.language.button': 'Switch to Português',
     'nav.menu': 'Hide menu',
     'language.toggle': 'PT',
     'language.label': 'Language'
@@ -702,24 +710,24 @@ function applyLanguage() {
     });
   });
 
-  const toggle = document.getElementById('language-toggle');
-  if (toggle) {
+  document.querySelectorAll('#language-toggle, #language-toggle-settings [data-language-label]').forEach((toggle) => {
     toggle.textContent = entries['language.toggle'];
     toggle.setAttribute('aria-label', entries['language.label']);
-  }
+  });
 
   // O app.js volta a desenhar os textos que cria
   document.dispatchEvent(new CustomEvent('veto:languagechange', { detail: { lang } }));
 }
 
 function initLanguageToggle() {
-  const toggle = document.getElementById('language-toggle');
-  if (!toggle || toggle.dataset.ligado) return;
-  toggle.dataset.ligado = '1';
-  toggle.addEventListener('click', () => {
-    state.lang = state.lang === 'pt' ? 'en' : 'pt';
-    try { localStorage.setItem(LANG_KEY, state.lang); } catch (erro) { /* ignorar */ }
-    applyLanguage();
+  document.querySelectorAll('#language-toggle, #language-toggle-settings').forEach((toggle) => {
+    if (toggle.dataset.ligado) return;
+    toggle.dataset.ligado = '1';
+    toggle.addEventListener('click', () => {
+      state.lang = state.lang === 'pt' ? 'en' : 'pt';
+      try { localStorage.setItem(LANG_KEY, state.lang); } catch (erro) { /* ignorar */ }
+      applyLanguage();
+    });
   });
 }
 

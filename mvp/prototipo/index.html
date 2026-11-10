@@ -134,7 +134,7 @@
 <body class="bg-ink text-slate-100 antialiased">
   <!-- Aparece se um dos scripts principais não carregar -->
   <div id="erro-app" hidden style="position:sticky;top:0;z-index:50;background:#fb7185;color:#211923;padding:12px 16px;font:600 14px/1.4 system-ui,sans-serif;text-align:center">
-    A app não arrancou: não encontrei o ficheiro <b>app.js</b> ou <b>veto-plus.js</b>. Põe ambos na mesma pasta que este index.html.
+    <span data-t>A app não arrancou: não encontrei o ficheiro</span> <b>app.js</b> <span data-t>ou</span> <b>veto-plus.js</b>. <span data-t>Põe ambos na mesma pasta que este index.html.</span>
   </div>
   <main class="mx-auto min-h-screen w-full max-w-md overflow-hidden bg-ink pb-28 lg:ml-56 lg:w-auto lg:max-w-none lg:px-8 lg:pb-16 xl:px-12">
     <header class="px-5 pt-8 lg:max-w-[82rem]">
@@ -151,7 +151,7 @@
         </a>
         <!-- Veto Plus: sempre visível no topo, em todas as páginas -->
         <div class="flex shrink-0 items-center gap-2">
-          <button data-action="alternar-menu" type="button" class="hidden rounded-full border border-slate-700 px-2.5 py-1.5 text-xs text-slate-400 transition hover:border-lime hover:text-lime lg:inline-flex" aria-label="Recolher menu" title="Recolher menu">
+          <button data-action="alternar-menu" type="button" class="hidden rounded-full border border-slate-700 px-2.5 py-1.5 text-xs text-slate-400 transition hover:border-lime hover:text-lime lg:inline-flex" aria-label="Recolher menu" title="Recolher menu" data-t-attr="aria-label title">
             <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
           </button>
           <button id="language-toggle" type="button" aria-label="Idioma" class="flex shrink-0 items-center justify-center rounded-full border border-lime/60 bg-transparent px-3 py-1.5 text-xs font-bold text-lime transition hover:bg-lime/10 active:scale-95">EN</button>
@@ -190,9 +190,9 @@
           </li>
         </ol>
         <div id="client-id-box">
-          <label class="mt-5 block text-xs font-semibold text-slate-300" for="google-client-id">Google OAuth Client ID</label>
-          <input id="google-client-id" class="mt-2 w-full rounded-xl border border-slate-700 bg-ink px-3 py-3 text-xs outline-none placeholder:text-slate-600 focus:border-lime" placeholder="ex.: 123456789.apps.googleusercontent.com" autocomplete="off" type="text">
-          <p class="mt-2 text-[11px] leading-4 text-slate-500">Cria um cliente Web na Google Cloud Console e autoriza a origem desta página. O ID fica apenas nesta sessão.</p>
+          <label class="mt-5 block text-xs font-semibold text-slate-300" for="google-client-id" data-t>Google OAuth Client ID</label>
+          <input id="google-client-id" class="mt-2 w-full rounded-xl border border-slate-700 bg-ink px-3 py-3 text-xs outline-none placeholder:text-slate-600 focus:border-lime" placeholder="ex.: 123456789.apps.googleusercontent.com" autocomplete="off" type="text" data-t-attr="placeholder">
+          <p class="mt-2 text-[11px] leading-4 text-slate-500" data-t>Cria um cliente Web na Google Cloud Console e autoriza a origem desta página. O ID fica apenas nesta sessão.</p>
         </div>
         <button id="analyze-button" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-lime py-3.5 text-sm font-bold text-ink transition hover:brightness-95 active:scale-[.98]" type="button" data-i18n="cta.primary" data-i18n-html>
           Ligar Gmail e começar <span>→</span>
@@ -256,17 +256,17 @@
       <section id="plus-card" class="mx-5 mt-5 lg:mx-0 lg:mt-0 rounded-2xl bg-oliva p-4 text-ink">
         <div class="flex items-center justify-between">
           <p class="font-display text-base font-semibold">Veto+</p>
-          <span id="plus-card-badge" class="rounded-full border border-ink/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Novo</span>
+          <span id="plus-card-badge" class="rounded-full border border-ink/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider" data-t>Novo</span>
         </div>
         <p id="plus-card-text" class="mt-1.5 text-sm leading-5 text-ink/85"></p>
         <button data-action="plus" data-onde="inicio" class="mt-3 flex w-full items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-bold text-ink transition hover:bg-slate-100 active:scale-[.98]" type="button">
-          <span id="plus-card-cta">Ver o Veto+</span><span id="plus-card-price" class="text-ink/60"></span>
+          <span id="plus-card-cta" data-t>Ver o Veto+</span><span id="plus-card-price" class="text-ink/60"></span>
         </button>
       </section>
 
       <!-- Opinião: o passo 3 do teste, depois da análise -->
       <section id="feedback-panel" class="mx-5 mt-5 hidden lg:mx-0 rounded-2xl border border-slate-800 bg-slate-900/50 p-5" data-nota="">
-        <h2 class="font-semibold">O Veto foi útil para ti?</h2>
+        <h2 class="font-semibold" data-t>O Veto foi útil para ti?</h2>
         <div id="feedback-stars" class="mt-3 flex gap-2" role="group" aria-label="Nota de 1 a 5">
           <button data-action="nota" data-value="1" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">1</button>
           <button data-action="nota" data-value="2" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">2</button>
@@ -274,24 +274,24 @@
           <button data-action="nota" data-value="4" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">4</button>
           <button data-action="nota" data-value="5" type="button" class="h-10 flex-1 rounded-lg border border-slate-700 text-sm font-bold">5</button>
         </div>
-        <div class="mt-1 flex justify-between text-[10px] text-slate-500"><span>Nada útil</span><span>Muito útil</span></div>
-        <textarea id="feedback-text" rows="3" maxlength="1000" class="mt-3 w-full rounded-xl border border-slate-700 bg-ink px-3 py-2 text-sm outline-none placeholder:text-slate-600 focus:border-lime" placeholder="O que te surpreendeu? O que mudavas?"></textarea>
-        <button data-action="enviar-opiniao" class="mt-3 w-full rounded-xl border border-slate-700 py-2.5 text-sm font-bold text-slate-200" type="button">Enviar opinião</button>
-        <p id="feedback-done" class="mt-2 hidden text-center text-xs text-lime">Recebemos a tua opinião. Obrigado!</p>
+        <div class="mt-1 flex justify-between text-[10px] text-slate-500"><span data-t>Nada útil</span><span data-t>Muito útil</span></div>
+        <textarea id="feedback-text" rows="3" maxlength="1000" class="mt-3 w-full rounded-xl border border-slate-700 bg-ink px-3 py-2 text-sm outline-none placeholder:text-slate-600 focus:border-lime" placeholder="O que te surpreendeu? O que mudavas?" data-t-attr="placeholder"></textarea>
+        <button data-action="enviar-opiniao" class="mt-3 w-full rounded-xl border border-slate-700 py-2.5 text-sm font-bold text-slate-200" type="button" data-t>Enviar opinião</button>
+        <p id="feedback-done" class="mt-2 hidden text-center text-xs text-lime" data-t>Recebemos a tua opinião. Obrigado!</p>
       </section>
 
       <section class="mx-5 mt-7 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 lg:mx-0 lg:mt-5">
         <div class="flex gap-3">
           <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ink text-slate-200"><svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg></span>
           <div>
-            <h3 class="text-sm font-semibold">Privacidade por conceção</h3>
-            <p class="mt-1 text-xs leading-5 text-mist">Os emails são analisados neste dispositivo. O Veto não recebe nem guarda os teus emails nos seus servidores. Não há conta, e podes apagar os resultados quando quiseres.</p>
-            <a href="privacidade.html" class="mt-2 inline-block text-xs font-semibold text-lime">Ler a política de privacidade →</a>
+            <h3 class="text-sm font-semibold" data-t>Privacidade por conceção</h3>
+            <p class="mt-1 text-xs leading-5 text-mist" data-t>Os emails são analisados neste dispositivo. O Veto não recebe nem guarda os teus emails nos seus servidores. Não há conta, e podes apagar os resultados quando quiseres.</p>
+            <a href="privacidade.html" class="mt-2 inline-block text-xs font-semibold text-lime" data-t>Ler a política de privacidade →</a>
             <!-- Estatísticas anónimas: o consentimento pede-se no pop-up; aqui só se vê o estado e se muda de ideias -->
             <p class="mt-3 border-t border-slate-800 pt-3 text-xs leading-5 text-mist">
-              Estatísticas anónimas: <span id="stats-state" class="font-semibold text-slate-200">desligadas</span>
-              · <button id="stats-toggle" data-action="alternar-estatisticas" class="font-semibold text-lime underline underline-offset-4" type="button">Ligar</button>
-              · <button data-action="saber-mais-teste" class="font-semibold text-slate-300 underline underline-offset-4" type="button">O que é enviado?</button>
+              <span data-t>Estatísticas anónimas:</span> <span id="stats-state" class="font-semibold text-slate-200" data-t>desligadas</span>
+              · <button id="stats-toggle" data-action="alternar-estatisticas" class="font-semibold text-lime underline underline-offset-4" type="button" data-t>Ligar</button>
+              · <button data-action="saber-mais-teste" class="font-semibold text-slate-300 underline underline-offset-4" type="button" data-t>O que é enviado?</button>
             </p>
           </div>
         </div>
@@ -303,21 +303,21 @@
     <!-- ===================== RESULTADOS (depois da análise) ===================== -->
     <div id="view-resultados" data-view="resultados" class="lg:max-w-[82rem] hidden">
       <section class="px-5 pt-8">
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Resultado da análise</p>
-        <h1 class="mt-1 font-display text-2xl font-semibold leading-tight">Quem pode ter os teus dados</h1>
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime" data-t>Resultado da análise</p>
+        <h1 class="mt-1 font-display text-2xl font-semibold leading-tight" data-t>Quem pode ter os teus dados</h1>
       </section>
 
       <div id="results-empty" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-6 text-center">
-        <p class="text-sm text-mist">Ainda não analisaste o teu email.</p>
-        <a href="#inicio" class="mt-3 inline-block rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink">Analisar agora</a>
+        <p class="text-sm text-mist" data-t>Ainda não analisaste o teu email.</p>
+        <a href="#inicio" class="mt-3 inline-block rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink" data-t>Analisar agora</a>
       </div>
 
       <div id="results-content">
         <!-- Contas de email analisadas (Veto+ junta várias) -->
         <div class="lg:grid lg:grid-cols-2 lg:gap-x-5 lg:px-5">
         <section class="mx-5 mt-4 rounded-3xl bg-lime p-5 text-ink lg:mx-0">
-          <p class="font-display text-4xl font-semibold"><span id="dash-total">0</span> <span class="text-xl">empresas</span></p>
-          <p id="dash-source" class="mt-1 text-sm font-semibold text-ink/70">provavelmente têm os teus dados.</p>
+          <p class="font-display text-4xl font-semibold"><span id="dash-total">0</span> <span class="text-xl" data-t>empresas</span></p>
+          <p id="dash-source" class="mt-1 text-sm font-semibold text-ink/70" data-t>provavelmente têm os teus dados.</p>
           <div id="dash-sensitive" class="mt-4 flex items-center gap-2 rounded-xl bg-ink/10 px-3 py-2 text-xs font-semibold"></div>
         </section>
 
@@ -337,24 +337,24 @@
         </section>
 
         <section id="frequency-section" class="mx-5 mt-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-4 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:p-6">
-          <p class="text-sm font-semibold">Quem mais te envia emails</p>
-          <p class="mt-1 text-xs leading-4 text-mist">Nos últimos 30 dias, entre os emails analisados.</p>
+          <p class="text-sm font-semibold" data-t>Quem mais te envia emails</p>
+          <p class="mt-1 text-xs leading-4 text-mist" data-t>Nos últimos 30 dias, entre os emails analisados.</p>
           <div id="frequency-list" class="mt-3 flex flex-col gap-2"></div>
         </section>
         </div>
 
         <section class="mx-5 mt-7 rounded-2xl border border-slate-800 bg-slate-900/40 p-3 lg:mx-5">
-          <div class="flex flex-wrap gap-2" role="tablist" aria-label="Forma de ver as empresas">
-            <button data-action="modo-resultados" data-modo="lista" type="button" class="modo-resultados rounded-xl bg-lime px-3 py-2 text-xs font-bold text-ink">Lista</button>
-            <button data-action="modo-resultados" data-modo="areas" type="button" class="modo-resultados rounded-xl border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300">Por área</button>
-            <button data-action="modo-resultados" data-modo="mapa" type="button" class="modo-resultados rounded-xl border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300">Mapa</button>
+          <div class="flex flex-wrap gap-2" role="tablist" aria-label="Forma de ver as empresas" data-t-attr="aria-label">
+            <button data-action="modo-resultados" data-modo="lista" type="button" class="modo-resultados rounded-xl bg-lime px-3 py-2 text-xs font-bold text-ink" data-t>Lista</button>
+            <button data-action="modo-resultados" data-modo="areas" type="button" class="modo-resultados rounded-xl border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300" data-t>Por área</button>
+            <button data-action="modo-resultados" data-modo="mapa" type="button" class="modo-resultados rounded-xl border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300" data-t>Mapa</button>
           </div>
         </section>
 
         <div id="results-map" class="hidden">
           <div id="map-empty" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-6 text-center">
-            <p class="text-sm text-mist">O mapa aparece depois de analisares o teu email.</p>
-            <a href="#inicio" class="mt-3 inline-block rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink">Analisar agora</a>
+            <p class="text-sm text-mist" data-t>O mapa aparece depois de analisares o teu email.</p>
+            <a href="#inicio" class="mt-3 inline-block rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink" data-t>Analisar agora</a>
           </div>
           <div id="map-content" class="hidden">
             <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start lg:gap-5 lg:px-5">
@@ -369,22 +369,22 @@
 
         <section id="res-areas" class="mt-7">
           <div class="flex items-end justify-between px-5">
-            <h2 class="font-display text-lg font-semibold">Por área</h2>
-            <button id="sector-reset" data-action="setor" data-sector="todos" class="hidden text-xs font-semibold text-lime" type="button">Ver todas</button>
+            <h2 class="font-display text-lg font-semibold" data-t>Por área</h2>
+            <button id="sector-reset" data-action="setor" data-sector="todos" class="hidden text-xs font-semibold text-lime" type="button" data-t>Ver todas</button>
           </div>
           <div id="sector-grid" class="mt-3 grid grid-cols-2 gap-2 px-5 lg:grid-cols-4 xl:grid-cols-6"></div>
         </section>
 
         <section id="res-lista" class="mt-7">
           <div class="flex items-end justify-between px-5">
-            <h2 id="list-title" class="font-display text-lg font-semibold">Todas as empresas</h2>
+            <h2 id="list-title" class="font-display text-lg font-semibold" data-t>Todas as empresas</h2>
             <span id="service-total" class="text-xs text-mist"></span>
           </div>
           <div id="kind-filters" class="mt-3 flex gap-2 overflow-x-auto px-5 pb-1"></div>
           <div class="mt-3 px-5">
             <label class="relative block lg:max-w-md">
-              <span class="sr-only">Pesquisar empresas</span>
-              <input id="search-input" class="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm outline-none placeholder:text-slate-600 focus:border-lime" placeholder="Pesquisar empresa..." type="search">
+              <span class="sr-only" data-t>Pesquisar empresas</span>
+              <input id="search-input" class="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm outline-none placeholder:text-slate-600 focus:border-lime" placeholder="Pesquisar empresa..." type="search" data-t-attr="placeholder">
               <span class="pointer-events-none absolute right-4 top-3.5 text-slate-500"><svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.4-4.4"/></svg></span>
             </label>
           </div>
@@ -393,7 +393,7 @@
         </section>
 
         <details class="mx-5 mt-7 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
-          <summary class="cursor-pointer text-sm font-semibold text-slate-200">Como chegámos a esta lista?</summary>
+          <summary class="cursor-pointer text-sm font-semibold text-slate-200" data-t>Como chegámos a esta lista?</summary>
           <div id="kind-legend" class="mt-3 flex flex-col gap-2 text-xs leading-5 text-mist"></div>
         </details>
       </div>
@@ -425,17 +425,17 @@
         </div>
 
         <section id="pedidos-monitorizacao" class="mx-5 mt-8 rounded-2xl border border-lime/30 bg-slate-900/50 p-5">
-          <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Veto+</p>
-          <h2 class="mt-1 font-display text-xl font-semibold">Monitorização contínua</h2>
-          <p class="mt-2 text-sm leading-5 text-mist">Recebe novidades sobre as empresas encontradas quando voltares à app.</p>
+          <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime" data-t>Veto+</p>
+          <h2 class="mt-1 font-display text-xl font-semibold" data-t>Monitorização contínua</h2>
+          <p class="mt-2 text-sm leading-5 text-mist" data-t>Recebe novidades sobre as empresas encontradas quando voltares à app.</p>
           <div class="mt-4 flex flex-wrap gap-2">
-            <label class="cursor-pointer"><input class="sr-only" type="radio" name="monitor-frequencia" value="diaria"><span class="monitor-frequencia rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold">Diária</span></label>
-            <label class="cursor-pointer"><input class="sr-only" type="radio" name="monitor-frequencia" value="semanal"><span class="monitor-frequencia rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold">Semanal</span></label>
-            <label class="cursor-pointer"><input class="sr-only" type="radio" name="monitor-frequencia" value="mensal"><span class="monitor-frequencia rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold">Mensal</span></label>
+            <label class="cursor-pointer"><input class="sr-only" type="radio" name="monitor-frequencia" value="diaria">            <span class="monitor-frequencia rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold" data-t>Diária</span></label>
+            <label class="cursor-pointer"><input class="sr-only" type="radio" name="monitor-frequencia" value="semanal">            <span class="monitor-frequencia rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold" data-t>Semanal</span></label>
+            <label class="cursor-pointer"><input class="sr-only" type="radio" name="monitor-frequencia" value="mensal">            <span class="monitor-frequencia rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold" data-t>Mensal</span></label>
           </div>
           <div class="mt-4 flex flex-wrap gap-2">
-            <button id="monitorizacao-toggle" data-action="ativar-monitorizacao" type="button" class="rounded-xl bg-lime px-4 py-3 text-xs font-bold text-ink">Ativar monitorização</button>
-            <button data-action="verificar-monitorizacao" type="button" class="rounded-xl border border-slate-700 px-4 py-3 text-xs font-bold text-slate-200">Verificar agora</button>
+            <button id="monitorizacao-toggle" data-action="ativar-monitorizacao" type="button" class="rounded-xl bg-lime px-4 py-3 text-xs font-bold text-ink" data-t>Ativar monitorização</button>
+            <button data-action="verificar-monitorizacao" type="button" class="rounded-xl border border-slate-700 px-4 py-3 text-xs font-bold text-slate-200" data-t>Verificar agora</button>
           </div>
           <p id="monitorizacao-estado" class="mt-3 text-xs text-slate-400" aria-live="polite"></p>
           <div id="monitorizacao-novas" class="mt-3 flex flex-col gap-2"></div>
@@ -443,27 +443,27 @@
       </div>
 
       <section class="mx-5 mt-8 rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-xs leading-5 text-mist lg:max-w-xl">
-        Os estados dos pedidos são indicados por ti: o Veto não lê as respostas das empresas. Tudo fica guardado só neste dispositivo.
-        <button data-action="apagar-tudo" class="mt-3 block w-full rounded-lg border border-rose-400/30 py-2.5 text-xs font-bold text-rose-200" type="button">Apagar tudo deste dispositivo</button>
+        <span data-t>Os estados dos pedidos são indicados por ti: o Veto não lê as respostas das empresas. Tudo fica guardado só neste dispositivo.</span>
+        <button data-action="apagar-tudo" class="mt-3 block w-full rounded-lg border border-rose-400/30 py-2.5 text-xs font-bold text-rose-200" type="button" data-t>Apagar tudo deste dispositivo</button>
       </section>
     </div>
     <!-- ===================== NOTÍCIAS ===================== -->
     <div id="view-noticias" data-view="noticias" class="lg:max-w-[82rem] hidden">
       <section class="px-5 pt-8">
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Notícias</p>
-        <h1 class="mt-1 font-display text-2xl font-semibold leading-tight">O que as empresas fazem com os teus dados</h1>
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime" data-t>Notícias</p>
+        <h1 class="mt-1 font-display text-2xl font-semibold leading-tight" data-t>O que as empresas fazem com os teus dados</h1>
       </section>
       <div id="news-mine" class="mx-5 mt-4 flex items-start gap-2 rounded-2xl border border-slate-800 bg-slate-900/50 px-4 py-3 text-xs leading-5 text-mist"></div>
 
       <div class="lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
       <section class="mt-7">
-        <h2 class="px-5 font-display text-lg font-semibold">O que precisas de saber</h2>
+        <h2 class="px-5 font-display text-lg font-semibold" data-i18n="news.guide.title">O que precisas de saber</h2>
         <div id="news-guide" class="mt-3 flex flex-col gap-2 px-5"></div>
         <p class="mt-3 px-5 text-[11px] leading-4 text-slate-500">Com base no <a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj/por" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">RGPD</a> (Regulamento Geral sobre a Proteção de Dados). É informação geral, não aconselhamento jurídico. Dúvidas ou queixas: <a href="https://www.cnpd.pt" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">CNPD</a>.</p>
       </section>
 
       <section id="news-real" class="mt-8 scroll-mt-4 lg:mt-7">
-        <h2 class="px-5 font-display text-lg font-semibold">Casos reais</h2>
+        <h2 class="px-5 font-display text-lg font-semibold" data-t>Casos reais</h2>
         <div id="news-filters" class="mt-3 flex gap-2 overflow-x-auto px-5 pb-1"></div>
         <div id="news-list" class="mt-4 flex flex-col gap-3 px-5"></div>
         <p id="news-updated" class="mt-4 px-5 text-[11px] leading-4 text-slate-500"></p>
@@ -474,9 +474,9 @@
     <!-- ===================== DEFINIÇÕES ===================== -->
     <div id="view-definicoes" data-view="definicoes" class="hidden lg:max-w-[82rem]">
       <section class="px-5 pt-8">
-        <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime">Preferências</p>
-        <h1 class="mt-1 font-display text-2xl font-semibold leading-tight">Definições</h1>
-        <p class="mt-2 max-w-xl text-sm leading-5 text-mist">Personaliza a forma como o Veto aparece e prepara futuras opções da aplicação.</p>
+        <p class="text-xs font-bold uppercase tracking-[0.16em] text-lime" data-t>Preferências</p>
+        <h1 class="mt-1 font-display text-2xl font-semibold leading-tight" data-t>Definições</h1>
+        <p class="mt-2 max-w-xl text-sm leading-5 text-mist" data-t>Personaliza a forma como o Veto aparece e prepara futuras opções da aplicação.</p>
       </section>
 
       <section class="mx-5 mt-6 max-w-2xl rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
@@ -485,14 +485,14 @@
             <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg>
           </span>
           <div class="min-w-0 flex-1">
-            <h2 class="font-semibold">Tema da aplicação</h2>
-            <p class="mt-1 text-sm leading-5 text-mist">Escolhe entre o tema claro e o tema escuro. A escolha fica guardada neste dispositivo.</p>
+            <h2 class="font-semibold" data-t>Tema da aplicação</h2>
+            <p class="mt-1 text-sm leading-5 text-mist" data-t>Escolhe entre o tema claro e o tema escuro. A escolha fica guardada neste dispositivo.</p>
             <button data-action="alternar-tema" type="button" class="mt-4 flex w-full items-center justify-between rounded-xl border border-slate-700 px-4 py-3 text-left transition hover:border-lime lg:max-w-sm">
               <span>
-                <span class="block text-sm font-semibold">Alternar tema</span>
-                <span id="tema-definicoes-estado" class="mt-0.5 block text-xs text-mist">Tema atual</span>
+                <span class="block text-sm font-semibold" data-t>Alternar tema</span>
+                <span id="tema-definicoes-estado" class="mt-0.5 block text-xs text-mist" data-t>Tema atual</span>
               </span>
-              <span class="rounded-full bg-lime px-3 py-1 text-xs font-bold text-ink">Mudar</span>
+              <span class="rounded-full bg-lime px-3 py-1 text-xs font-bold text-ink" data-t>Mudar</span>
             </button>
           </div>
         </div>
@@ -549,7 +549,7 @@
     </a>
     <a href="#definicoes" data-nav="definicoes" class="nav-button flex flex-col items-center gap-1 px-3 py-1.5 text-slate-500 transition lg:flex-row lg:gap-3 lg:rounded-xl lg:py-2.5 lg:hover:bg-slate-900">
       <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5a2 2 0 0 1 2 2v.3a6.8 6.8 0 0 1 1.7 1l.3-.2a2 2 0 1 1 2 3.5l-.3.2a6.7 6.7 0 0 1 0 2l.3.2a2 2 0 1 1-2 3.5l-.3-.2a6.8 6.8 0 0 1-1.7 1v.3a2 2 0 1 1-4 0v-.3a6.8 6.8 0 0 1-1.7-1l-.3.2a2 2 0 1 1-2-3.5l.3-.2a6.7 6.7 0 0 1 0-2l-.3-.2a2 2 0 1 1 2-3.5l.3.2a6.8 6.8 0 0 1 1.7-1v-.3a2 2 0 0 1 2-2Z"/><circle cx="12" cy="12" r="2.5"/></svg>
-      <span class="nav-rotulo text-[10px] font-semibold lg:text-sm">Definições</span>
+      <span class="nav-rotulo text-[10px] font-semibold lg:text-sm" data-t>Definições</span>
     </a>
   </nav>
 
@@ -563,14 +563,14 @@
     </div>
   </div>
 
-  <div id="consent-banner" class="fixed bottom-[72px] left-1/2 z-20 hidden w-[calc(100%-24px)] max-w-sm -translate-x-1/2 lg:bottom-6 lg:left-auto lg:right-6 lg:translate-x-0 rounded-2xl bg-lime p-4 text-ink shadow-[0_12px_40px_rgba(0,0,0,0.45)]" role="dialog" aria-label="Estatísticas anónimas">
-    <p class="text-sm font-bold">Ajuda-nos a melhorar o Veto</p>
-    <p class="mt-1 text-xs leading-5 text-ink/80">Podemos contar, de forma anónima, o que fazes na app? Nunca o teu email, as empresas que encontrarmos nem o conteúdo dos emails.</p>
+  <div id="consent-banner" class="fixed bottom-[72px] left-1/2 z-20 hidden w-[calc(100%-24px)] max-w-sm -translate-x-1/2 lg:bottom-6 lg:left-auto lg:right-6 lg:translate-x-0 rounded-2xl bg-lime p-4 text-ink shadow-[0_12px_40px_rgba(0,0,0,0.45)]" role="dialog" aria-label="Estatísticas anónimas" data-t-attr="aria-label">
+    <p class="text-sm font-bold" data-t>Ajuda-nos a melhorar o Veto</p>
+    <p class="mt-1 text-xs leading-5 text-ink/80" data-t>Podemos contar, de forma anónima, o que fazes na app? Nunca o teu email, as empresas que encontrarmos nem o conteúdo dos emails.</p>
     <div class="mt-3 flex gap-2">
       <button data-action="entrar-teste" class="flex-1 rounded-lg bg-ink py-2 text-xs font-bold text-lime" type="button">Aceitar</button>
       <button data-action="recusar-teste" class="flex-1 rounded-lg bg-ink py-2 text-xs font-bold text-lime" type="button">Não, obrigado</button>
     </div>
-    <button data-action="saber-mais-teste" class="mt-2 inline-block text-[11px] font-semibold text-ink/70 underline underline-offset-4" type="button">O que é enviado?</button>
+    <button data-action="saber-mais-teste" class="mt-2 inline-block text-[11px] font-semibold text-ink/70 underline underline-offset-4" type="button" data-t>O que é enviado?</button>
   </div>
 
   <div id="toast" class="pointer-events-none fixed bottom-20 left-1/2 z-40 lg:bottom-8 lg:left-[calc(50%+7rem)] hidden w-[calc(100%-40px)] max-w-sm -translate-x-1/2 rounded-xl bg-white px-4 py-3 text-center text-sm font-semibold text-ink shadow-xl"></div>

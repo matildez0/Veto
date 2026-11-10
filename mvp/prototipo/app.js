@@ -1532,7 +1532,7 @@ function precisaDeAtencao(pedido) {
    ========================================================================== */
 function vistaAtual() {
   const vista = location.hash.replace('#', '');
-  return ['inicio', 'resultados', 'pedidos', 'noticias'].includes(vista) ? vista : 'inicio';
+  return ['inicio', 'resultados', 'pedidos', 'noticias', 'definicoes'].includes(vista) ? vista : 'inicio';
 }
 
 function renderTudo() {

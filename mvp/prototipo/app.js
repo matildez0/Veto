@@ -3083,7 +3083,6 @@ function alternarMenu(fechado = !document.body.classList.contains('menu-fechado'
     const texto = fechado ? tt('Mostrar o menu') : tt('Esconder o menu');
     botao.setAttribute('aria-label', texto);
     botao.title = texto;
-    botao.querySelector('.nav-rotulo').textContent = fechado ? tt('Mostrar menu') : tt('Esconder menu');
   }
   try { localStorage.setItem('veto-menu-fechado', fechado ? '1' : '0'); } catch (erro) { /* sem armazenamento: só vale nesta visita */ }
   if (vistaAtual() === 'pedidos') setTimeout(renderPedidos, 50); // o mapa ocupa o espaço novo

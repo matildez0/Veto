@@ -363,10 +363,10 @@ const PLUS = {
   MENSAL: '2,99 €',
   ANUAL: '29,99 €',
   FUNCOES: [
-    [tt('Limpeza profunda'), tt('Cancela as subscrições todas de uma vez e apaga os emails antigos dessas empresas.')],
-    [tt('Várias contas'), tt('Junta os teus emails pessoais e de trabalho numa só análise.')],
-    [tt('Análise contínua'), tt('A contagem de emails e a gravidade de cada empresa sempre atualizadas.')],
-    [tt('Pedidos acompanhados'), tt('Segue cada pedido ao DPO, avisa quando o prazo passa e prepara a insistência.')]
+    ['Limpeza profunda', 'Cancela as subscrições todas de uma vez e apaga os emails antigos dessas empresas.'],
+    ['Várias contas', 'Junta os teus emails pessoais e de trabalho numa só análise.'],
+    ['Análise contínua', 'A contagem de emails e a gravidade de cada empresa sempre atualizadas.'],
+    ['Pedidos acompanhados', 'Segue cada pedido ao DPO, avisa quando o prazo passa e prepara a insistência.']
   ]
 };
 const VERSAO = 'prototipo-0.7';
@@ -1583,10 +1583,10 @@ function renderNoticias() {
       </summary>
       <div class="flex flex-col gap-2.5 px-4 pb-4 text-[13px] leading-5 text-slate-300">
         ${item.blocos.map((bloco) => (Array.isArray(bloco)
-          ? `<ul class="flex flex-col gap-1.5">${bloco.map((linha) => `<li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-500"></span><span>${esc(linha)}</span></li>`).join('')}</ul>`
-          : `<p>${esc(bloco)}</p>`)).join('')}
+          ? `<ul class="flex flex-col gap-1.5">${bloco.map((linha) => `<li class="flex gap-2"><span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-slate-500"></span><span>${esc(tt(linha))}</span></li>`).join('')}</ul>`
+          : `<p>${esc(tt(bloco))}</p>`)).join('')}
         ${item.acao ? `<p class="font-semibold text-lime">${esc(item.acao)}</p>` : ''}
-        ${item.filtro ? `<button data-action="ver-casos" data-filter="${item.filtro[0]}" type="button" class="self-start text-xs font-semibold text-slate-200 underline decoration-slate-600 underline-offset-4">${esc(item.filtro[1])}</button>` : ''}
+        ${item.filtro ? `<button data-action="ver-casos" data-filter="${item.filtro[0]}" type="button" class="self-start text-xs font-semibold text-slate-200 underline decoration-slate-600 underline-offset-4">${esc(tt(item.filtro[1]))}</button>` : ''}
       </div>
     </details>`).join('');
 
@@ -2813,7 +2813,7 @@ function abrirPlus(onde = 'outro') {
   abrirFolha({
     titulo: tt('Veto+'),
     texto: tt('Para deixares de perder tempo com os emails das empresas e teres os teus pedidos tratados até ao fim.'),
-    lista: PLUS.FUNCOES,
+    lista: PLUS.FUNCOES.map(([titulo, descricao]) => [tt(titulo), tt(descricao)]),
     nota: tt('Em breve. O Veto+ ainda não está disponível e escolher um plano não cobra nada: estamos a medir quantas pessoas o querem antes de o construir.'),
     opcoes: [
       { label: tt('Quero o mensal · {0}/mês', [PLUS.MENSAL]), estilo: 'primary', acao: () => quererPlus('mensal', onde) },

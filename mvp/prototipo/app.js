@@ -556,6 +556,7 @@ const STATUS_LABELS = {
 let estado = { empresas: [], pedidos: [], analisadoEm: null, demo: false };
 let filtroSetor = 'todos';
 let filtroTipo = 'todas';
+let modoResultados = 'lista';
 let selecaoMapa = null; // { tipo: 'empresa' | 'terceiro' | 'setor', chave }
 
 // Cores e medidas do mapa de exposição (a rede)
@@ -1673,6 +1674,22 @@ function renderPainel() {
   document.getElementById('results-empty').classList.toggle('hidden', temEmpresas);
   document.getElementById('results-content').classList.toggle('hidden', !temEmpresas);
   if (!temEmpresas) return;
+
+  const listaEl = document.getElementById('res-lista');
+  const areasEl = document.getElementById('res-areas');
+  const mapaEl = document.getElementById('results-map');
+  listaEl.classList.toggle('hidden', modoResultados !== 'lista');
+  areasEl.classList.toggle('hidden', modoResultados !== 'areas');
+  mapaEl.classList.toggle('hidden', modoResultados !== 'mapa');
+  document.querySelectorAll('[data-action="modo-resultados"]').forEach((botao) => {
+    const ativo = botao.dataset.modo === modoResultados;
+    botao.classList.toggle('bg-lime', ativo);
+    botao.classList.toggle('text-ink', ativo);
+    botao.classList.toggle('font-bold', ativo);
+    botao.classList.toggle('border', !ativo);
+    botao.classList.toggle('border-slate-700', !ativo);
+    botao.classList.toggle('text-slate-300', !ativo);
+  });
 
   // Total e áreas sensíveis
   document.getElementById('dash-total').textContent = lista.length;
@@ -2887,6 +2904,14 @@ function tratarClique(evento) {
     case 'apagar-emails': apagarEmailsEmpresa(id); break;
     case 'mapa-zoom': botaoDeZoom(alvo.dataset.zoom); break;
     case 'plus': abrirPlus(alvo.dataset.onde); break;
+    case 'modo-resultados':
+      if (alvo.dataset.modo === 'mapa') {
+        location.hash = '#pedidos';
+        break;
+      }
+      modoResultados = ['lista', 'areas'].includes(alvo.dataset.modo) ? alvo.dataset.modo : 'lista';
+      renderPainel();
+      break;
     case 'descartar': definirDescartada(id, true); break;
     case 'repor-descartadas': estado.empresas.forEach((empresa) => { empresa.dismissed = false; }); guardarEstado(); renderTudo(); break;
     case 'confirmar-envio': confirmarEnvio(id); break;

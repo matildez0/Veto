@@ -359,7 +359,7 @@ const PEDIR_ACESSO_URL = '';
 
 // Veto Plus ainda não existe: o botão mede quantas pessoas o comprariam e a que preço.
 // Quem escolhe um plano vê logo que não pagou nada. Muda aqui os preços e as funcionalidades.
-const PLUS = {
+const APP_PLUS = {
   MENSAL: '2,99 €',
   ANUAL: '29,99 €',
   FUNCOES: [
@@ -2798,7 +2798,7 @@ function renderPlus(tempoTotal) {
     : tempoTotal
       ? tt('Estes emails já te custaram ≈ {0}. O Plus limpa-os de uma vez.', [formatarDuracao(tempoTotal)])
       : tt('Limpa a tua caixa de uma vez e acompanha cada pedido até à resposta.');
-  document.getElementById('plus-card-price').textContent = tt('{0}/mês →', [PLUS.MENSAL]);
+  document.getElementById('plus-card-price').textContent = tt('{0}/mês →', [APP_PLUS.MENSAL]);
 }
 
 // Uma vez por dispositivo: dá a base para calcular quantos dos que viram o cartão carregaram nele.
@@ -2813,11 +2813,11 @@ function abrirPlus(onde = 'outro') {
   abrirFolha({
     titulo: tt('Veto+'),
     texto: tt('Para deixares de perder tempo com os emails das empresas e teres os teus pedidos tratados até ao fim.'),
-    lista: PLUS.FUNCOES.map(([titulo, descricao]) => [tt(titulo), tt(descricao)]),
+    lista: APP_PLUS.FUNCOES.map(([titulo, descricao]) => [tt(titulo), tt(descricao)]),
     nota: tt('Em breve. O Veto+ ainda não está disponível e escolher um plano não cobra nada: estamos a medir quantas pessoas o querem antes de o construir.'),
     opcoes: [
-      { label: tt('Quero o mensal · {0}/mês', [PLUS.MENSAL]), estilo: 'primary', acao: () => quererPlus('mensal', onde) },
-      { label: tt('Quero o anual · {0}/ano (2 meses grátis)', [PLUS.ANUAL]), estilo: 'secondary', acao: () => quererPlus('anual', onde) },
+      { label: tt('Quero o mensal · {0}/mês', [APP_PLUS.MENSAL]), estilo: 'primary', acao: () => quererPlus('mensal', onde) },
+      { label: tt('Quero o anual · {0}/ano (2 meses grátis)', [APP_PLUS.ANUAL]), estilo: 'secondary', acao: () => quererPlus('anual', onde) },
       { label: tt('Agora não'), estilo: 'ghost', acao: () => registarEvento('plus_agora_nao', { onde, demo: estado.demo }) }
     ]
   });

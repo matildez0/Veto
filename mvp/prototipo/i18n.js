@@ -281,6 +281,7 @@ const PHRASES_EN = {
   "À espera de confirmação: enviaste?": "Waiting for confirmation: did you send it?",
   "Enviado (indicado por ti)": "Sent (as reported by you)",
   "Resposta recebida (indicada por ti)": "Reply received (as reported by you)",
+  "Fechado": "Closed",
   "Introduz o Google OAuth Client ID para ligar a tua conta.": "Enter the Google OAuth Client ID to connect your account.",
   "Isto não parece um Client ID. Na Google Cloud Console, em Credenciais, copia o \"ID do cliente\" do tipo Aplicação Web: acaba em .apps.googleusercontent.com.": "This doesn’t look like a Client ID. In the Google Cloud Console, under Credentials, copy the “Client ID” of the Web application type: it ends in .apps.googleusercontent.com.",
   "Para ligar o Gmail, abre a app por http://localhost:8000 (com o servidor a correr), não com duplo clique no ficheiro.": "To connect Gmail, open the app via http://localhost:8000 (with the server running), not by double-clicking the file.",

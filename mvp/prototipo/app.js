@@ -815,7 +815,7 @@ async function analisarCabecalhos(accessToken) {
   registo.passo('conta', tt('A identificar a conta'));
   const perfil = await gmailFetch('/profile', accessToken, GMAIL_QUOTA.CUSTO_LIST).catch(() => null);
   if (perfil?.emailAddress) estado.contaEmail = perfil.emailAddress;
-  registo.feito('conta', perfil?.emailAddress ? `Conta ${perfil.emailAddress}` : 'Conta Gmail ligada');
+  registo.feito('conta', perfil?.emailAddress ? tt('Conta {0}', [perfil.emailAddress]) : tt('Conta Gmail ligada'));
   registo.passo('lista', tt('A procurar os teus emails mais recentes'));
   const messages = await listarMensagens(accessToken);
   registo.feito('lista', tt('Emails para analisar'), `${messages.length}`);
@@ -1370,7 +1370,9 @@ function perguntarSeEnviou(pedido, aoFecharFora = null) {
       { label: tt('Sim, enviei'), estilo: 'primary', acao: () => confirmarEnvio(pedido.id) },
       { label: tt('Ainda não'), estilo: 'secondary', acao: () => marcarNaoEnviado(pedido.id) },
       {
-        label: estado.appEmail ? `Abrir noutra app (agora: ${APPS_EMAIL[estado.appEmail]?.label || 'nenhuma'})` : tt('Abrir noutra app de email'),
+        label: estado.appEmail
+          ? tt('Abrir noutra app (agora: {0})', [APPS_EMAIL[estado.appEmail]?.label || tt('nenhuma')])
+          : tt('Abrir noutra app de email'),
         estilo: 'ghost',
         acao: () => {
           estado.appEmail = null;
@@ -1451,7 +1453,7 @@ function enviarInsistencia(pedidoId) {
   pedido.followUpAt = new Date().toISOString();
   pedido.timeline.push({ to: 'follow_up', at: pedido.followUpAt });
   guardarEstado();
-  abrirEmail(pedido.email, `Insistência: ${direito.subject}`, corpo);
+  abrirEmail(pedido.email, `${tt('Insistência:')} ${direito.subject}`, corpo);
   renderTudo();
 }
 

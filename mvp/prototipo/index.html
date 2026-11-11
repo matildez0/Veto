@@ -350,6 +350,13 @@
           <div id="dash-sensitive" class="mt-4 flex items-center gap-2 rounded-xl bg-ink/10 px-3 py-2 text-xs font-semibold"></div>
         </section>
 
+        <section class="mx-5 mt-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-4 lg:mx-0">
+          <p class="text-sm font-semibold" data-t>Gravidade se estes dados se perderem</p>
+          <div id="severity-bar" class="mt-3 flex h-2.5 w-full gap-[2px]" role="img" aria-label="Empresas por gravidade" data-t-attr="aria-label"></div>
+          <div id="severity-legend" class="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[11px] font-semibold"></div>
+          <a href="#pedidos" class="mt-3 inline-block text-xs font-semibold text-lime" data-t>Ver no mapa de exposição →</a>
+        </section>
+
         <section id="featured-news" class="mx-5 mt-4 hidden rounded-2xl border border-rose-400/40 bg-rose-400/5 p-4 lg:mx-0">
           <div class="flex items-start gap-3">
             <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-400/15 text-rose-200">
@@ -379,22 +386,6 @@
             <button data-action="modo-resultados" data-modo="mapa" type="button" class="modo-resultados rounded-xl border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300" data-t>Mapa</button>
           </div>
         </section>
-
-        <div id="results-map" class="hidden">
-          <div id="map-empty" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-6 text-center">
-            <p class="text-sm text-mist" data-t>O mapa aparece depois de analisares o teu email.</p>
-            <a href="#inicio" class="mt-3 inline-block rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink" data-t>Analisar agora</a>
-          </div>
-          <div id="map-content" class="hidden">
-            <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start lg:gap-5 lg:px-5">
-              <section id="map-card" class="mx-5 mt-5 rounded-3xl border border-slate-800 bg-slate-950/60 p-4 lg:mx-0 lg:p-6">
-                <div id="dot-map"></div>
-                <div id="map-legend" class="mt-3"></div>
-              </section>
-              <section id="map-detail" class="mx-5 mt-4 scroll-mb-24 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 lg:sticky lg:top-6 lg:mx-0 lg:mt-5 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto" aria-live="polite"></section>
-            </div>
-          </div>
-        </div>
 
         <section id="res-areas" class="mt-7">
           <div class="flex items-end justify-between px-5">
@@ -435,6 +426,21 @@
         <h1 class="mt-1 font-display text-2xl font-semibold leading-tight" data-t>Os teus pedidos</h1>
         <p class="mt-2 text-sm leading-5 text-mist" data-t>Acompanha os pedidos enviados às empresas e as respostas que registaste.</p>
       </section>
+      <div id="results-map">
+        <div id="map-empty" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-6 text-center">
+          <p class="text-sm text-mist" data-t>O mapa aparece depois de analisares o teu email.</p>
+          <a href="#inicio" class="mt-3 inline-block rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-ink" data-t>Analisar agora</a>
+        </div>
+        <div id="map-content" class="hidden">
+          <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start lg:gap-5 lg:px-5">
+            <section id="map-card" class="mx-5 mt-5 rounded-3xl border border-slate-800 bg-slate-950/60 p-4 lg:mx-0 lg:p-6">
+              <div id="dot-map"></div>
+              <div id="map-legend" class="mt-3"></div>
+            </section>
+            <section id="map-detail" class="mx-5 mt-4 scroll-mb-24 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 lg:sticky lg:top-6 lg:mx-0 lg:mt-5 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto" aria-live="polite"></section>
+          </div>
+        </div>
+      </div>
       <div id="no-requests" class="mx-5 mt-6 hidden rounded-2xl border border-dashed border-slate-700 p-5 text-center">
           <p class="text-sm text-mist" data-t>Ainda não enviaste nenhum pedido. Começa pelas empresas de gravidade crítica: toca num ponto e pede os teus dados.</p>
           <p class="mt-2 text-xs text-slate-500" data-t>Os contactos de privacidade ainda não estão verificados: confirma o endereço antes de enviar.</p>

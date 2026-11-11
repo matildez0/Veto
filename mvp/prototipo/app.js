@@ -351,8 +351,8 @@ const TESTE = { URL: 'https://script.google.com/macros/s/AKfycbxriEsOIy6mvbaaf5H
 // O teu Google OAuth Client ID (termina em .apps.googleusercontent.com). Não é segredo:
 // com ele preenchido, os testadores não veem o campo e só carregam em "Ligar Gmail".
 
-//const GOOGLE_CLIENT_ID = '788465290091-1499vipmp7l7fv0t9oguigev9mlptibq.apps.googleusercontent.com';
-const GOOGLE_CLIENT_ID = '937297986746-k81vu89sv318tkvmv6ev8e2ht7dt3r82.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '788465290091-1499vipmp7l7fv0t9oguigev9mlptibq.apps.googleusercontent.com';
+//const GOOGLE_CLIENT_ID = '937297986746-k81vu89sv318tkvmv6ev8e2ht7dt3r82.apps.googleusercontent.com';
 // Enquanto a app estiver em teste no Google, só contas convidadas podem ligar o Gmail.
 // Cola aqui o link de um formulário (por exemplo, Google Forms) onde as pessoas pedem acesso.
 const PEDIR_ACESSO_URL = '';
@@ -694,12 +694,15 @@ renderTudo();
 mostrarPerguntaConsentimento();
 // Mudar de idioma: volta a desenhar tudo o que o app.js escreve
 document.addEventListener('veto:languagechange', () => {
+  const reabrirFolhaPendente = folhaAberta;
+  if (reabrirFolhaPendente) fecharFolha();
   if (document.body.classList.contains('menu-fechado')) alternarMenu(true);
   // A mudança de idioma não inicia uma nova análise: mantém os cards visíveis.
   renderResumo.novaAnalise = false;
   renderTudo();
   renderTeste();
   registo.desenhar();
+  if (reabrirFolhaPendente) setTimeout(verificarPendente, 0);
 });
 setTimeout(verificarPendente, 600);
 

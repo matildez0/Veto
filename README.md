@@ -79,6 +79,7 @@ Veto is a privacy app, so it has to hold itself to the same standard it asks of 
 
 | Folder | What it contains |
 |---|---|
+| [`index.html`](index.html) | Project landing page |
 | [`mvp/prototipo/`](mvp/prototipo/) | Web prototype used for market validation (HTML and JavaScript, runs entirely in the browser) |
 | [`mvp/veto-app/`](mvp/veto-app/) | The mobile app, in development (React Native with Expo, TypeScript) |
 | [`mvp/`](mvp/) | Project documents: [MVP scope](mvp/MVP_SCOPE%20.md), [product strategy](mvp/PRODUCT_STRATEGY.md), [security and privacy](mvp/SECURITY_AND_PRIVACY.md) and [architecture](mvp/ARCHITECTURE.md) |

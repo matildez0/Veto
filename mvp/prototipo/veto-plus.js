@@ -4,7 +4,7 @@
    Veto+ (subscrição)
    - Pagamento: Stripe Payment Links (sem servidor). O Stripe devolve a pessoa à app com
      ?plus=ok&plano=…&sessao=cs_test_… e a app ativa o Veto+ neste dispositivo.
-   - Sem links configurados, o Veto+ ativa-se em modo de demonstração (sem pagar).
+   - Em localhost, o Veto+ ativa-se em modo de desenvolvimento (sem pagar).
    - O estado do Veto+ fica em localStorage (PLUS_KEY), à parte do resto dos dados.
    LIMITE DESTA VERSÃO: sem servidor não há forma de confirmar um pagamento junto do Stripe, por isso
    quem souber o formato do link pode ativar o Veto+ sem pagar. Só se aceitam sessões de TESTE (cs_test_…);
@@ -163,6 +163,10 @@ function plusComStripe() {
   return Boolean(PLUS.PAGAMENTO.LINK_MENSAL && PLUS.PAGAMENTO.LINK_ANUAL);
 }
 
+function desenvolvimentoLocal() {
+  return ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
+}
+
 function temPlus() {
   return Boolean(plus);
 }
@@ -242,13 +246,13 @@ function funcoesDoPlus() {
 function renderPlus(tempoTotal) {
   const ativo = temPlus();
   document.getElementById('plus-card-text').textContent = ativo
-    ? `Veto+ ativo. Podes juntar até ${PLUS.MAX_CONTAS} contas de email numa só análise.`
+    ? tt('Veto+ ativo. Podes juntar até {0} contas de email numa só análise.', [PLUS.MAX_CONTAS])
     : tempoTotal
-      ? `Estes emails já te custaram ≈ ${formatarDuracao(tempoTotal)}. Com o Veto+ juntas as tuas contas numa só análise.`
-      : 'Junta os teus emails pessoais e de trabalho numa só análise.';
-  document.getElementById('plus-card-badge').textContent = ativo ? 'Ativo' : 'Novo';
-  document.getElementById('plus-card-cta').textContent = ativo ? 'Gerir o Veto+' : 'Ver o Veto+';
-  document.getElementById('plus-card-price').textContent = ativo ? '' : `${PLUS.MENSAL}/mês →`;
+      ? tt('Estes emails já te custaram ≈ {0}. Com o Veto+ juntas as tuas contas numa só análise.', [formatarDuracao(tempoTotal)])
+      : tt('Junta os teus emails pessoais e de trabalho numa só análise.');
+  document.getElementById('plus-card-badge').textContent = ativo ? tt('Ativo') : tt('Novo');
+  document.getElementById('plus-card-cta').textContent = ativo ? tt('Gerir o Veto+') : tt('Ver o Veto+');
+  document.getElementById('plus-card-price').textContent = ativo ? '' : tt('{0}/mês →', [PLUS.MENSAL]);
 }
 
 function registarPlusVisto() {
@@ -267,7 +271,9 @@ function abrirPlus(onde = 'outro') {
     titulo: 'Veto+',
     texto: 'Para deixares de perder tempo com os emails das empresas e teres os teus pedidos tratados até ao fim.',
     lista: funcoesDoPlus(),
-    nota: plusComStripe()
+    nota: desenvolvimentoLocal()
+      ? 'Modo de desenvolvimento local: o Veto+ ativa-se sem pagamento.'
+      : plusComStripe()
       ? 'Modo de teste: no pagamento usa o cartão 4242 4242 4242 4242, uma data futura e qualquer CVC. Não é cobrado dinheiro real.'
       : 'Modo de demonstração: o Veto+ ativa-se sem pagamento, só para o experimentares.',
     opcoes: [
@@ -305,9 +311,10 @@ function abrirGestaoDoPlus() {
 }
 
 function comprarPlus(plano, onde) {
-  registarEvento('plus_checkout_aberto', { plano, onde, modo: plusComStripe() ? 'stripe' : 'demonstracao' });
-  if (!plusComStripe()) {
-    ativarPlus(plano, 'demonstracao');
+  const stripeAtivo = plusComStripe() && !desenvolvimentoLocal();
+  registarEvento('plus_checkout_aberto', { plano, onde, modo: stripeAtivo ? 'stripe' : 'desenvolvimento_local' });
+  if (!stripeAtivo) {
+    ativarPlus(plano, desenvolvimentoLocal() ? 'desenvolvimento_local' : 'demonstracao');
     renderTudo();
     mostrarRetornoPagamento('ok');
     return;

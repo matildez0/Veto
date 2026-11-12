@@ -1,5 +1,22 @@
 ## Configuração do Stripe
 
+## Login Google em desenvolvimento local
+
+O cliente OAuth usado atualmente no `app.js` é:
+
+```text
+937297986746-k81vu89sv318tkvmv6ev8e2ht7dt3r82.apps.googleusercontent.com
+```
+
+Para testar o scan localmente, na Google Cloud Console abre **APIs e serviços → Credenciais**, edita esse cliente OAuth do tipo **Aplicação Web** e adiciona em **Origens JavaScript autorizadas**:
+
+```text
+http://127.0.0.1:8765
+http://localhost:8765
+```
+
+Não acrescentes `/mvp/prototipo/index.html` neste campo: a origem inclui apenas protocolo, domínio e porta. Usa no browser o mesmo endereço que autorizaste. Se aparecer `Access blocked`, confirma também que a conta Google está em **Utilizadores de teste** no ecrã de consentimento OAuth.
+
 No Stripe, confirme que está ativo o **Test mode**.
 
 O ficheiro [`veto-plus.js`](./veto-plus.js) deve conter os Payment Links de teste:
@@ -15,22 +32,28 @@ PAGAMENTO: {
 Os Payment Links devem redirecionar para:
 
 ```text
-http://localhost:8000/?plus=ok&plano=mensal&sessao={CHECKOUT_SESSION_ID}
+http://localhost:8000/prototipo/index.html?plus=ok&plano=mensal&sessao={CHECKOUT_SESSION_ID}
 ```
 
 e:
 
 ```text
-http://localhost:8000/?plus=ok&plano=anual&sessao={CHECKOUT_SESSION_ID}
+http://localhost:8000/prototipo/index.html?plus=ok&plano=anual&sessao={CHECKOUT_SESSION_ID}
 ```
 
 É importante manter `{CHECKOUT_SESSION_ID}` exatamente assim. O Stripe substitui-o pelo identificador da sessão de teste.
 
+Se o Payment Link ainda estiver configurado com `http://localhost:8000/`, atualiza-o para um dos URLs acima. O ficheiro `index.html` na raiz também encaminha esse endereço para a aplicação, mantendo os parâmetros do Stripe.
+
 Se os dois links estiverem vazios, a aplicação usa o modo de demonstração e ativa o Veto+ sem abrir o Stripe.
+
+Durante o desenvolvimento local, qualquer endereço em `localhost`, `127.0.0.1` ou `::1` ativa o Veto+ sem pagamento, mesmo que os Payment Links estejam configurados. Em produção, os Payment Links continuam a ser usados normalmente.
+
+Se estiveres a executar o servidor a partir da raiz do repositório (`Veto`), usa `/mvp/prototipo/index.html` nos URLs acima. Se o servidor for executado a partir da pasta `mvp`, usa `/prototipo/index.html`.
 
 ## Testar uma subscrição
 
-1. Abra `http://localhost:8000`.
+1. Abra `http://localhost:8000/prototipo/index.html`.
 2. Ligue uma conta Gmail através do botão de login.
 3. Na página inicial, carregue em **Ver o Veto+**.
 4. Escolha o plano mensal ou anual.
@@ -59,7 +82,7 @@ Com o Veto+ ativo:
 4. Escolha a conta pretendida no seletor do Google.
 5. Volte à aplicação e confirme que as contas aparecem juntas.
 
-É possível adicionar até 5 contas. Remover o Veto+ neste dispositivo não apaga imediatamente os dados já analisados, mas impede adicionar novas contas acima do limite gratuito.
+É possível adicionar até 5 contas. Cada conta é guardada separadamente neste dispositivo. Depois de uma análise, a conta analisada fica selecionada por defeito; o botão **Todas as contas** mostra a agregação sem duplicar empresas. Ao adicionar uma conta, o Google abre o seletor de contas (`select_account`) e a app confirma o email devolvido pelo Gmail antes de guardar o resultado. O botão deixa de aparecer quando se atinge o limite. Remover o Veto+ neste dispositivo não apaga imediatamente os dados já analisados, mas impede adicionar novas contas acima do limite gratuito.
 
 ## Monitorização contínua
 

@@ -1347,6 +1347,7 @@ function adicionarConta() {
     return;
   }
   fecharFolha();
+  renderResumo.novaAnalise = true;
   location.hash = '#inicio';
   renderTudo();
   ligarGmail({ adicionar: true });

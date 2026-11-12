@@ -222,25 +222,25 @@ function tratarRetornoPagamento() {
 function mostrarRetornoPagamento(resultado) {
   if (resultado === 'ok') {
     abrirFolha({
-      titulo: 'Veto+ ativo',
-      texto: `Obrigado! Já podes juntar até ${PLUS.MAX_CONTAS} contas de email numa só análise.`,
-      nota: 'Pagamento de teste (Stripe): não foi cobrado dinheiro real.',
+      titulo: tt('Veto+ ativo'),
+      texto: tt('Obrigado! Já podes juntar até {0} contas de email numa só análise.', [PLUS.MAX_CONTAS]),
+      nota: tt('Pagamento de teste (Stripe): não foi cobrado dinheiro real.'),
       opcoes: [
-        { label: 'Adicionar outra conta', estilo: 'primary', acao: () => adicionarConta() },
-        { label: 'Mais tarde', estilo: 'ghost', acao: () => {} }
+        { label: tt('Adicionar outra conta'), estilo: 'primary', acao: () => adicionarConta() },
+        { label: tt('Mais tarde'), estilo: 'ghost', acao: () => {} }
       ]
     });
   } else if (resultado === 'invalido') {
     abrirFolha({
-      titulo: 'Não conseguimos confirmar o pagamento',
-      texto: 'O link de retorno do pagamento não é válido. Se já pagaste e o Veto+ não ficou ativo, escreve-nos com o recibo do Stripe.',
-      opcoes: [{ label: 'Fechar', estilo: 'primary', acao: () => {} }]
+      titulo: tt('Não conseguimos confirmar o pagamento'),
+      texto: tt('O link de retorno do pagamento não é válido. Se já pagaste e o Veto+ não ficou ativo, escreve-nos com o recibo do Stripe.'),
+      opcoes: [{ label: tt('Fechar'), estilo: 'primary', acao: () => {} }]
     });
   }
 }
 
 function funcoesDoPlus() {
-  return PLUS.FUNCOES.map(([nome, descricao, pronta]) => [nome, pronta ? descricao : `${descricao} Em breve.`]);
+  return PLUS.FUNCOES.map(([nome, descricao, pronta]) => [tt(nome), tt(pronta ? descricao : `${descricao} Em breve.`)]);
 }
 
 function renderPlus(tempoTotal) {
@@ -268,18 +268,18 @@ function abrirPlus(onde = 'outro') {
     return;
   }
   abrirFolha({
-    titulo: 'Veto+',
-    texto: 'Para deixares de perder tempo com os emails das empresas e teres os teus pedidos tratados até ao fim.',
+    titulo: tt('Veto+'),
+    texto: tt('Para deixares de perder tempo com os emails das empresas e teres os teus pedidos tratados até ao fim.'),
     lista: funcoesDoPlus(),
     nota: desenvolvimentoLocal()
-      ? 'Modo de desenvolvimento local: o Veto+ ativa-se sem pagamento.'
+      ? tt('Modo de desenvolvimento local: o Veto+ ativa-se sem pagamento.')
       : plusComStripe()
-      ? 'Modo de teste: no pagamento usa o cartão 4242 4242 4242 4242, uma data futura e qualquer CVC. Não é cobrado dinheiro real.'
-      : 'Modo de demonstração: o Veto+ ativa-se sem pagamento, só para o experimentares.',
+      ? tt('Modo de teste: no pagamento usa o cartão 4242 4242 4242 4242, uma data futura e qualquer CVC. Não é cobrado dinheiro real.')
+      : tt('Modo de demonstração: o Veto+ ativa-se sem pagamento, só para o experimentares.'),
     opcoes: [
-      { label: `Subscrever mensal · ${PLUS.MENSAL}/mês`, estilo: 'primary', acao: () => comprarPlus('mensal', onde) },
-      { label: `Subscrever anual · ${PLUS.ANUAL}/ano (2 meses grátis)`, estilo: 'secondary', acao: () => comprarPlus('anual', onde) },
-      { label: 'Agora não', estilo: 'ghost', acao: () => registarEvento('plus_agora_nao', { onde }) }
+      { label: tt('Subscrever mensal · {0}/mês', [PLUS.MENSAL]), estilo: 'primary', acao: () => comprarPlus('mensal', onde) },
+      { label: tt('Subscrever anual · {0}/ano (2 meses grátis)', [PLUS.ANUAL]), estilo: 'secondary', acao: () => comprarPlus('anual', onde) },
+      { label: tt('Agora não'), estilo: 'ghost', acao: () => registarEvento('plus_agora_nao', { onde }) }
     ]
   });
 }
@@ -287,25 +287,25 @@ function abrirPlus(onde = 'outro') {
 function abrirGestaoDoPlus() {
   const desde = new Date(plus.ativadoEm).toLocaleDateString('pt-PT');
   const doStripe = plus.origem === 'stripe';
-  const opcoes = [{ label: 'Adicionar outra conta', estilo: 'primary', acao: () => adicionarConta() }];
+  const opcoes = [{ label: tt('Adicionar outra conta'), estilo: 'primary', acao: () => adicionarConta() }];
   if (doStripe && PLUS.PAGAMENTO.PORTAL_URL) {
     opcoes.push({
-      label: 'Gerir ou cancelar a subscrição', estilo: 'secondary',
+      label: tt('Gerir ou cancelar a subscrição'), estilo: 'secondary',
       acao: () => { window.open(PLUS.PAGAMENTO.PORTAL_URL, '_blank', 'noopener'); }
     });
   }
   opcoes.push({
-    label: doStripe ? 'Desativar o Veto+ neste dispositivo' : 'Desativar o modo de demonstração', estilo: 'secondary',
-    acao: () => { desativarPlus(); mostrarToast('Veto+ desativado neste dispositivo.'); }
+    label: doStripe ? tt('Desativar o Veto+ neste dispositivo') : tt('Desativar o modo de demonstração'), estilo: 'secondary',
+    acao: () => { desativarPlus(); mostrarToast(tt('Veto+ desativado neste dispositivo.')); }
   });
-  opcoes.push({ label: 'Fechar', estilo: 'ghost', acao: () => {} });
+  opcoes.push({ label: tt('Fechar'), estilo: 'ghost', acao: () => {} });
   abrirFolha({
-    titulo: 'Veto+ ativo',
-    texto: `Plano ${plus.plano}, ativo desde ${desde}. Podes juntar até ${PLUS.MAX_CONTAS} contas de email.`,
+    titulo: tt('Veto+ ativo'),
+    texto: tt('Plano {0}, ativo desde {1}. Podes juntar até {2} contas de email.', [plus.plano, desde, PLUS.MAX_CONTAS]),
     lista: funcoesDoPlus(),
     nota: doStripe
-      ? 'Pagamento de teste (Stripe): não foi cobrado dinheiro real. Desativar aqui não cancela a subscrição no Stripe.'
-      : 'Ativado em modo de demonstração, sem pagamento.',
+      ? tt('Pagamento de teste (Stripe): não foi cobrado dinheiro real. Desativar aqui não cancela a subscrição no Stripe.')
+      : tt('Ativado em modo de demonstração, sem pagamento.'),
     opcoes
   });
 }

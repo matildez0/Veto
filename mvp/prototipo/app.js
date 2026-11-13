@@ -357,18 +357,6 @@ const GOOGLE_CLIENT_ID = '788465290091-1499vipmp7l7fv0t9oguigev9mlptibq.apps.goo
 // Cola aqui o link de um formulário (por exemplo, Google Forms) onde as pessoas pedem acesso.
 const PEDIR_ACESSO_URL = '';
 
-// Veto Plus ainda não existe: o botão mede quantas pessoas o comprariam e a que preço.
-// Quem escolhe um plano vê logo que não pagou nada. Muda aqui os preços e as funcionalidades.
-const APP_PLUS = {
-  MENSAL: '2,99 €',
-  ANUAL: '29,99 €',
-  FUNCOES: [
-    ['Limpeza profunda', 'Cancela as subscrições todas de uma vez e apaga os emails antigos dessas empresas.'],
-    ['Várias contas', 'Junta os teus emails pessoais e de trabalho numa só análise.'],
-    ['Análise contínua', 'A contagem de emails e a gravidade de cada empresa sempre atualizadas.'],
-    ['Pedidos acompanhados', 'Segue cada pedido ao DPO, avisa quando o prazo passa e prepara a insistência.']
-  ]
-};
 const VERSAO = 'prototipo-0.7';
 
 /* ==========================================================================
@@ -553,7 +541,8 @@ const STATUS_LABELS = {
 /* ==========================================================================
    Estado (guardado só neste dispositivo)
    ========================================================================== */
-let estado = { empresas: [], pedidos: [], analisadoEm: null, demo: false };
+let estado = { empresas: [], pedidos: [], contas: [], contaSelecionada: 'todas', analisadoEm: null, demo: false };
+let analiseEmCurso = null;
 let filtroSetor = 'todos';
 let filtroTipo = 'todas';
 let modoResultados = 'lista';
@@ -604,6 +593,16 @@ function carregarEstado() {
     const guardado = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
     if (guardado && Array.isArray(guardado.empresas) && Array.isArray(guardado.pedidos)) {
       estado = { ...estado, ...guardado };
+      if (!estado.contaSelecionada) estado.contaSelecionada = 'todas';
+      if (!Array.isArray(estado.contas)) {
+        estado.contas = estado.empresas.length
+          ? [{ email: estado.contaEmail || '', empresas: estado.empresas, analisadoEm: estado.analisadoEm, emailsAnalisados: estado.emailsAnalisados || 0 }]
+          : [];
+      }
+      const contaSelecionada = String(estado.contaSelecionada || 'todas');
+      estado.empresas = contaSelecionada.toLowerCase() === 'todas'
+        ? juntarEmpresasDasContas(estado.contas)
+        : (estado.contas.find((conta) => String(conta.email || '').toLowerCase() === contaSelecionada.toLowerCase())?.empresas || []);
       estado.empresas.forEach((empresa) => {
         if (!empresa.dpo_email) {
           empresa.dpo_email = contactoDeExemplo(empresa.domain);
@@ -619,18 +618,57 @@ function carregarEstado() {
 function guardarEstado() {
   try {
     // O assunto dos emails nunca é guardado: só fica em memória durante a sessão.
-    const empresas = estado.empresas.map((empresa) => ({
+    const limparEmpresa = (empresa) => ({
       ...empresa,
       evidence: empresa.evidence ? {
         count: empresa.evidence.count, recentCount: empresa.evidence.recentCount, kinds: empresa.evidence.kinds,
         firstDate: empresa.evidence.firstDate, lastDate: empresa.evidence.lastDate, sampleDate: empresa.evidence.sampleDate, reason: empresa.evidence.reason,
         totalRecebidos: empresa.evidence.totalRecebidos, enviados: empresa.evidence.enviados
       } : null
-    }));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...estado, empresas }));
+    });
+    const empresas = estado.empresas.map(limparEmpresa);
+    const contas = contasAtivas().map((conta) => ({ ...conta, empresas: (conta.empresas || []).map(limparEmpresa) }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...estado, empresas, contas }));
   } catch (erro) {
     // Ignorar: sem armazenamento, os dados ficam só nesta sessão.
   }
+
+}
+
+function contasAtivas() {
+  return Array.isArray(estado.contas) ? estado.contas : [];
+}
+
+function renderContasCard() {
+  const card = document.getElementById('contas-card');
+  if (!card) return;
+  const contas = contasAtivas();
+  card.classList.toggle('hidden', contas.length === 0);
+  if (!contas.length) return;
+  card.innerHTML = `
+    <div class="flex items-center justify-between gap-3">
+      <div>
+        <p class="text-sm font-semibold">${tt('Contas analisadas')}</p>
+        <p class="mt-1 text-xs text-mist">${tt('{0} de {1} contas usadas', [contas.length, limiteDeContas()])}</p>
+      </div>
+      ${temPlus() && contas.length < limiteDeContas() ? `<button type="button" data-action="adicionar-conta" class="rounded-lg bg-lime px-3 py-2 text-xs font-bold text-ink">${tt('Adicionar conta')}</button>` : ''}
+    </div>
+    <div class="mt-3 flex flex-wrap gap-2">
+      <button type="button" data-action="selecionar-conta" data-account="todas" class="rounded-lg px-3 py-2 text-xs font-semibold ${estado.contaSelecionada === 'todas' ? 'bg-lime text-ink' : 'border border-slate-700 text-slate-300'}">${tt('Todas as contas')}</button>
+      ${contas.map((conta) => `<button type="button" data-action="selecionar-conta" data-account="${esc(conta.email)}" class="rounded-lg px-3 py-2 text-xs font-semibold ${estado.contaSelecionada.toLowerCase() === (conta.email || '').toLowerCase() ? 'bg-lime text-ink' : 'border border-slate-700 text-slate-300'}">${esc(conta.email || tt('Conta Gmail'))}</button>`).join('')}
+    </div>
+    <ul class="mt-3 flex flex-col gap-2">
+      ${contas.map((conta) => `<li class="rounded-lg border border-slate-800 px-3 py-2 text-xs">${esc(conta.email || tt('Conta Gmail'))}</li>`).join('')}
+    </ul>`;
+}
+
+function selecionarConta(email) {
+  estado.contaSelecionada = email || 'todas';
+  estado.empresas = estado.contaSelecionada === 'todas'
+    ? juntarEmpresasDasContas(contasAtivas())
+    : (contasAtivas().find((conta) => conta.email?.toLowerCase() === estado.contaSelecionada.toLowerCase())?.empresas || []);
+  renderTudo();
+  guardarEstado();
 }
 
 /* ==========================================================================
@@ -639,6 +677,8 @@ function guardarEstado() {
 const status = document.getElementById('analysis-status');
 
 carregarEstado();
+carregarPlus();
+const retornoPagamento = tratarRetornoPagamento();
 if (GOOGLE_CLIENT_ID) {
   document.getElementById('google-client-id').value = GOOGLE_CLIENT_ID;
   document.getElementById('client-id-box').classList.add('hidden');
@@ -692,21 +732,36 @@ if (estado.demo || estado.pedidos.some((pedido) => pedido.demo)) limparExemplo()
 estado.pedidos.forEach((pedido) => { if (pedido.sentAt) pedido.dueDate = estimarPrazo(pedido.sentAt); });
 renderTudo();
 mostrarPerguntaConsentimento();
+if (retornoPagamento) mostrarRetornoPagamento(retornoPagamento);
 // Mudar de idioma: volta a desenhar tudo o que o app.js escreve
 document.addEventListener('veto:languagechange', () => {
+  const reabrirFolhaPendente = folhaAberta;
+  if (reabrirFolhaPendente) fecharFolha();
   if (document.body.classList.contains('menu-fechado')) alternarMenu(true);
   // A mudança de idioma não inicia uma nova análise: mantém os cards visíveis.
   renderResumo.novaAnalise = false;
   renderTudo();
   renderTeste();
   registo.desenhar();
+  if (reabrirFolhaPendente) setTimeout(verificarPendente, 0);
 });
 setTimeout(verificarPendente, 600);
 
 /* ==========================================================================
    Análise do Gmail (só cabeçalhos)
    ========================================================================== */
-function ligarGmail() {
+function ligarGmail(opcoes = {}) {
+  const contas = contasAtivas();
+  if (opcoes.adicionar && contas.length >= limiteDeContas()) {
+    mostrarToast(tt('Atingiste o limite de {0} contas.', [limiteDeContas()]));
+    return;
+  }
+  const contextoAnalise = {
+    adicionar: Boolean(opcoes.adicionar),
+    id: gerarId(),
+    email: opcoes.adicionar ? null : (contas[0]?.email || null)
+  };
+  analiseEmCurso = contextoAnalise;
   const clientId = document.getElementById('google-client-id').value.trim();
   if (!clientId) {
     atualizarStatus(tt('Introduz o Google OAuth Client ID para ligar a tua conta.'), true);
@@ -752,20 +807,21 @@ function ligarGmail() {
       }
       registo.feito('login', tt('Sessão iniciada no Google'));
       button.innerHTML = `${tt('A analisar')} <span class="animate-pulse">•••</span>`;
-      analisarCabecalhos(response.access_token)
+      analisarCabecalhos(response.access_token, contextoAnalise)
         .catch((error) => {
           mostrarProgresso(null);
           registo.erro(tt('Não foi possível ler o Gmail: {0}', [error.message]));
         })
         .finally(() => {
           repor(button);
+          if (analiseEmCurso?.id === contextoAnalise.id) analiseEmCurso = null;
           // Ligação por análise: o acesso é revogado assim que a análise termina.
           google.accounts.oauth2.revoke(response.access_token, () => {});
           registo.feito('revogar', tt('Acesso ao Gmail cancelado'));
         });
     }
   });
-  tokenClient.requestAccessToken({ prompt: 'consent' });
+  tokenClient.requestAccessToken({ prompt: 'select_account' });
 }
 
 // Erros fora do OAuth: a janela do Google não abriu (pop-up bloqueado) ou foi fechada antes do fim.
@@ -809,13 +865,20 @@ function repor(button) {
   button.innerHTML = `${tt('Ligar Gmail e começar')} <span>→</span>`;
 }
 
-async function analisarCabecalhos(accessToken) {
+async function analisarCabecalhos(accessToken, contextoAnalise) {
   mostrarProgresso(0);
   gastosGmail.length = 0;
   // O endereço da conta serve para abrir o Gmail na conta certa ao enviar pedidos (fica só neste dispositivo).
   registo.passo('conta', tt('A identificar a conta'));
   const perfil = await gmailFetch('/profile', accessToken, GMAIL_QUOTA.CUSTO_LIST).catch(() => null);
-  if (perfil?.emailAddress) estado.contaEmail = perfil.emailAddress;
+  if (perfil?.emailAddress) {
+    const email = perfil.emailAddress.trim().toLowerCase();
+    if (contextoAnalise.adicionar && contasAtivas().some((conta) => conta.email?.toLowerCase() === email)) {
+      throw new Error(tt('Esta conta Gmail já está adicionada. Escolhe outra conta no seletor do Google.'));
+    }
+    contextoAnalise.email = perfil.emailAddress;
+    estado.contaEmail = perfil.emailAddress;
+  }
   registo.feito('conta', perfil?.emailAddress ? tt('Conta {0}', [perfil.emailAddress]) : tt('Conta Gmail ligada'));
   registo.passo('lista', tt('A procurar os teus emails mais recentes'));
   const messages = await listarMensagens(accessToken);
@@ -901,7 +964,8 @@ async function analisarCabecalhos(accessToken) {
 
   const encontradas = agregados.map(criarEmpresaLocal);
   estado.emailsAnalisados = messages.length;
-  substituirEmpresas(encontradas, false);
+  if (!contextoAnalise.email) throw new Error(tt('Não foi possível identificar a conta Gmail analisada.'));
+  substituirEmpresas(encontradas, false, contextoAnalise.email);
   mostrarProgresso(null);
   const areas = new Set(encontradas.map((empresa) => empresa.sector)).size;
   registo.feito('fim', tt('Análise concluída: {0} {1} em {2} {3}', [encontradas.length, plural(encontradas.length, tt('empresa'), tt('empresas')), areas, plural(areas, tt('área'), tt('áreas'))]));
@@ -1224,17 +1288,69 @@ function contactoDeExemplo(dominio) {
   return `privacy@${dominio}`;
 }
 
-function substituirEmpresas(novas, demoAtivo) {
+function juntarEmpresasDasContas(contas) {
+  const porId = new Map();
+  contas.flatMap((conta) => conta.empresas || []).forEach((empresa) => {
+    const anterior = porId.get(empresa.id);
+    if (!anterior) {
+      porId.set(empresa.id, { ...empresa, evidence: empresa.evidence ? { ...empresa.evidence, kinds: [...(empresa.evidence.kinds || [])] } : null });
+      return;
+    }
+    const evidence = anterior.evidence && empresa.evidence ? {
+      ...anterior.evidence,
+      count: (anterior.evidence.count || 0) + (empresa.evidence.count || 0),
+      recentCount: (anterior.evidence.recentCount || 0) + (empresa.evidence.recentCount || 0),
+      totalRecebidos: (anterior.evidence.totalRecebidos || 0) + (empresa.evidence.totalRecebidos || 0),
+      enviados: (anterior.evidence.enviados || 0) + (empresa.evidence.enviados || 0),
+      kinds: [...new Set([...(anterior.evidence.kinds || []), ...(empresa.evidence.kinds || [])])],
+      firstDate: !anterior.evidence.firstDate || (empresa.evidence.firstDate && empresa.evidence.firstDate < anterior.evidence.firstDate) ? empresa.evidence.firstDate : anterior.evidence.firstDate,
+      lastDate: !anterior.evidence.lastDate || (empresa.evidence.lastDate && empresa.evidence.lastDate > anterior.evidence.lastDate) ? empresa.evidence.lastDate : anterior.evidence.lastDate
+    } : anterior.evidence || empresa.evidence;
+    porId.set(empresa.id, { ...anterior, evidence, unsubscribe: anterior.unsubscribe || empresa.unsubscribe });
+  });
+  return [...porId.values()];
+}
+
+function substituirEmpresas(novas, demoAtivo, email = '') {
   if (!demoAtivo) estado.pedidos = estado.pedidos.filter((pedido) => !pedido.demo);
   renderResumo.novaAnalise = false;
   filtroSetor = 'todos';
   filtroTipo = 'todas';
-  estado.empresas = novas.map((empresa) => ({ ...empresa, dismissed: false }));
+  const conta = {
+    email: email || '',
+    empresas: novas.map((empresa) => ({ ...empresa, dismissed: false })),
+    analisadoEm: new Date().toISOString(),
+    emailsAnalisados: estado.emailsAnalisados || 0
+  };
+  const indiceEncontrado = contasAtivas().findIndex((existente) => existente.email && email && existente.email.toLowerCase() === email.toLowerCase());
+  const indice = indiceEncontrado >= 0
+    ? indiceEncontrado
+    : (email && contasAtivas().length === 1 && !contasAtivas()[0].email ? 0 : -1);
+  if (indice >= 0) estado.contas[indice] = conta;
+  else estado.contas.push(conta);
+  estado.contaSelecionada = email || 'todas';
+  estado.empresas = conta.empresas;
   estado.analisadoEm = new Date().toISOString();
   estado.demo = demoAtivo;
   if (demoAtivo) estado.emailsAnalisados = 0;
   guardarEstado();
   renderTudo();
+}
+
+function adicionarConta() {
+  if (!temPlus()) {
+    abrirPlus('adicionar_conta');
+    return;
+  }
+  if (contasAtivas().length >= limiteDeContas()) {
+    mostrarToast(tt('Atingiste o limite de {0} contas.', [limiteDeContas()]));
+    return;
+  }
+  fecharFolha();
+  renderResumo.novaAnalise = true;
+  location.hash = '#inicio';
+  renderTudo();
+  ligarGmail({ adicionar: true });
 }
 
 /* ==========================================================================
@@ -1551,6 +1667,7 @@ function renderTudo() {
   renderTudo.ultimaVista = vista;
 
   renderResumo();
+  renderContasCard();
   renderPlus(visiveis().reduce((soma, empresa) => soma + tempoPerdidoS(empresa), 0));
   renderPainel();
   renderEmpresas();
@@ -1965,6 +2082,7 @@ function renderPedidos() {
   const nos = nosDoMapa();
   const temPedidos = estado.pedidos.length > 0;
   const temMapa = nos.length > 0;
+  document.getElementById('results-map').classList.remove('hidden');
   renderLimitePedidos();
   document.getElementById('map-empty').classList.toggle('hidden', temMapa || temPedidos);
   document.getElementById('map-content').classList.toggle('hidden', !temMapa && !temPedidos);
@@ -2804,69 +2922,6 @@ function fecharFolha() {
 }
 
 /* ==========================================================================
-   Veto Plus: teste de interesse (a subscrição ainda não existe)
-   Eventos: plus_visto (viu o cartão no Início), plus_aberto (abriu o plano),
-   plus_quero (escolheu mensal ou anual), plus_agora_nao. Todos dizem onde foi o clique (onde: inicio ou topo).
-   ========================================================================== */
-function renderPlus(tempoTotal) {
-  const interesse = estado.plusInteresse;
-  document.getElementById('plus-card-text').textContent = interesse
-    ? tt('Registámos o teu interesse no plano {0}. Obrigado!', [interesse.plano])
-    : tempoTotal
-      ? tt('Estes emails já te custaram ≈ {0}. O Plus limpa-os de uma vez.', [formatarDuracao(tempoTotal)])
-      : tt('Limpa a tua caixa de uma vez e acompanha cada pedido até à resposta.');
-  document.getElementById('plus-card-price').textContent = tt('{0}/mês →', [APP_PLUS.MENSAL]);
-}
-
-// Uma vez por dispositivo: dá a base para calcular quantos dos que viram o cartão carregaram nele.
-function registarPlusVisto() {
-  if (estado.plusVisto || !estado.teste?.consentimento) return;
-  estado.plusVisto = true;
-  registarEvento('plus_visto', { onde: 'inicio', analisou: estado.empresas.length > 0 });
-}
-
-function abrirPlus(onde = 'outro') {
-  registarEvento('plus_aberto', { onde, demo: estado.demo });
-  abrirFolha({
-    titulo: tt('Veto+'),
-    texto: tt('Para deixares de perder tempo com os emails das empresas e teres os teus pedidos tratados até ao fim.'),
-    lista: APP_PLUS.FUNCOES.map(([titulo, descricao]) => [tt(titulo), tt(descricao)]),
-    nota: tt('Em breve. O Veto+ ainda não está disponível e escolher um plano não cobra nada: estamos a medir quantas pessoas o querem antes de o construir.'),
-    opcoes: [
-      { label: tt('Quero o mensal · {0}/mês', [APP_PLUS.MENSAL]), estilo: 'primary', acao: () => quererPlus('mensal', onde) },
-      { label: tt('Quero o anual · {0}/ano (2 meses grátis)', [APP_PLUS.ANUAL]), estilo: 'secondary', acao: () => quererPlus('anual', onde) },
-      { label: tt('Agora não'), estilo: 'ghost', acao: () => registarEvento('plus_agora_nao', { onde, demo: estado.demo }) }
-    ]
-  });
-}
-
-function quererPlus(plano, onde) {
-  const detalhes = { plano, onde, demo: estado.demo };
-  estado.plusInteresse = { plano, quando: new Date().toISOString() };
-  guardarEstado();
-  registarEvento('plus_quero', detalhes);
-  renderTudo();
-  // Quem ainda não respondeu às estatísticas pode aceitá-las aqui, para a escolha contar.
-  // Quem já as recusou não volta a ser perguntado.
-  const podePerguntar = !estado.teste?.consentimento && estado.decisaoTeste !== 'recusado';
-  abrirFolha({
-    titulo: tt('Obrigado! Registámos o teu interesse'),
-    texto: tt('O Veto+ ainda não existe e não pagaste nada. A tua escolha ajuda-nos a decidir se o construímos e a que preço.'),
-    nota: podePerguntar ? tt('Para a tua escolha contar no nosso teste, aceita as estatísticas anónimas. Nunca enviamos o teu email, as empresas nem o conteúdo dos emails.') : '',
-    opcoes: podePerguntar
-      ? [
-        { label: tt('Aceitar estatísticas anónimas'), estilo: 'primary', acao: () => {
-          entrarNoTeste();
-          registarEvento('plus_aberto', { onde, demo: estado.demo, depoisDeAceitar: true });
-          registarEvento('plus_quero', { ...detalhes, depoisDeAceitar: true });
-        } },
-        { label: tt('Agora não'), estilo: 'ghost', acao: () => {} }
-      ]
-      : [{ label: tt('Fechar'), estilo: 'primary', acao: () => {} }]
-  });
-}
-
-/* ==========================================================================
    Cliques
    ========================================================================== */
 function tratarClique(evento) {
@@ -2941,6 +2996,8 @@ function tratarClique(evento) {
       break;
     }
     case 'pedir-acesso': pedirAcessoAoTeste(); break;
+    case 'adicionar-conta': adicionarConta(); break;
+    case 'selecionar-conta': selecionarConta(alvo.dataset.account); break;
     case 'nova-analise': renderResumo.novaAnalise = true; renderResumo(); break;
     case 'mapa-setor': alternarSelecao('setor', sector); break;
     case 'mapa-empresa': alternarSelecao('empresa', id); break;

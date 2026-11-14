@@ -1,0 +1,12 @@
+# Supabase CLI local state and generated metadata
+supabase/.temp/
+
+# Local environment files and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Local tooling and logs
+.supabase/
+*.log

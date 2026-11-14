@@ -677,8 +677,24 @@ function selecionarConta(email) {
 const status = document.getElementById('analysis-status');
 
 carregarEstado();
-carregarPlus();
 const retornoPagamento = tratarRetornoPagamento();
+carregarPlus().then(() => {
+  iniciarCheckoutPendente();
+  contasRemotas().then((emails) => {
+    emails.forEach((email) => {
+      if (!contasAtivas().some((conta) => conta.email?.toLowerCase() === email.toLowerCase())) {
+        estado.contas.push({ email, empresas: [], analisadoEm: null, emailsAnalisados: 0 });
+      }
+    });
+    guardarEstado();
+    renderTudo();
+  }).catch((error) => {
+    console.error('Não foi possível carregar as contas associadas:', error);
+    renderTudo();
+  });
+}).catch((error) => {
+  console.error('Não foi possível carregar a subscrição Veto+:', error);
+});
 if (GOOGLE_CLIENT_ID) {
   document.getElementById('google-client-id').value = GOOGLE_CLIENT_ID;
   document.getElementById('client-id-box').classList.add('hidden');
@@ -1334,16 +1350,30 @@ function substituirEmpresas(novas, demoAtivo, email = '') {
   estado.demo = demoAtivo;
   if (demoAtivo) estado.emailsAnalisados = 0;
   guardarEstado();
+  associarContaRemota(email).catch((error) => {
+    console.error('Não foi possível associar a conta Gmail ao utilizador:', error);
+    mostrarToast(tt('A conta foi analisada, mas não ficou registada no Veto+. Tenta novamente.'));
+  });
   renderTudo();
 }
 
-function adicionarConta() {
+async function adicionarConta() {
   if (!temPlus()) {
     abrirPlus('adicionar_conta');
     return;
   }
   if (contasAtivas().length >= limiteDeContas()) {
     mostrarToast(tt('Atingiste o limite de {0} contas.', [limiteDeContas()]));
+    return;
+  }
+  try {
+    if (!await contaDisponivelRemota()) {
+      mostrarToast(tt('Atingiste o limite de {0} contas.', [PLUS.MAX_CONTAS]));
+      return;
+    }
+  } catch (error) {
+    console.error('Não foi possível confirmar o limite remoto:', error);
+    mostrarToast(tt('Não foi possível confirmar o limite de contas. Tenta novamente.'));
     return;
   }
   fecharFolha();

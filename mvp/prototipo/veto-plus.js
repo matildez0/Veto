@@ -2,14 +2,8 @@
 
 /* ==========================================================================
    Veto+ (subscrição)
-   - Pagamento: Stripe Payment Links (sem servidor). O Stripe devolve a pessoa à app com
-     ?plus=ok&plano=…&sessao=cs_test_… e a app ativa o Veto+ neste dispositivo.
-   - Em localhost, o Veto+ ativa-se em modo de desenvolvimento (sem pagar).
-   - O estado do Veto+ fica em localStorage (PLUS_KEY), à parte do resto dos dados.
-   LIMITE DESTA VERSÃO: sem servidor não há forma de confirmar um pagamento junto do Stripe, por isso
-   quem souber o formato do link pode ativar o Veto+ sem pagar. Só se aceitam sessões de TESTE (cs_test_…);
-   as reais (cs_live_…) são recusadas. Para cobrar a sério, é preciso uma função no servidor que confirme
-   a sessão com a chave secreta do Stripe (e, com ela, recuperar a subscrição noutro dispositivo).
+   - A subscrição e o limite de contas são confirmados no Supabase através do webhook do Stripe.
+   - O localStorage continua apenas como cache visual; nunca decide permissões de pagamento.
    Eventos: plus_visto, plus_aberto, plus_checkout_aberto, plus_ativado, plus_agora_nao.
    ========================================================================== */
 const PLUS = {
@@ -17,8 +11,6 @@ const PLUS = {
   ANUAL: '19,99 €',
   MAX_CONTAS: 5,
   PAGAMENTO: {
-    LINK_MENSAL: 'https://buy.stripe.com/test_eVq4gBefq8Bc8k1eZGeQM00',
-    LINK_ANUAL: 'https://buy.stripe.com/test_14A28t1sEcRsbwd5p6eQM01',
     PORTAL_URL: ''
   },
   FUNCOES: [
@@ -160,7 +152,7 @@ function renderMonitorizacao() {
 }
 
 function plusComStripe() {
-  return Boolean(PLUS.PAGAMENTO.LINK_MENSAL && PLUS.PAGAMENTO.LINK_ANUAL);
+  return Boolean(supabaseClient);
 }
 
 function desenvolvimentoLocal() {
@@ -175,13 +167,22 @@ function limiteDeContas() {
   return temPlus() ? PLUS.MAX_CONTAS : 1;
 }
 
-function carregarPlus() {
+async function carregarPlus() {
   try {
     const guardado = JSON.parse(localStorage.getItem(PLUS_KEY) || 'null');
     if (guardado && ['mensal', 'anual'].includes(guardado.plano)) plus = guardado;
-  } catch (erro) {
-    // Sem armazenamento: o Veto+ vale só nesta sessão.
-  }
+  } catch (erro) {}
+  if (!supabaseClient) return;
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) return;
+  const { data, error } = await supabaseClient.from('subscriptions')
+    .select('plan,status,current_period_end,cancel_at_period_end')
+    .eq('user_id', session.user.id).maybeSingle();
+  if (error) throw error;
+  const ativo = data && ['active', 'trialing'].includes(data.status)
+    && (!data.current_period_end || new Date(data.current_period_end).getTime() > Date.now());
+  plus = ativo ? { plano: data.plan, origem: 'supabase', ativadoEm: data.current_period_end } : null;
+  guardarPlus();
 }
 
 function guardarPlus() {
@@ -199,6 +200,47 @@ function ativarPlus(plano, origem, sessao = '') {
   registarEvento('plus_ativado', { plano, origem });
 }
 
+async function garantirSessao(plano) {
+  if (!supabaseClient) {
+    throw new Error('Configura o Supabase em supabase-config.js antes de aceitar pagamentos.');
+  }
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) return session;
+  const url = new URL(location.href);
+  url.searchParams.set('checkout_plan', plano);
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: url.toString(), scopes: 'openid email profile' }
+  });
+  if (error) throw error;
+  return null;
+}
+
+async function associarContaRemota(email) {
+  if (!supabaseClient || !email) return;
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) return;
+  const { error } = await supabaseClient.functions.invoke('link-account', {
+    body: { email }
+  });
+  if (error) throw error;
+}
+
+async function contasRemotas() {
+  if (!supabaseClient) return [];
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) return [];
+  const { data, error } = await supabaseClient.from('linked_accounts').select('email').order('created_at');
+  if (error) throw error;
+  return (data || []).map((conta) => conta.email).filter(Boolean);
+}
+
+async function contaDisponivelRemota() {
+  if (!supabaseClient || !temPlus()) return true;
+  const emails = await contasRemotas();
+  return emails.length < PLUS.MAX_CONTAS;
+}
+
 function desativarPlus() {
   plus = null;
   guardarPlus();
@@ -208,23 +250,30 @@ function desativarPlus() {
 // Chamado no arranque: o Stripe volta à app com ?plus=ok&plano=…&sessao=…
 function tratarRetornoPagamento() {
   const params = new URLSearchParams(location.search);
+  const checkout = params.get('checkout');
+  if (checkout) {
+    ['checkout', 'checkout_plan'].forEach((nome) => params.delete(nome));
+    const resto = params.toString();
+    try { history.replaceState(null, '', location.pathname + (resto ? `?${resto}` : '') + location.hash); } catch (erro) {}
+    return checkout === 'ok' ? 'a_confirmar' : 'cancelado';
+  }
   if (params.get('plus') !== 'ok') return null;
   const plano = params.get('plano') === 'anual' ? 'anual' : 'mensal';
   const sessao = params.get('sessao') || '';
   ['plus', 'plano', 'sessao'].forEach((nome) => params.delete(nome));
   const resto = params.toString();
   try { history.replaceState(null, '', location.pathname + (resto ? `?${resto}` : '') + location.hash); } catch (erro) { /* ignorar */ }
-  if (!/^cs_test_[A-Za-z0-9]{10,}$/.test(sessao)) return 'invalido';
-  ativarPlus(plano, 'stripe', sessao);
-  return 'ok';
+  return 'invalido';
 }
 
 function mostrarRetornoPagamento(resultado) {
-  if (resultado === 'ok') {
+  if (resultado === 'ok' || resultado === 'a_confirmar') {
     abrirFolha({
       titulo: tt('Veto+ ativo'),
       texto: tt('Obrigado! Já podes juntar até {0} contas de email numa só análise.', [PLUS.MAX_CONTAS]),
-      nota: tt('Pagamento de teste (Stripe): não foi cobrado dinheiro real.'),
+      nota: resultado === 'a_confirmar'
+        ? tt('O pagamento foi recebido. O Veto+ fica ativo assim que o Stripe confirmar a subscrição.')
+        : tt('Subscrição confirmada pelo servidor.'),
       opcoes: [
         { label: tt('Adicionar outra conta'), estilo: 'primary', acao: () => adicionarConta() },
         { label: tt('Mais tarde'), estilo: 'ghost', acao: () => {} }
@@ -237,6 +286,17 @@ function mostrarRetornoPagamento(resultado) {
       opcoes: [{ label: tt('Fechar'), estilo: 'primary', acao: () => {} }]
     });
   }
+}
+
+async function iniciarCheckoutPendente() {
+  const params = new URLSearchParams(location.search);
+  const plano = params.get('checkout_plan');
+  if (!plano || !['mensal', 'anual'].includes(plano) || !supabaseClient) return;
+  params.delete('checkout_plan');
+  const resto = params.toString();
+  try { history.replaceState(null, '', location.pathname + (resto ? `?${resto}` : '') + location.hash); } catch (erro) {}
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) comprarPlus(plano, 'login_google');
 }
 
 function funcoesDoPlus() {
@@ -271,11 +331,9 @@ function abrirPlus(onde = 'outro') {
     titulo: tt('Veto+'),
     texto: tt('Para deixares de perder tempo com os emails das empresas e teres os teus pedidos tratados até ao fim.'),
     lista: funcoesDoPlus(),
-    nota: desenvolvimentoLocal()
-      ? tt('Modo de desenvolvimento local: o Veto+ ativa-se sem pagamento.')
-      : plusComStripe()
-      ? tt('Modo de teste: no pagamento usa o cartão 4242 4242 4242 4242, uma data futura e qualquer CVC. Não é cobrado dinheiro real.')
-      : tt('Modo de demonstração: o Veto+ ativa-se sem pagamento, só para o experimentares.'),
+    nota: supabaseClient
+      ? tt('Serás encaminhada para um checkout seguro do Stripe. O plano fica associado à tua conta Google.')
+      : tt('O pagamento ainda não está configurado.'),
     opcoes: [
       { label: tt('Subscrever mensal · {0}/mês', [PLUS.MENSAL]), estilo: 'primary', acao: () => comprarPlus('mensal', onde) },
       { label: tt('Subscrever anual · {0}/ano (2 meses grátis)', [PLUS.ANUAL]), estilo: 'secondary', acao: () => comprarPlus('anual', onde) },
@@ -286,7 +344,7 @@ function abrirPlus(onde = 'outro') {
 
 function abrirGestaoDoPlus() {
   const desde = new Date(plus.ativadoEm).toLocaleDateString('pt-PT');
-  const doStripe = plus.origem === 'stripe';
+  const doStripe = ['stripe', 'supabase'].includes(plus.origem);
   const opcoes = [{ label: tt('Adicionar outra conta'), estilo: 'primary', acao: () => adicionarConta() }];
   if (doStripe && PLUS.PAGAMENTO.PORTAL_URL) {
     opcoes.push({
@@ -294,33 +352,31 @@ function abrirGestaoDoPlus() {
       acao: () => { window.open(PLUS.PAGAMENTO.PORTAL_URL, '_blank', 'noopener'); }
     });
   }
-  opcoes.push({
-    label: doStripe ? tt('Desativar o Veto+ neste dispositivo') : tt('Desativar o modo de demonstração'), estilo: 'secondary',
-    acao: () => { desativarPlus(); mostrarToast(tt('Veto+ desativado neste dispositivo.')); }
-  });
+  if (!doStripe) {
+    opcoes.push({
+      label: tt('Desativar o modo de demonstração'), estilo: 'secondary',
+      acao: () => { desativarPlus(); mostrarToast(tt('Veto+ desativado neste dispositivo.')); }
+    });
+  }
   opcoes.push({ label: tt('Fechar'), estilo: 'ghost', acao: () => {} });
   abrirFolha({
     titulo: tt('Veto+ ativo'),
     texto: tt('Plano {0}, ativo desde {1}. Podes juntar até {2} contas de email.', [plus.plano, desde, PLUS.MAX_CONTAS]),
     lista: funcoesDoPlus(),
     nota: doStripe
-      ? tt('Pagamento de teste (Stripe): não foi cobrado dinheiro real. Desativar aqui não cancela a subscrição no Stripe.')
+      ? tt('A subscrição é gerida pelo Stripe. Desativar aqui não cancela a subscrição.')
       : tt('Ativado em modo de demonstração, sem pagamento.'),
     opcoes
   });
 }
 
 function comprarPlus(plano, onde) {
-  const stripeAtivo = plusComStripe() && !desenvolvimentoLocal();
-  registarEvento('plus_checkout_aberto', { plano, onde, modo: stripeAtivo ? 'stripe' : 'desenvolvimento_local' });
-  if (!stripeAtivo) {
-    ativarPlus(plano, desenvolvimentoLocal() ? 'desenvolvimento_local' : 'demonstracao');
-    renderTudo();
-    mostrarRetornoPagamento('ok');
-    return;
-  }
-  const url = new URL(plano === 'anual' ? PLUS.PAGAMENTO.LINK_ANUAL : PLUS.PAGAMENTO.LINK_MENSAL);
-  url.searchParams.set('client_reference_id', gerarId().replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40));
-  url.searchParams.set('locale', 'pt');
-  window.location.href = url.toString();
+  registarEvento('plus_checkout_aberto', { plano, onde, modo: 'supabase_stripe' });
+  garantirSessao(plano).then(async (session) => {
+    if (!session) return;
+    const { data, error } = await supabaseClient.functions.invoke('create-checkout', { body: { plano } });
+    if (error) throw error;
+    if (!data?.url) throw new Error('O servidor não devolveu o checkout.');
+    window.location.href = data.url;
+  }).catch((error) => mostrarToast(error.message || 'Não foi possível iniciar o pagamento.'));
 }

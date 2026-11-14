@@ -10,7 +10,7 @@ Veto uses one sentence, and only this sentence, to describe how it handles email
 
 > **Emails downloaded by the app are analysed on the device. Veto does not receive or store emails or exposure maps on its servers.**
 
-This wording is deliberate. Emails come from Google's servers to the phone, so it would be false to say they "never leave" anywhere. The network also carries technical traffic (IP address, connection metadata) to Google, to the catalogue host, and to the app stores. What Veto can honestly promise is that **its own infrastructure never receives the content or the results**.
+This wording is deliberate. Emails come from Google's servers to the phone, so it would be false to say they "never leave" anywhere. The network also carries technical traffic (IP address, connection metadata) to Google, to the catalogue host, and to the app stores. What Veto can honestly promise is that **its own infrastructure never receives the email content or the exposure results**. The paid plan also uses Supabase to store the account identity, subscription state, and the email addresses of linked Gmail accounts; it does not store the messages or analysis results.
 
 Phrases the team must not use in the app, the website, the pitch, or the privacy policy:
 
@@ -44,13 +44,14 @@ flowchart LR
 
 ## 3. External dependencies
 
-"The catalogue is the only thing Veto hosts" is true. It is not the only external dependency. The product relies on:
+"The catalogue is the only thing Veto hosts" is no longer true after adding paid plans. The product relies on:
 
 - **Google OAuth and the Gmail API**, to authorise and read metadata.
 - **The app distribution channel**: direct APK install and iOS development builds this semester; Google Play and the App Store later.
 - **The user's email app**, which actually sends each request.
 - **GitHub Pages**, which serves the catalogue.
-- Later, **Apple and Google payment systems**, if paid plans are introduced.
+- **Supabase**, for authentication, subscription metadata, and linked Gmail account addresses.
+- **Stripe**, for recurring payments and subscription events.
 
 Each of these can fail, change its rules, or see technical traffic. The app must keep working in demo mode, and keep showing the local history, if any of them is unavailable.
 
@@ -92,11 +93,12 @@ Local analysis does not make local data automatically safe. The list of companie
 
 ### Losing or replacing the phone
 
-With no account and no server, the history exists only on the phone. In the MVP this is accepted and stated clearly in onboarding and on the "Delete everything" screen. After the MVP, the user will be able to create an **encrypted export file**, protected by a password only they know, keep it where they choose, and import it on a new phone. Veto never holds a copy.
+The exposure history and request history still exist only on the phone. The Veto backend does not hold a copy of that history. Supabase stores the account identity, subscription metadata, and linked Gmail account addresses so that a paid plan and its five-account limit survive reinstalling the app.
 
 ## 6. What can be said honestly
 
 - Veto does not operate a server that receives or stores users' emails or exposure maps.
+- Veto's Supabase backend stores account identity, subscription metadata, and linked Gmail account addresses for paid plans.
 - The analysis of downloaded emails happens on the device.
 - Data on the device is encrypted and excluded from system backups.
 - Google, the catalogue host, and the app stores receive the technical traffic that any app generates. Veto does not log or correlate it.

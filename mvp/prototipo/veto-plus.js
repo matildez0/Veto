@@ -41,6 +41,7 @@ function carregarMonitorizacao() {
   } catch (erro) {
     // Sem armazenamento: a monitorização vale só nesta sessão.
   }
+
 }
 
 function guardarMonitorizacao() {
@@ -188,7 +189,7 @@ async function carregarPlus() {
   if (error) throw error;
   const ativo = data && ['active', 'trialing'].includes(data.status)
     && (!data.current_period_end || new Date(data.current_period_end).getTime() > Date.now());
-  plus = ativo ? { plano: data.plan, origem: 'supabase', ativadoEm: data.current_period_end } : null;
+  plus = ativo ? { plano: data.plan, origem: 'supabase', ativadoEm: data.current_period_end, cancelAtPeriodEnd: data.cancel_at_period_end } : null;
   guardarPlus();
   renderSessaoSupabase();
 }
@@ -206,6 +207,7 @@ function renderSessaoSupabase() {
     profile?.classList.add('hidden');
     profile?.classList.remove('flex');
     topPlus?.classList.remove('hidden');
+    topPlus?.replaceChildren(document.createTextNode('Veto+'));
     return;
   }
   if (supabaseSession?.user) {
@@ -216,7 +218,8 @@ function renderSessaoSupabase() {
     document.getElementById('supabase-avatar').textContent = email[0].toUpperCase();
     document.getElementById('supabase-plan').textContent = plus ? tt('Veto+') : tt('Plano Grátis');
     profile?.setAttribute('title', email);
-    topPlus?.classList.toggle('hidden', Boolean(plus));
+    topPlus?.replaceChildren(document.createTextNode(plus ? `Veto+ · ${plus.plano}` : 'Veto+'));
+    topPlus?.setAttribute('aria-label', plus ? `Veto+ ${plus.plano}` : 'Veto+');
     atualizarTextoCTA();
   } else {
     button.classList.remove('hidden');
@@ -433,6 +436,30 @@ async function contasRemotas() {
   return (data || []).map((conta) => conta.email).filter(Boolean);
 }
 
+async function abrirPerfilSupabase() {
+  const email = supabaseSession?.user?.email || 'Conta Veto';
+  let contas = [];
+  try {
+    contas = await contasRemotas();
+  } catch (error) {
+    mostrarToast(error.message || 'Não foi possível carregar as contas.');
+    return;
+  }
+  const associadas = contas.filter((conta) => conta.toLowerCase() !== email.toLowerCase());
+  abrirFolha({
+    titulo: tt('A tua conta'),
+    texto: email,
+    lista: [
+      [tt('Conta principal'), email],
+      [tt('Contas associadas'), associadas.length ? associadas.join(', ') : tt('Ainda não tens contas associadas.')]
+    ],
+    nota: plus
+      ? tt('Plano Veto+ {0}. Podes associar até {1} contas.', [plus.plano, PLUS.MAX_CONTAS])
+      : tt('Plano Grátis. Podes associar uma conta Gmail.'),
+    opcoes: [{ label: tt('Fechar'), estilo: 'ghost', acao: () => {} }]
+  });
+}
+
 async function contaDisponivelRemota() {
   if (!supabaseClient || !temPlus()) return true;
   const emails = await contasRemotas();
@@ -550,6 +577,13 @@ function abrirGestaoDoPlus() {
       acao: () => { window.open(PLUS.PAGAMENTO.PORTAL_URL, '_blank', 'noopener'); }
     });
   }
+  if (doStripe) {
+    opcoes.push({
+      label: tt('Cancelar subscrição'),
+      estilo: 'secondary',
+      acao: () => cancelarSubscricao()
+    });
+  }
   if (!doStripe) {
     opcoes.push({
       label: tt('Desativar o modo de demonstração'), estilo: 'secondary',
@@ -566,6 +600,36 @@ function abrirGestaoDoPlus() {
       : tt('Ativado em modo de demonstração, sem pagamento.'),
     opcoes
   });
+}
+
+async function cancelarSubscricao() {
+  if (!supabaseClient || !plus) return;
+  const confirmar = window.confirm(tt('Queres cancelar imediatamente a subscrição? O acesso ao Veto+ termina agora.'));
+  if (!confirmar) return;
+  try {
+    const { error } = await supabaseClient.functions.invoke('cancel-subscription', { body: {} });
+    if (error) {
+      let detalhe = error.message;
+      if (error.context instanceof Response) {
+        try {
+          const body = await error.context.json();
+          detalhe = body.error || detalhe;
+        } catch (parseError) {
+          console.warn('Não foi possível ler o erro do cancelamento:', parseError);
+        }
+      }
+      throw new Error(detalhe);
+    }
+    plus = null;
+    guardarPlus();
+    fecharFolha();
+    renderSessaoSupabase();
+    location.hash = '#inicio';
+    renderTudo();
+    mostrarToast(tt('Subscrição cancelada. Voltaste ao plano grátis.'));
+  } catch (error) {
+    mostrarToast(error.message || tt('Não foi possível cancelar a subscrição.'));
+  }
 }
 
 function comprarPlus(plano, onde) {

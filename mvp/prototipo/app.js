@@ -3015,6 +3015,7 @@ function tratarClique(evento) {
       case 'login-google-auth': loginGoogleAuth().catch((error) => mostrarToast(error.message || tt('Não foi possível iniciar sessão.'))); break;
       case 'entrar-supabase': abrirAuthModal(); break;
       case 'sair-supabase': sairSupabase().catch((error) => mostrarToast(error.message || tt('Não foi possível terminar sessão.'))); break;
+      case 'perfil-supabase': abrirPerfilSupabase(); break;
       case 'plus': abrirPlus(alvo.dataset.onde); break;
       default: tratarAcaoClique(alvo, action, { id, right, kind, sector, bucket, index }); break;
     }

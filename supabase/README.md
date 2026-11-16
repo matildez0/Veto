@@ -19,7 +19,8 @@ e os emails das contas Gmail associadas.
 Frontend
   ├─ Supabase Auth (login Google)
   ├─ create-checkout (cria a sessão Stripe)
-  └─ link-account (associa uma conta Gmail e valida o limite)
+  ├─ link-account (associa uma conta Gmail e valida o limite)
+  └─ cancel-subscription (agenda o cancelamento no Stripe)
 
 Stripe
   └─ stripe-webhook (confirma e atualiza a subscrição)
@@ -179,6 +180,7 @@ As funções estão em [`functions/`](./functions/):
 ```powershell
 npx.cmd supabase functions deploy create-checkout --yes
 npx.cmd supabase functions deploy link-account --yes
+npx.cmd supabase functions deploy cancel-subscription --yes
 npx.cmd supabase functions deploy stripe-webhook --no-verify-jwt --yes
 ```
 

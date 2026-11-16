@@ -15,8 +15,8 @@ Deno.serve(async (request) => {
     const object = event.data.object as Stripe.Subscription | Stripe.Checkout.Session;
     const metadata = object.metadata || {};
     const userId = metadata.supabase_user_id || (event.type.startsWith('checkout.session') ? (object as Stripe.Checkout.Session).client_reference_id : null);
-    if (!userId) return new Response('ok');
     if (event.type === 'checkout.session.completed') {
+      if (!userId) return new Response('ok');
       const session = object as Stripe.Checkout.Session;
       const subscription = await stripe.subscriptions.retrieve(String(session.subscription));
       await admin.from('subscriptions').upsert({ user_id: userId, stripe_customer_id: String(session.customer), stripe_subscription_id: subscription.id, plan: metadata.plano, status: subscription.status, current_period_end: new Date(subscription.current_period_end * 1000).toISOString(), cancel_at_period_end: subscription.cancel_at_period_end, updated_at: new Date().toISOString() });

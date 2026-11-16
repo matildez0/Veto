@@ -1027,7 +1027,7 @@ function abrirGestaoDoPlus() {
     opcoes.push({
       label: tt('Cancelar subscrição'),
       estilo: 'secondary',
-      acao: () => cancelarSubscricao()
+      acao: () => cancelarPlanoVetoPlus()
     });
   }
 
@@ -1077,79 +1077,71 @@ function abrirGestaoDoPlus() {
    CANCELAMENTO NO FINAL DO PERÍODO PAGO
    ========================================================================== */
 
-async function cancelarSubscricao() {
+function cancelarPlanoVetoPlus() {
   if (!supabaseClient || !plus || plus.cancelAtPeriodEnd) return;
 
-  const confirmar = window.confirm(
-    tt(
-      'Queres agendar o cancelamento? Continuarás a ter acesso ao Veto+ até ao fim do período já pago e não haverá nova cobrança.'
-    )
-  );
+  // Usa o sistema nativo da app em vez do window.confirm
+  abrirFolha({
+    titulo: tt('Agendar cancelamento?'),
+    texto: tt('Continuarás a ter acesso ao Veto+ até ao fim do período já pago e não haverá nova cobrança.'),
+    opcoes: [
+      {
+        label: tt('Sim, cancelar plano'),
+        estilo: 'primary',
+        acao: async () => {
+          // O modal fecha sozinho ao clicar, mostramos um aviso de carregamento
+          mostrarToast(tt('A processar o cancelamento no Stripe...'));
+          
+          try {
+            const { data, error } = await supabaseClient.functions.invoke(
+              'cancel-subscription',
+              { body: {} }
+            );
 
-  if (!confirmar) return;
+            if (error) {
+              let detalhe = error.message;
+              if (error.context instanceof Response) {
+                try {
+                  const body = await error.context.json();
+                  detalhe = body.error || detalhe;
+                } catch (parseError) {}
+              }
+              throw new Error(detalhe);
+            }
 
-  try {
-    const { data, error } = await supabaseClient.functions.invoke(
-      'cancel-subscription',
-      { body: {} }
-    );
+            if (!data?.ok || !data?.cancel_at_period_end) {
+              throw new Error(tt('O Stripe não confirmou o agendamento do cancelamento.'));
+            }
 
-    if (error) {
-      let detalhe = error.message;
+            // Atualiza o estado local
+            plus = {
+              ...plus,
+              cancelAtPeriodEnd: true,
+              currentPeriodEnd: data.current_period_end
+                ? new Date(data.current_period_end * 1000).toISOString()
+                : plus.currentPeriodEnd
+            };
 
-      if (error.context instanceof Response) {
-        try {
-          const body = await error.context.json();
-          detalhe = body.error || detalhe;
-        } catch (parseError) {
-          console.warn(
-            'Não foi possível ler o erro do cancelamento:',
-            parseError
-          );
+            guardarPlus();
+            renderSessaoSupabase();
+            renderTudo();
+
+            // Reabre o menu de gestão com o novo estado (já cancelado)
+            abrirGestaoDoPlus();
+            mostrarToast(tt('Cancelamento agendado. Manténs o acesso até ao fim do período pago.'));
+            
+          } catch (error) {
+            mostrarToast(error.message || tt('Não foi possível agendar o cancelamento.'));
+          }
         }
+      },
+      {
+        label: tt('Voltar atrás'),
+        estilo: 'ghost',
+        acao: () => abrirGestaoDoPlus() // Se cancelar, volta ao menu do Veto+
       }
-
-      throw new Error(detalhe);
-    }
-
-    if (!data?.ok || !data?.cancel_at_period_end) {
-      throw new Error(
-        tt('O Stripe não confirmou o agendamento do cancelamento.')
-      );
-    }
-
-    /*
-     * IMPORTANTE:
-     * A subscrição continua ativa até current_period_end.
-     * Não remover plus nem o acesso neste momento.
-     */
-    plus = {
-      ...plus,
-      cancelAtPeriodEnd: true,
-      currentPeriodEnd: data.current_period_end
-        ? new Date(data.current_period_end * 1000).toISOString()
-        : plus.currentPeriodEnd
-    };
-
-    guardarPlus();
-
-    fecharFolha();
-    renderSessaoSupabase();
-    renderTudo();
-
-    abrirGestaoDoPlus();
-
-    mostrarToast(
-      tt(
-        'Cancelamento agendado. Manténs o acesso até ao fim do período pago.'
-      )
-    );
-  } catch (error) {
-    mostrarToast(
-      error.message ||
-      tt('Não foi possível agendar o cancelamento.')
-    );
-  }
+    ]
+  });
 }
 
 function comprarPlus(plano, onde) {

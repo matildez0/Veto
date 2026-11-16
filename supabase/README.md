@@ -98,14 +98,18 @@ http://localhost:5500
 1. Abre **Authentication → Sign In / Providers**.
 2. Ativa **Google**.
 3. Cola o **Client ID** e o **Client Secret** do Google Cloud.
-4. Em **Authentication → URL Configuration**, adiciona:
+4. Mantém também o provider **Email** ativo para permitir registo e login com
+   email/password. Decide em **Authentication → Settings** se a confirmação de
+   email é obrigatória; quando estiver ativa, o utilizador tem de confirmar o
+   email antes de a sessão ficar disponível.
+5. Em **Authentication → URL Configuration**, adiciona:
 
    ```text
    http://localhost:8000/mvp/prototipo/index.html
    http://localhost:5500/mvp/prototipo/index.html
    ```
 
-5. Adiciona também o endereço de produção da aplicação.
+6. Adiciona também o endereço de produção da aplicação.
 
 O Client Secret do Google fica apenas no Supabase. Não deve ser colocado em
 [`mvp/prototipo/supabase-config.js`](../mvp/prototipo/supabase-config.js).

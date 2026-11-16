@@ -22,6 +22,7 @@ const PLUS = {
 };
 const PLUS_KEY = 'veto.plus.v1';
 let plus = null;
+let supabaseSession = null;
 const MONITOR_KEY = 'veto.plus.monitorizacao.v1';
 let monitorizacao = {
   ativa: false,
@@ -174,7 +175,13 @@ async function carregarPlus() {
   } catch (erro) {}
   if (!supabaseClient) return;
   const { data: { session } } = await supabaseClient.auth.getSession();
-  if (!session) return;
+  supabaseSession = session;
+  if (!session) {
+    plus = null;
+    guardarPlus();
+    renderSessaoSupabase();
+    return;
+  }
   const { data, error } = await supabaseClient.from('subscriptions')
     .select('plan,status,current_period_end,cancel_at_period_end')
     .eq('user_id', session.user.id).maybeSingle();
@@ -183,6 +190,193 @@ async function carregarPlus() {
     && (!data.current_period_end || new Date(data.current_period_end).getTime() > Date.now());
   plus = ativo ? { plano: data.plan, origem: 'supabase', ativadoEm: data.current_period_end } : null;
   guardarPlus();
+  renderSessaoSupabase();
+}
+
+function renderSessaoSupabase() {
+  const button = document.getElementById('supabase-auth-button');
+  const profile = document.getElementById('supabase-profile');
+  const cta = document.getElementById('analyze-button');
+  const topPlus = document.getElementById('plus-top-button');
+  if (!button) return;
+  if (!supabaseClient) {
+    button.textContent = tt('Entrar');
+    button.dataset.action = 'entrar-supabase';
+    button.title = tt('Login Veto+ indisponível: configura o Supabase.');
+    profile?.classList.add('hidden');
+    profile?.classList.remove('flex');
+    topPlus?.classList.remove('hidden');
+    return;
+  }
+  if (supabaseSession?.user) {
+    const email = supabaseSession.user.email || tt('Conta Veto');
+    button.classList.add('hidden');
+    profile?.classList.remove('hidden');
+    profile?.classList.add('flex');
+    document.getElementById('supabase-avatar').textContent = email[0].toUpperCase();
+    document.getElementById('supabase-plan').textContent = plus ? tt('Veto+') : tt('Plano Grátis');
+    profile?.setAttribute('title', email);
+    topPlus?.classList.toggle('hidden', Boolean(plus));
+    atualizarTextoCTA();
+  } else {
+    button.classList.remove('hidden');
+    button.textContent = tt('Entrar');
+    button.dataset.action = 'entrar-supabase';
+    button.title = tt('Entrar com Google para guardar o Veto+');
+    button.setAttribute('aria-label', tt('Entrar com Google'));
+    profile?.classList.add('hidden');
+    profile?.classList.remove('flex');
+    cta?.setAttribute('data-action', 'analisar-ou-entrar');
+    cta?.replaceChildren(document.createTextNode(tt('Criar Conta / Iniciar Sessão')), document.createTextNode(' →'));
+  }
+
+  function atualizarTextoCTA() {
+    const cta = document.getElementById('analyze-button');
+    if (!cta) return;
+    const texto = !autenticado() ? 'Criar Conta / Iniciar Sessão' : contasAtivas().length ? 'Analisar email' : 'Associar email';
+    cta.dataset.action = !autenticado() ? 'analisar-ou-entrar' : contasAtivas().length ? 'analisar-email' : 'associar-email';
+    cta.replaceChildren(document.createTextNode(tt(texto)), document.createTextNode(' →'));
+  }
+  document.querySelectorAll('[data-nav]:not([data-nav="inicio"])').forEach((link) => {
+    link.classList.toggle('opacity-50', !supabaseSession);
+    link.classList.toggle('cursor-not-allowed', !supabaseSession);
+    link.setAttribute('aria-disabled', String(!supabaseSession));
+  });
+}
+
+function autenticado() {
+  return Boolean(supabaseSession?.user);
+}
+
+function abrirAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  document.querySelectorAll('input[name="auth-plan"]').forEach((input) => {
+    input.onchange = atualizarTextoPlanoAuth;
+  });
+  atualizarTextoPlanoAuth();
+  document.getElementById('auth-email')?.focus();
+}
+
+function atualizarTextoPlanoAuth() {
+  const plano = document.querySelector('input[name="auth-plan"]:checked')?.value || 'gratis';
+  const submit = document.getElementById('auth-submit');
+  if (!submit) return;
+  submit.textContent = plano === 'plus_anual'
+    ? tt('Subscrever Veto+ anual')
+    : plano === 'plus_mensal'
+      ? tt('Subscrever Veto+ mensal')
+      : tt('Continuar com plano grátis');
+}
+
+function fecharAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+async function submeterAuth(evento) {
+  evento.preventDefault();
+  if (!supabaseClient) throw new Error('O login ainda não está configurado.');
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const plano = document.querySelector('input[name="auth-plan"]:checked')?.value || 'gratis';
+  const submit = document.getElementById('auth-submit');
+  const erro = document.getElementById('auth-error');
+  submit.disabled = true;
+  erro.classList.add('hidden');
+  try {
+    let { data, error } = await supabaseClient.auth.signUp({
+      email, password,
+      options: { data: { plano } }
+    });
+    if (error?.message?.toLowerCase().includes('already registered')) {
+      ({ data, error } = await supabaseClient.auth.signInWithPassword({ email, password }));
+    }
+    if (error) throw error;
+    if (!data.session) {
+      erro.textContent = tt('Confirma o teu email para concluir o registo e depois inicia sessão.');
+      erro.classList.remove('hidden');
+      return;
+    }
+    fecharAuthModal();
+    if (plano !== 'gratis') comprarPlus(plano === 'plus_anual' ? 'anual' : 'mensal', 'registo');
+  } catch (error) {
+    erro.textContent = error.message || tt('Não foi possível criar a conta.');
+    erro.classList.remove('hidden');
+  } finally {
+    submit.disabled = false;
+  }
+}
+
+async function entrarSupabase() {
+  if (!supabaseClient) {
+    mostrarToast(tt('O login ainda não está configurado.'));
+    return;
+  }
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.href,
+      scopes: 'openid email profile',
+      queryParams: { prompt: 'select_account' }
+    }
+  });
+  if (error) throw error;
+}
+
+async function loginGoogleAuth() {
+  if (!supabaseClient) throw new Error('O login ainda não está configurado.');
+  const plano = document.querySelector('input[name="auth-plan"]:checked')?.value || 'gratis';
+  const url = new URL(window.location.href);
+  url.searchParams.set('auth_plan', plano);
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: url.toString(),
+      scopes: 'openid email profile',
+      queryParams: { prompt: 'select_account' }
+    }
+  });
+  if (error) throw error;
+}
+
+async function sairSupabase() {
+  if (!supabaseClient) return;
+  const { error } = await supabaseClient.auth.signOut();
+  if (error) throw error;
+  supabaseSession = null;
+  plus = null;
+  guardarPlus();
+  renderSessaoSupabase();
+  renderTudo();
+}
+
+function iniciarSessaoSupabase() {
+  if (!supabaseClient) {
+    renderSessaoSupabase();
+    return;
+  }
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    supabaseSession = session;
+    if (event === 'SIGNED_OUT') {
+      plus = null;
+      guardarPlus();
+    } else if (session) {
+      carregarPlus().catch((error) => console.error('Não foi possível atualizar a subscrição:', error));
+      const params = new URLSearchParams(location.search);
+      const plano = params.get('auth_plan');
+      if (plano) {
+        params.delete('auth_plan');
+        history.replaceState(null, '', location.pathname + (params.toString() ? `?${params}` : '') + location.hash);
+        if (plano !== 'gratis' && !plus) comprarPlus(plano === 'plus_anual' ? 'anual' : 'mensal', 'registo');
+      }
+    }
+    renderSessaoSupabase();
+  });
 }
 
 function guardarPlus() {
@@ -210,7 +404,11 @@ async function garantirSessao(plano) {
   url.searchParams.set('checkout_plan', plano);
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: url.toString(), scopes: 'openid email profile' }
+    options: {
+      redirectTo: url.toString(),
+      scopes: 'openid email profile',
+      queryParams: { prompt: 'select_account' }
+    }
   });
   if (error) throw error;
   return null;

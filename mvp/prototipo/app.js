@@ -679,6 +679,7 @@ const status = document.getElementById('analysis-status');
 carregarEstado();
 const retornoPagamento = tratarRetornoPagamento();
 carregarPlus().then(() => {
+  iniciarSessaoSupabase();
   iniciarCheckoutPendente();
   contasRemotas().then((emails) => {
     emails.forEach((email) => {
@@ -704,7 +705,26 @@ const conviteNoLink = parametrosDoLink.get('convite') || '';
 // De onde veio a pessoa (por exemplo, ?origem=linkedin). Só serve para contar visitas por canal.
 const origemDoLink = (parametrosDoLink.get('origem') || parametrosDoLink.get('utm_source') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30);
 registarAbertura();
-document.getElementById('analyze-button').addEventListener('click', ligarGmail);
+document.getElementById('auth-form').addEventListener('submit', (event) => {
+  submeterAuth(event).catch((error) => console.error('Erro no registo:', error));
+});
+document.getElementById('analyze-button').addEventListener('click', (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  const action = event.currentTarget.dataset.action;
+  if (action === 'associar-email') {
+    associarEmail();
+  } else if (action === 'analisar-email') {
+    ligarGmail();
+  } else {
+    abrirAuthModal();
+  }
+});
+document.querySelector('[data-action="pedir-acesso"]')?.addEventListener('click', (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  pedirAcessoAoTeste();
+});
 document.getElementById('search-input').addEventListener('input', renderEmpresas);
 document.addEventListener('click', tratarClique);
 // Que perguntas do guia são abertas, uma vez por pergunta em cada visita
@@ -767,6 +787,11 @@ setTimeout(verificarPendente, 600);
    Análise do Gmail (só cabeçalhos)
    ========================================================================== */
 function ligarGmail(opcoes = {}) {
+  if (!autenticado()) {
+    abrirAuthModal();
+    return;
+  }
+
   const contas = contasAtivas();
   if (opcoes.adicionar && contas.length >= limiteDeContas()) {
     mostrarToast(tt('Atingiste o limite de {0} contas.', [limiteDeContas()]));
@@ -838,6 +863,25 @@ function ligarGmail(opcoes = {}) {
     }
   });
   tokenClient.requestAccessToken({ prompt: 'select_account' });
+}
+
+function associarEmail() {
+  if (!autenticado()) {
+    abrirAuthModal();
+    return;
+  }
+  const tentar = (tentativas = 0) => {
+    if (window.google?.accounts?.oauth2) {
+      ligarGmail();
+      return;
+    }
+    if (tentativas >= 20) {
+      atualizarStatus(tt('A autenticação Google ainda está a carregar. Atualiza a página e tenta novamente.'), true);
+      return;
+    }
+    setTimeout(() => tentar(tentativas + 1), 250);
+  };
+  tentar();
 }
 
 // Erros fora do OAuth: a janela do Google não abriu (pop-up bloqueado) ou foi fechada antes do fim.
@@ -1683,7 +1727,11 @@ function vistaAtual() {
 }
 
 function renderTudo() {
-  const vista = vistaAtual();
+  let vista = vistaAtual();
+  if (vista !== 'inicio' && !autenticado()) {
+    if (location.hash !== '#inicio') history.replaceState(null, '', `${location.pathname}${location.search}#inicio`);
+    vista = 'inicio';
+  }
   document.querySelectorAll('[data-view]').forEach((secao) => secao.classList.toggle('hidden', secao.dataset.view !== vista));
   document.querySelectorAll('[data-nav]').forEach((link) => {
     const ativo = link.dataset.nav === vista;
@@ -1696,6 +1744,7 @@ function renderTudo() {
   }
   renderTudo.ultimaVista = vista;
 
+  renderSessaoSupabase();
   renderResumo();
   renderContasCard();
   renderPlus(visiveis().reduce((soma, empresa) => soma + tempoPerdidoS(empresa), 0));
@@ -2956,8 +3005,33 @@ function fecharFolha() {
    ========================================================================== */
 function tratarClique(evento) {
   const alvo = evento.target.closest('[data-action]');
-  if (!alvo) return;
-  const { action, id, right, kind, sector, bucket, index } = alvo.dataset;
+  if (alvo) {
+    const { action, id, right, kind, sector, bucket, index } = alvo.dataset;
+    switch (action) {
+      case 'analisar-ou-entrar': if (autenticado()) ligarGmail(); else abrirAuthModal(); break;
+      case 'associar-email': associarEmail(); break;
+      case 'analisar-email': ligarGmail(); break;
+      case 'fechar-auth': fecharAuthModal(); break;
+      case 'login-google-auth': loginGoogleAuth().catch((error) => mostrarToast(error.message || tt('Não foi possível iniciar sessão.'))); break;
+      case 'entrar-supabase': abrirAuthModal(); break;
+      case 'sair-supabase': sairSupabase().catch((error) => mostrarToast(error.message || tt('Não foi possível terminar sessão.'))); break;
+      case 'plus': abrirPlus(alvo.dataset.onde); break;
+      default: tratarAcaoClique(alvo, action, { id, right, kind, sector, bucket, index }); break;
+    }
+    return;
+  }
+
+  const nav = evento.target.closest('[data-nav]');
+  if (nav && nav.dataset.nav !== 'inicio' && !autenticado()) {
+    evento.preventDefault();
+    mostrarToast(tt('Cria uma conta para acederes a esta área.'));
+    abrirAuthModal();
+    return;
+  }
+}
+
+function tratarAcaoClique(alvo, action, dados) {
+  const { id, right, kind, sector, bucket, index } = dados;
   switch (action) {
     case 'setor':
       filtroSetor = filtroSetor === sector ? 'todos' : sector;
@@ -2988,7 +3062,6 @@ function tratarClique(evento) {
     case 'cancelar-subscricao': cancelarSubscricao(id); break;
     case 'apagar-emails': apagarEmailsEmpresa(id); break;
     case 'mapa-zoom': botaoDeZoom(alvo.dataset.zoom); break;
-    case 'plus': abrirPlus(alvo.dataset.onde); break;
     case 'modo-resultados':
       if (alvo.dataset.modo === 'mapa') {
         location.hash = '#pedidos';

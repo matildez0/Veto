@@ -658,7 +658,7 @@ function renderContasCard() {
       ${contas.map((conta) => `<button type="button" data-action="selecionar-conta" data-account="${esc(conta.email)}" class="rounded-lg px-3 py-2 text-xs font-semibold ${estado.contaSelecionada.toLowerCase() === (conta.email || '').toLowerCase() ? 'bg-lime text-ink' : 'border border-slate-700 text-slate-300'}">${esc(conta.email || tt('Conta Gmail'))}</button>`).join('')}
     </div>
     <ul class="mt-3 flex flex-col gap-2">
-      ${contas.map((conta) => `<li class="rounded-lg border border-slate-800 px-3 py-2 text-xs">${esc(conta.email || tt('Conta Gmail'))}</li>`).join('')}
+      ${contas.map((conta) => `<li class="flex items-center justify-between gap-3 rounded-lg border border-slate-800 px-3 py-2 text-xs"><span class="min-w-0 truncate">${esc(conta.email || tt('Conta Gmail'))}</span><button type="button" data-action="remover-conta" data-account="${esc(conta.email || '')}" class="shrink-0 font-semibold text-rose-200 underline decoration-rose-300/30 underline-offset-4">${tt('Remover')}</button></li>`).join('')}
     </ul>`;
 }
 
@@ -766,6 +766,12 @@ document.addEventListener('visibilitychange', () => {
 if (estado.demo || estado.pedidos.some((pedido) => pedido.demo)) limparExemplo();
 // Prazos antigos (mês + 3 dias) passam a 30 dias depois do envio
 estado.pedidos.forEach((pedido) => { if (pedido.sentAt) pedido.dueDate = estimarPrazo(pedido.sentAt); });
+// Pedidos antigos sem conta: se a empresa só foi encontrada numa conta, o pedido é dessa conta
+estado.pedidos.forEach((pedido) => {
+  if (pedido.contaEmail) return;
+  const contas = contasDaEmpresa(pedido.companyId);
+  if (contas.length === 1) pedido.contaEmail = contas[0];
+});
 renderTudo();
 mostrarPerguntaConsentimento();
 if (retornoPagamento) mostrarRetornoPagamento(retornoPagamento);
@@ -786,6 +792,47 @@ setTimeout(verificarPendente, 600);
 /* ==========================================================================
    Análise do Gmail (só cabeçalhos)
    ========================================================================== */
+// O acesso ao Gmail vive só em memória, só durante a análise, e é revogado logo a seguir.
+// Nunca vai para o localStorage nem para o servidor. O envio dos pedidos não usa a API do Gmail
+// (abre-se o Gmail já com o email escrito), por isso não é preciso token nenhum para enviar.
+const GMAIL_TOKEN_MAX_MS = 20 * 60 * 1000; // rede de segurança: se a análise encravar, o acesso cai aos 20 min
+const acessoGmail = {
+  token: null,
+  relogio: 0,
+  definir(token) {
+    this.revogar(); // nunca há dois acessos ao mesmo tempo
+    this.token = token;
+    this.relogio = setTimeout(() => this.revogar(), GMAIL_TOKEN_MAX_MS);
+  },
+  // Esquece e revoga o token. aoTerminar(true|false) diz se o Google confirmou a revogação.
+  revogar(aoTerminar = () => {}) {
+    const token = this.token;
+    clearTimeout(this.relogio);
+    this.token = null;
+    if (!token) { aoTerminar(true); return; }
+    try {
+      google.accounts.oauth2.revoke(token, (resposta) => aoTerminar(resposta?.successful === true));
+    } catch (erro) {
+      aoTerminar(false);
+    }
+  },
+  // Ao fechar ou sair da página não há tempo para esperar pela resposta: pedido "keepalive".
+  revogarAoSair() {
+    const token = this.token;
+    if (!token) return;
+    clearTimeout(this.relogio);
+    this.token = null;
+    try {
+      fetch('https://oauth2.googleapis.com/revoke', {
+        method: 'POST', mode: 'no-cors', keepalive: true,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `token=${encodeURIComponent(token)}`
+      });
+    } catch (erro) { /* o token expira sozinho em, no máximo, 1 hora */ }
+  }
+};
+window.addEventListener('pagehide', () => acessoGmail.revogarAoSair());
+
 function ligarGmail(opcoes = {}) {
   if (!autenticado()) {
     abrirAuthModal();
@@ -839,11 +886,13 @@ function ligarGmail(opcoes = {}) {
         if (response.error === 'access_denied') mostrarTesteFechado();
         return;
       }
+      // A partir daqui, qualquer caminho (erro, cancelamento, fim) passa por acessoGmail.revogar().
+      acessoGmail.definir(response.access_token);
       // O Google deixa desmarcar a permissão no ecrã de consentimento: sem ela, o Gmail responde 403.
       if (google.accounts.oauth2.hasGrantedAllScopes?.(response, GMAIL_READ_SCOPE) === false) {
         repor(button);
         registo.erro(tt('Não foi dada permissão para ler os emails. Tenta outra vez e, no ecrã do Google, marca a caixa «Ver as suas mensagens de email».'));
-        google.accounts.oauth2.revoke(response.access_token, () => {});
+        acessoGmail.revogar();
         return;
       }
       registo.feito('login', tt('Sessão iniciada no Google'));
@@ -857,8 +906,10 @@ function ligarGmail(opcoes = {}) {
           repor(button);
           if (analiseEmCurso?.id === contextoAnalise.id) analiseEmCurso = null;
           // Ligação por análise: o acesso é revogado assim que a análise termina.
-          google.accounts.oauth2.revoke(response.access_token, () => {});
-          registo.feito('revogar', tt('Acesso ao Gmail cancelado'));
+          acessoGmail.revogar((confirmado) => {
+            if (confirmado) registo.feito('revogar', tt('Acesso ao Gmail cancelado'));
+            else registo.aviso('revogar', tt('Não foi possível confirmar o cancelamento do acesso ao Gmail. Podes revogá-lo em myaccount.google.com/permissions.'));
+          });
         });
     }
   });
@@ -1428,9 +1479,96 @@ async function adicionarConta() {
 }
 
 /* ==========================================================================
+   Remover uma conta: apaga deste dispositivo tudo o que veio só dela
+   ========================================================================== */
+// O que sai e o que fica. Usado pela confirmação (para mostrar números) e pela remoção (para apagar),
+// por isso nunca se desencontram.
+function planoDeRemocao(email) {
+  const alvo = String(email || '').toLowerCase();
+  const conta = contasAtivas().find((item) => String(item.email || '').toLowerCase() === alvo);
+  if (!conta) return null;
+  const restantes = contasAtivas().filter((item) => item !== conta);
+  const idsNasOutras = new Set(restantes.flatMap((item) => (item.empresas || []).map((empresa) => empresa.id)));
+  // Empresas encontradas exclusivamente nesta conta
+  const exclusivas = new Set((conta.empresas || []).map((empresa) => empresa.id).filter((id) => !idsNasOutras.has(id)));
+  // Pedidos enviados a partir desta conta. Os antigos, sem conta, saem se a empresa era só desta conta.
+  const pedidos = estado.pedidos.filter((pedido) => (pedido.contaEmail
+    ? pedido.contaEmail.toLowerCase() === alvo
+    : exclusivas.has(pedido.companyId)));
+  return { conta, restantes, exclusivas, pedidos };
+}
+
+function removerConta(email) {
+  const plano = planoDeRemocao(email);
+  if (!plano) return;
+  const nome = plano.conta.email || tt('Conta Gmail');
+  const nEmpresas = plano.exclusivas.size;
+  const nPedidos = plano.pedidos.length;
+  abrirFolha({
+    titulo: tt('Remover {0}?', [nome]),
+    texto: tt('Apagamos deste dispositivo tudo o que veio desta conta: {0} {1} encontradas só nela e {2} {3} feitos a partir dela. As empresas que também aparecem noutras contas ficam.',
+      [nEmpresas, plural(nEmpresas, tt('empresa'), tt('empresas')), nPedidos, plural(nPedidos, tt('pedido'), tt('pedidos'))]),
+    nota: tt('Os pedidos que já enviaste continuam no teu email enviado. O Veto não guarda nenhuma permissão de acesso ao teu Gmail.'),
+    opcoes: [
+      { label: tt('Remover conta e apagar dados'), estilo: 'primary', acao: () => apagarDadosDaConta(plano.conta.email) },
+      { label: tt('Cancelar'), estilo: 'ghost', acao: () => {} }
+    ]
+  });
+}
+
+function apagarDadosDaConta(email) {
+  const plano = planoDeRemocao(email);
+  if (!plano) return;
+  const { conta, restantes, pedidos } = plano;
+  const nome = conta.email || tt('Conta Gmail');
+  const mesmaConta = (outro) => String(outro || '').toLowerCase() === String(conta.email || '').toLowerCase();
+
+  // 1. Pedidos e empresas desta conta (as empresas vivem dentro da conta: sair a conta leva-as consigo)
+  const idsPedidos = new Set(pedidos.map((pedido) => pedido.id));
+  estado.pedidos = estado.pedidos.filter((pedido) => !idsPedidos.has(pedido.id));
+  estado.contas = restantes;
+
+  // 2. O que o resto da app mostra passa a ser só o das contas que ficam
+  const selecionada = String(estado.contaSelecionada || 'todas');
+  if (selecionada.toLowerCase() !== 'todas' && !restantes.some((outra) => String(outra.email || '').toLowerCase() === selecionada.toLowerCase())) {
+    estado.contaSelecionada = 'todas';
+  }
+  estado.empresas = String(estado.contaSelecionada).toLowerCase() === 'todas'
+    ? juntarEmpresasDasContas(restantes)
+    : (restantes.find((outra) => String(outra.email || '').toLowerCase() === String(estado.contaSelecionada).toLowerCase())?.empresas || []);
+  if (mesmaConta(estado.contaEmail)) {
+    const ultima = restantes.filter((outra) => outra.email).pop();
+    if (ultima) estado.contaEmail = ultima.email;
+    else delete estado.contaEmail;
+  }
+  estado.emailsAnalisados = restantes.reduce((soma, outra) => soma + (outra.emailsAnalisados || 0), 0);
+  estado.analisadoEm = restantes.map((outra) => outra.analisadoEm).filter(Boolean).sort().pop() || null;
+
+  // 3. Estado do ecrã e monitorização (Veto+) sem rasto da conta
+  renderResumo.novaAnalise = false;
+  selecaoMapa = null;
+  filtroSetor = 'todos';
+  filtroTipo = 'todas';
+  zoomMapa = { k: 1, x: 0, y: 0, assinatura: '' };
+  limparMonitorizacaoDeContaRemovida(juntarEmpresasDasContas(restantes));
+
+  guardarEstado();
+  renderTudo();
+  registarEvento('conta_removida', { contasRestantes: restantes.length });
+
+  // 4. No servidor, desassocia a conta; senão voltava a aparecer (vazia) no próximo arranque
+  desassociarContaRemota(conta.email)
+    .then(() => mostrarToast(tt('{0} removida. Os dados desta conta foram apagados deste dispositivo.', [nome])))
+    .catch((error) => {
+      console.error('Não foi possível desassociar a conta no servidor:', error);
+      mostrarToast(tt('Os dados foram apagados deste dispositivo, mas não conseguimos desassociar a conta no Veto+. Tenta outra vez mais tarde.'));
+    });
+}
+
+/* ==========================================================================
    Pedidos
    ========================================================================== */
-function prepararPedido(empresaId, right) {
+function prepararPedido(empresaId, right, contaEscolhida = '') {
   const empresa = obterEmpresa(empresaId);
   if (!empresa) return;
   if (!empresa.dpo_email) {
@@ -1441,22 +1579,35 @@ function prepararPedido(empresaId, right) {
     mostrarLimitePedidosAtingido();
     return;
   }
+  // O pedido tem de sair da conta onde a empresa foi descoberta: é a esse endereço que ela associa os dados.
+  let conta = contaEscolhida && contasAtivas().some((item) => String(item.email || '').toLowerCase() === contaEscolhida.toLowerCase()) ? contaEscolhida : '';
+  if (!conta) conta = contaProvavel(empresa.id);
+  if (!conta) {
+    const candidatas = contasDaEmpresa(empresa.id);
+    if (candidatas.length > 1) {
+      // Encontrada em várias contas e nenhuma escolhida: pergunta de qual sai
+      escolherContaDoPedido(empresa, candidatas, (email) => prepararPedido(empresaId, right, email));
+      return;
+    }
+    conta = contaUnica();
+  }
   // Se há um pedido por confirmar, pergunta uma vez; clicar fora da janela segue com o pedido novo
   const pendente = !prepararPedido.semPergunta && estado.pedidos.find((pedido) => pedido.status === 'awaiting_confirmation' && !pedido.perguntaAdiada);
   if (pendente) {
     perguntarSeEnviou(pendente, () => {
       pendente.perguntaAdiada = true;
       guardarEstado();
-      prepararPedido(empresaId, right);
+      prepararPedido(empresaId, right, conta);
     });
     return;
   }
-  const aberto = estado.pedidos.find((pedido) => pedido.companyId === empresaId && pedido.right === right && !['closed', 'draft'].includes(pedido.status));
+  const aberto = estado.pedidos.find((pedido) => pedido.companyId === empresaId && pedido.right === right && !['closed', 'draft'].includes(pedido.status)
+    && (!conta || !pedido.contaEmail || pedido.contaEmail.toLowerCase() === conta.toLowerCase()));
   if (aberto) mostrarToast(tt('Já tens um pedido de {0} aberto para {1}.', [RIGHTS[right].short.toLowerCase(), empresa.name]));
 
   const agora = new Date().toISOString();
   const pedido = {
-    id: gerarId(), companyId: empresa.id, companyName: empresa.name, companySector: empresa.sector, domain: empresa.domain, email: empresa.dpo_email,
+    id: gerarId(), companyId: empresa.id, companyName: empresa.name, companySector: empresa.sector, domain: empresa.domain, email: empresa.dpo_email, contaEmail: conta,
     right, status: 'awaiting_confirmation', createdAt: agora, sentAt: null, dueDate: null,
     replyAt: null, closedAt: null, closeReason: null, outcome: null, holdsData: null, followUpAt: null,
     demo: estado.demo, sentDates: [], timeline: [{ to: 'awaiting_confirmation', at: agora }]
@@ -1465,8 +1616,46 @@ function prepararPedido(empresaId, right) {
   registarEvento('pedido_preparado', { demo: pedido.demo, direito: right, area: empresa.sector, gravidade: gravidadeDe(empresa).chave });
   // Guardado ANTES de abrir a app de email, para a pergunta "Enviaste?" sobreviver se o browser fechar a página.
   guardarEstado();
-  abrirEmail(pedido.email, RIGHTS[right].subject, RIGHTS[right].body(empresa.name), () => marcarNaoEnviado(pedido.id));
+  abrirEmail(pedido.email, RIGHTS[right].subject, RIGHTS[right].body(empresa.name), () => marcarNaoEnviado(pedido.id), conta);
   renderTudo();
+}
+
+/* ==========================================================================
+   Conta de origem: o pedido sai do email onde a empresa foi descoberta
+   ========================================================================== */
+// Contas (com endereço) em que a empresa foi encontrada
+function contasDaEmpresa(empresaId) {
+  return contasAtivas()
+    .filter((conta) => conta.email && (conta.empresas || []).some((empresa) => empresa.id === empresaId && !empresa.dismissed))
+    .map((conta) => conta.email);
+}
+
+// A conta só existe uma (com endereço)? Devolve-a; senão, ''.
+function contaUnica() {
+  const comEmail = contasAtivas().filter((conta) => conta.email);
+  return comEmail.length === 1 ? comEmail[0].email : '';
+}
+
+// A conta de onde sai o pedido, quando não há dúvidas: a escolhida no ecrã, ou a única que tem a empresa.
+function contaProvavel(empresaId) {
+  const candidatas = contasDaEmpresa(empresaId);
+  const escolhida = String(estado.contaSelecionada || 'todas').toLowerCase();
+  return candidatas.find((email) => email.toLowerCase() === escolhida) || (candidatas.length === 1 ? candidatas[0] : '');
+}
+
+function contaDoPedido(pedido) {
+  return pedido.contaEmail || contaUnica();
+}
+
+function escolherContaDoPedido(empresa, candidatas, depois) {
+  abrirFolha({
+    titulo: tt('De que conta enviar o pedido?'),
+    texto: tt('Encontrámos a {0} em mais do que uma das tuas contas. O pedido tem de sair da conta que a empresa conhece, ou ela não o liga aos teus dados. Escolhe a que usaste para te registares.', [empresa.name]),
+    opcoes: [
+      ...candidatas.map((email, indice) => ({ label: email, estilo: indice === 0 ? 'primary' : 'secondary', acao: () => depois(email) })),
+      { label: tt('Cancelar'), estilo: 'ghost', acao: () => {} }
+    ]
+  });
 }
 
 function reabrirRascunho(pedidoId) {
@@ -1478,7 +1667,7 @@ function reabrirRascunho(pedidoId) {
     return;
   }
   mudarEstado(pedido, 'awaiting_confirmation');
-  abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id));
+  abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id), contaDoPedido(pedido));
 }
 
 /* ==========================================================================
@@ -1489,7 +1678,8 @@ function reabrirRascunho(pedidoId) {
 const APPS_EMAIL = {
   gmail: {
     get label() { return tt('Gmail'); },
-    url: (para, assunto, corpo) => `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(para)}&su=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}${estado.contaEmail ? `&authuser=${encodeURIComponent(estado.contaEmail)}` : ''}`
+    // "conta" é o endereço de onde o pedido tem de sair (o Gmail abre nessa conta)
+    url: (para, assunto, corpo, conta = '') => `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(para)}&su=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}${conta ? `&authuser=${encodeURIComponent(conta)}` : ''}`
   },
   outlook: {
     get label() { return tt('Outlook ou Hotmail'); },
@@ -1501,15 +1691,18 @@ const APPS_EMAIL = {
   }
 };
 
-function abrirEmail(destinatario, assunto, corpo, aoCancelar = () => {}) {
-  if (!APPS_EMAIL[estado.appEmail]) {
-    escolherAppEmail(() => abrirEmail(destinatario, assunto, corpo, aoCancelar), aoCancelar);
+function abrirEmail(destinatario, assunto, corpo, aoCancelar = () => {}, conta = '') {
+  // Com conta definida, abre sempre no Gmail dessa conta: o Outlook e a app do dispositivo
+  // não deixam escolher o remetente, e o pedido tem de sair do endereço certo.
+  const chave = conta ? 'gmail' : estado.appEmail;
+  if (!APPS_EMAIL[chave]) {
+    escolherAppEmail(() => abrirEmail(destinatario, assunto, corpo, aoCancelar, conta), aoCancelar);
     return;
   }
-  const app = APPS_EMAIL[estado.appEmail];
-  const url = app.url(destinatario, assunto, corpo);
-  mostrarToast(tt('A abrir o pedido no {0}…', [app.label]));
-  if (estado.appEmail === 'sistema') {
+  const app = APPS_EMAIL[chave];
+  const url = app.url(destinatario, assunto, corpo, conta);
+  mostrarToast(conta ? tt('A abrir o pedido no Gmail, a partir de {0}…', [conta]) : tt('A abrir o pedido no {0}…', [app.label]));
+  if (chave === 'sistema') {
     window.location.href = url;
   } else {
     // Gmail e Outlook abrem num separador novo, já com o email escrito
@@ -1557,19 +1750,26 @@ function perguntarSeEnviou(pedido, aoFecharFora = null) {
     aoFecharFora,
     titulo: tt('Enviaste o pedido à {0}?', [pedido.companyName]),
     texto: tt('Só tu sabes: o Veto não tem acesso ao teu email enviado. Se disseres que sim, começamos a contar o prazo de resposta.'),
+    nota: pedido.contaEmail ? tt('Tem de ter saído de {0}, o email onde descobrimos esta empresa.', [pedido.contaEmail]) : '',
     opcoes: [
       { label: tt('Sim, enviei'), estilo: 'primary', acao: () => confirmarEnvio(pedido.id) },
       { label: tt('Ainda não'), estilo: 'secondary', acao: () => marcarNaoEnviado(pedido.id) },
-      {
-        label: estado.appEmail
-          ? tt('Abrir noutra app (agora: {0})', [APPS_EMAIL[estado.appEmail]?.label || tt('nenhuma')])
-          : tt('Abrir noutra app de email'),
-        estilo: 'ghost',
-        acao: () => {
-          estado.appEmail = null;
-          abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id));
+      contaDoPedido(pedido)
+        ? {
+          label: tt('Abrir outra vez no Gmail ({0})', [contaDoPedido(pedido)]),
+          estilo: 'ghost',
+          acao: () => abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id), contaDoPedido(pedido))
         }
-      }
+        : {
+          label: estado.appEmail
+            ? tt('Abrir noutra app (agora: {0})', [APPS_EMAIL[estado.appEmail]?.label || tt('nenhuma')])
+            : tt('Abrir noutra app de email'),
+          estilo: 'ghost',
+          acao: () => {
+            estado.appEmail = null;
+            abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => marcarNaoEnviado(pedido.id));
+          }
+        }
     ]
   });
 }
@@ -1644,7 +1844,7 @@ function enviarInsistencia(pedidoId) {
   pedido.followUpAt = new Date().toISOString();
   pedido.timeline.push({ to: 'follow_up', at: pedido.followUpAt });
   guardarEstado();
-  abrirEmail(pedido.email, `${tt('Insistência:')} ${direito.subject}`, corpo);
+  abrirEmail(pedido.email, `${tt('Insistência:')} ${direito.subject}`, corpo, () => {}, contaDoPedido(pedido));
   renderTudo();
 }
 
@@ -2120,7 +2320,7 @@ function abrirCancelamento(empresa) {
   } else if (porEmail) {
     const [para, consulta] = link.slice(7).split('?');
     const parametros = new URLSearchParams(consulta || '');
-    abrirEmail(decodeURIComponent(para), parametros.get('subject') || 'Unsubscribe', parametros.get('body') || 'Unsubscribe');
+    abrirEmail(decodeURIComponent(para), parametros.get('subject') || 'Unsubscribe', parametros.get('body') || 'Unsubscribe', () => {}, contaProvavel(empresa.id));
   } else if (link === 'exemplo') {
     mostrarToast(tt('No exemplo não abrimos nenhum link de cancelamento.'));
   }
@@ -2917,7 +3117,7 @@ function criarCartaoPedido(pedido) {
     acoes.push(botao('resposta', pedido.id, tt('Registar o resultado'), 'primary'));
   }
   if (balde === 'confirmado' && pedido.right !== 'erasure' && obterEmpresa(pedido.companyId)) {
-    acoes.push(`<button data-action="pedido" data-id="${esc(pedido.companyId)}" data-right="erasure" type="button" class="rounded-lg bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-200">${tt('Pedir apagamento')}</button>`);
+    acoes.push(`<button data-action="pedido" data-id="${esc(pedido.companyId)}" data-right="erasure" data-account="${esc(pedido.contaEmail || '')}" type="button" class="rounded-lg bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-200">${tt('Pedir apagamento')}</button>`);
   }
 
   const resultado = pedido.outcome ? `<span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${balde === 'confirmado' ? 'bg-rose-400/10 text-rose-200' : balde === 'atraso' ? 'bg-orange-400/10 text-orange-200' : 'bg-lime/10 text-lime'}">${esc(OUTCOMES[pedido.outcome].badge)}</span>` : '';
@@ -3042,7 +3242,7 @@ function tratarAcaoClique(alvo, action, dados) {
       if (filtroSetor !== 'todos') document.getElementById('list-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
       break;
     case 'filtro': filtroTipo = kind; renderPainel(); renderEmpresas(); break;
-    case 'pedido': prepararPedido(id, right); break;
+    case 'pedido': prepararPedido(id, right, alvo.dataset.account || ''); break;
     case 'mais': mostrarMaisOpcoes(id); break;
     case 'gerir': irParaMapa(id); break;
     case 'ver-area': selecaoMapa = { tipo: 'setor', chave: sector }; location.hash = '#pedidos'; break;
@@ -3096,12 +3296,13 @@ function tratarAcaoClique(alvo, action, dados) {
         registarEvento('pedido_reenviado', { direito: pedido.right, area: pedido.companySector });
         renderLimitePedidos();
       }
-      abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => {});
+      abrirEmail(pedido.email, RIGHTS[pedido.right].subject, RIGHTS[pedido.right].body(pedido.companyName), () => {}, contaDoPedido(pedido));
       break;
     }
     case 'pedir-acesso': pedirAcessoAoTeste(); break;
     case 'adicionar-conta': adicionarConta(); break;
     case 'selecionar-conta': selecionarConta(alvo.dataset.account); break;
+    case 'remover-conta': removerConta(alvo.dataset.account); break;
     case 'nova-analise': renderResumo.novaAnalise = true; renderResumo(); break;
     case 'mapa-setor': alternarSelecao('setor', sector); break;
     case 'mapa-empresa': alternarSelecao('empresa', id); break;
@@ -3154,7 +3355,8 @@ function limparExemplo() {
 
 function limparTudo() {
   const { teste, filaEnvio, enviadosTotal, decisaoTeste } = estado;
-  estado = { empresas: [], pedidos: [], analisadoEm: null, demo: false, teste, filaEnvio, enviadosTotal, decisaoTeste };
+  estado = { empresas: [], pedidos: [], contas: [], contaSelecionada: 'todas', analisadoEm: null, demo: false, teste, filaEnvio, enviadosTotal, decisaoTeste };
+  limparMonitorizacaoDeContaRemovida([]);
   renderResumo.novaAnalise = false;
   selecaoMapa = null;
   try { localStorage.removeItem(STORAGE_KEY); } catch (erro) { /* sem armazenamento */ }
@@ -3189,11 +3391,12 @@ function enviosConfirmadosHoje() {
 }
 
 function pedidosRestantesHoje() {
+  if (temPlus()) return Infinity; // O limite não existe nos planos Veto+
   return Math.max(0, PEDIDOS_GRATIS_POR_DIA - enviosConfirmadosHoje());
 }
 
 function temPedidoDisponivelHoje() {
-  return pedidosRestantesHoje() > 0;
+  return temPlus() || pedidosRestantesHoje() > 0;
 }
 
 function proximoDiaLocal() {
@@ -3213,16 +3416,27 @@ function mostrarLimitePedidosAtingido() {
     enviadosHoje: enviosConfirmadosHoje()
   });
   abrirFolha({
-    titulo: tt('Limite de hoje atingido'),
+    titulo: tt('Limite grátis atingido'),
     texto: tt('Já confirmaste o envio de {0} pedidos hoje. {1}', [PEDIDOS_GRATIS_POR_DIA, textoLimitePedidos()]),
-    nota: tt('Os pedidos que já começaste continuam disponíveis e nunca são interrompidos.'),
-    opcoes: [{ label: tt('Fechar'), estilo: 'primary', acao: () => {} }]
+    nota: tt('Com o plano Veto+, este limite desaparece e podes enviar pedidos ilimitados.'),
+    opcoes: [
+      { label: tt('Conhecer o Veto+'), estilo: 'primary', acao: () => abrirPlus('limite_pedidos') },
+      { label: tt('Mais tarde'), estilo: 'ghost', acao: () => {} }
+    ]
   });
 }
 
 function renderLimitePedidos() {
   const el = document.getElementById('requests-limit');
   if (!el) return;
+  
+  if (temPlus()) {
+    el.textContent = tt('Pedidos ilimitados (Veto+)');
+    el.classList.add('text-slate-500');
+    el.classList.remove('text-rose-200');
+    return;
+  }
+
   const restantes = pedidosRestantesHoje();
   el.textContent = restantes
     ? tt('{0} de {1} pedidos hoje', [restantes, PEDIDOS_GRATIS_POR_DIA])

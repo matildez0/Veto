@@ -55,6 +55,31 @@ function guardarMonitorizacao() {
   }
 }
 
+// Depois de remover uma conta: a monitorização deixa de guardar empresas e notícias que só vinham dela.
+// "empresasRestantes" são as empresas das contas que ficam.
+function limparMonitorizacaoDeContaRemovida(empresasRestantes) {
+  const empresas = (empresasRestantes || []).filter((empresa) => !empresa.dismissed);
+  const ids = new Set(empresas.map((empresa) => empresa.id));
+  const dominios = empresas.map((empresa) => empresa.domain);
+  const idsNoticias = new Set(NOTICIAS
+    .filter((noticia) => (noticia.dominios || []).some((dominio) => dominios.some((d) => d === dominio || d.endsWith(`.${dominio}`))))
+    .map((noticia) => noticia.id));
+
+  monitorizacao.empresasConhecidas = monitorizacao.empresasConhecidas.filter((id) => ids.has(id));
+  monitorizacao.noticiasConhecidas = monitorizacao.noticiasConhecidas.filter((id) => idsNoticias.has(id));
+  monitorizacao.novasEmpresas = monitorizacao.novasEmpresas.filter((empresa) => ids.has(empresa.id));
+  monitorizacao.novasNoticias = monitorizacao.novasNoticias.filter((noticia) => idsNoticias.has(noticia.id));
+
+  // Sem empresas, não há nada para monitorizar
+  if (!ids.size) {
+    monitorizacao.ativa = false;
+    monitorizacao.verificadaEm = null;
+  }
+
+  guardarMonitorizacao();
+  renderMonitorizacao();
+}
+
 function intervaloMonitorizacao() {
   return {
     diaria: 86400000,
@@ -719,6 +744,33 @@ async function contasRemotas() {
   return (data || [])
     .map((conta) => conta.email)
     .filter(Boolean);
+}
+
+// Desassocia o endereço no servidor. Precisa de uma política RLS de DELETE em linked_accounts
+// (ver notas): sem ela o Supabase apaga 0 linhas sem dar erro, e por isso confirmamos no fim.
+async function desassociarContaRemota(email) {
+  if (!supabaseClient || !email) return;
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (!session) return;
+
+  const variantes = [...new Set([email, email.toLowerCase()])];
+
+  const { error } = await supabaseClient
+    .from('linked_accounts')
+    .delete()
+    .in('email', variantes);
+
+  if (error) throw error;
+
+  const restantes = await contasRemotas();
+
+  if (restantes.some((conta) => conta.toLowerCase() === email.toLowerCase())) {
+    throw new Error('A conta continua associada no servidor.');
+  }
 }
 
 async function abrirPerfilSupabase() {

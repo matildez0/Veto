@@ -822,7 +822,7 @@ async function contaDisponivelRemota() {
 
   const emails = await contasRemotas();
 
-  return emails.length < PLUS.MAX_CONTAS;
+  return emails.length < (PLUS.MAX_CONTAS - 1);
 }
 
 function desativarPlus() {

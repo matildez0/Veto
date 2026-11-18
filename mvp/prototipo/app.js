@@ -1952,6 +1952,7 @@ function renderTudo() {
   renderEmpresas();
   renderPedidos();
   renderNoticias();
+  atualizarEstadoTema();
   if (vista === 'inicio') registarPlusVisto();
 }
 
@@ -3282,6 +3283,7 @@ function tratarAcaoClique(alvo, action, dados) {
     case 'sem-resposta': aplicarResultado(id, 'no_reply'); break;
     case 'apagar-tudo': confirmarApagarTudo(); break;
     case 'alternar-menu': alternarMenu(); break;
+    case 'alternar-tema': alternarTema(); break;
     case 'enviar-novamente': {
       const pedido = obterPedido(id);
       if (!pedido) break;
@@ -3499,6 +3501,23 @@ function pedirAcessoAoTeste() {
       { label: tt('Agora não'), estilo: 'ghost', acao: () => {} }
     ]
   });
+}
+
+function alternarTema() {
+  const claro = document.documentElement.classList.toggle('light');
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) metaTheme.setAttribute('content', claro ? '#f1ecf6' : '#211923');
+  try {
+    localStorage.setItem('veto-tema', claro ? 'claro' : 'escuro');
+  } catch (erro) { /* sem armazenamento: só vale nesta visita */ }
+  atualizarEstadoTema();
+}
+
+function atualizarEstadoTema() {
+  const el = document.getElementById('tema-definicoes-estado');
+  if (!el) return;
+  const claro = document.documentElement.classList.contains('light');
+  el.textContent = claro ? tt('Tema claro') : tt('Tema escuro');
 }
 
 async function pedirEmailDeAcesso() {

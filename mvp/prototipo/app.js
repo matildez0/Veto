@@ -2048,6 +2048,8 @@ function visiveis() {
 
 function renderResumo() {
   renderTeste();
+  const lista = visiveis();
+  const sensiveis = lista.filter((empresa) => SECTORS[empresa.sector]?.sensitive).length;
   const pedidosVisiveis = pedidosDaContaSelecionada();
   const enviados = pedidosVisiveis.filter((pedido) => pedido.status !== 'draft').length;
   const atencao = pedidosVisiveis.filter(precisaDeAtencao).length;

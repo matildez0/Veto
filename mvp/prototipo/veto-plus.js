@@ -176,29 +176,60 @@ function verificarMonitorizacao(forcar = false) {
   );
 }
 
-async function ativarMonitorizacao() {
+
+function alterarFrequenciaMonitorizacao(frequencia) {
+  if (!['diaria', 'semanal', 'mensal'].includes(frequencia)) return;
+  monitorizacao.frequencia = frequencia;
+  guardarMonitorizacao();
+  renderMonitorizacao();
+  if (monitorizacao.ativa) {
+    mostrarToast(tt('Frequência alterada para {0}.', [frequencia]));
+  }
+}
+
+function verificarMonitorizacaoAoAbrir() {
+  if (!monitorizacao.ativa || !temPlus() || !estado.empresas.length) return;
+  const ultima = monitorizacao.verificadaEm
+    ? new Date(monitorizacao.verificadaEm).getTime()
+    : 0;
+  if (Date.now() - ultima >= intervaloMonitorizacao()) {
+    verificarMonitorizacao(false);
+  }
+}
+
+function ativarMonitorizacao() {
   if (!temPlus()) {
     abrirPlus('monitorizacao');
     return;
   }
 
   if (!estado.empresas.length) {
-    mostrarToast('Faz primeiro uma análise do Gmail para ativar a monitorização.');
+    mostrarToast(tt('Faz primeiro uma análise do Gmail para ativar a monitorização.'));
     return;
   }
 
   const frequencia =
-    document.querySelector('input[name="monitor-frequencia"]:checked')?.value
-    || 'semanal';
+    document.querySelector('input[name="monitor-frequencia"]:checked')?.value || 'semanal';
 
-  if (
-    'Notification' in window &&
-    Notification.permission !== 'granted'
-  ) {
+  abrirFolha({
+    titulo: tt('Ativar monitorização contínua?'),
+    texto: tt('O Veto vai verificar periodicamente ({0}) se existem empresas ou notícias novas quando abrires a app. Tudo corre apenas neste dispositivo — nenhum servidor guarda os teus tokens.', [frequencia]),
+    lista: [
+      [tt('Permissão necessária'), tt('O browser vai pedir permissão para te mostrar notificações locais quando houver novidades.')],
+      [tt('Como revogar'), tt('Podes desligar a monitorização a qualquer momento nesta página ou retirar a permissão de notificações no ícone do cadeado na barra de endereço do browser.')]
+    ],
+    opcoes: [
+      { label: tt('Continuar e ativar'), estilo: 'primary', acao: () => concluirAtivacaoMonitorizacao(frequencia) },
+      { label: tt('Agora não'), estilo: 'ghost', acao: () => {} }
+    ]
+  });
+}
+
+async function concluirAtivacaoMonitorizacao(frequencia) {
+  if ('Notification' in window && Notification.permission !== 'granted') {
     const permissao = await Notification.requestPermission();
-
     if (permissao !== 'granted') {
-      mostrarToast('A monitorização precisa de permissão para mostrar notificações.');
+      mostrarToast(tt('A monitorização precisa de permissão para mostrar notificações.'));
       return;
     }
   }
@@ -216,9 +247,9 @@ async function ativarMonitorizacao() {
 
   guardarMonitorizacao();
   renderMonitorizacao();
-
-  mostrarToast('Monitorização ativada. A primeira verificação fica como referência.');
+  mostrarToast(tt('Monitorização ativada. A primeira verificação fica como referência.'));
 }
+
 
 function desativarMonitorizacao() {
   monitorizacao.ativa = false;
@@ -463,10 +494,13 @@ async function entrarSupabase() {
     return;
   }
 
+  const url = new URL(window.location.href);
+  url.hash = '';
+
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.href,
+      redirectTo: url.toString(),
       scopes: 'openid email profile',
       queryParams: { prompt: 'select_account' }
     }
@@ -606,6 +640,7 @@ async function loginGoogleAuth() {
   }
 
   const url = new URL(window.location.href);
+  url.hash = '';
   if (modoAuth === 'registo') {
     const plano =
       document.querySelector('input[name="auth-plan"]:checked')?.value || 'gratis';
@@ -724,6 +759,7 @@ async function garantirSessao(plano) {
   if (session) return session;
 
   const url = new URL(location.href);
+  url.hash = '';
   url.searchParams.set('checkout_plan', plano);
 
   const { error } = await supabaseClient.auth.signInWithOAuth({

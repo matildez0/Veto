@@ -682,10 +682,12 @@ function selecionarConta(email) {
 const status = document.getElementById('analysis-status');
 
 carregarEstado();
+carregarMonitorizacao();
 const retornoPagamento = tratarRetornoPagamento();
 carregarPlus().then(() => {
   iniciarSessaoSupabase();
   iniciarCheckoutPendente();
+  verificarMonitorizacaoAoAbrir();
   contasRemotas().then((emails) => {
     emails.forEach((email) => {
       if (!contasAtivas().some((conta) => conta.email?.toLowerCase() === email.toLowerCase())) {
@@ -734,6 +736,11 @@ document.getElementById('search-input').addEventListener('input', renderEmpresas
 document.addEventListener('click', tratarClique);
 // Que perguntas do guia são abertas, uma vez por pergunta em cada visita
 // (o evento "toggle" não sobe, por isso apanha-se na descida)
+document.addEventListener('change', (evento) => {
+  if (evento.target.matches?.('input[name="monitor-frequencia"]')) {
+    alterarFrequenciaMonitorizacao(evento.target.value);
+  }
+});
 const perguntasAbertas = new Set();
 document.addEventListener('toggle', (evento) => {
   const pergunta = evento.target.matches?.('details[data-guia]') && evento.target.open && evento.target.dataset.guia;
@@ -1956,6 +1963,7 @@ function renderTudo() {
   renderPainel();
   renderEmpresas();
   renderPedidos();
+  renderMonitorizacao();
   renderNoticias();
   atualizarEstadoTema();
   if (vista === 'inicio') registarPlusVisto();
@@ -2040,13 +2048,10 @@ function visiveis() {
 
 function renderResumo() {
   renderTeste();
-  const lista = visiveis();
-  const sensiveis = lista.filter((empresa) => SECTORS[empresa.sector]?.sensitive).length;
-  const enviados = estado.pedidos.filter((pedido) => pedido.status !== 'draft').length;
-  const atencao = estado.pedidos.filter(precisaDeAtencao).length;
-  
   const pedidosVisiveis = pedidosDaContaSelecionada();
-
+  const enviados = pedidosVisiveis.filter((pedido) => pedido.status !== 'draft').length;
+  const atencao = pedidosVisiveis.filter(precisaDeAtencao).length;
+  
   document.getElementById('service-count').textContent = lista.length;
   document.getElementById('service-noun').textContent = plural(lista.length, tt('empresa'), tt('empresas'));
   document.getElementById('service-verb').textContent = (lista.length === 1 ? tt('tem provavelmente os teus dados') : tt('têm provavelmente os teus dados'));
@@ -3331,6 +3336,9 @@ function tratarAcaoClique(alvo, action, dados) {
       if (opcao) opcao.acao();
       break;
     }
+    case 'ativar-monitorizacao': ativarMonitorizacao(); break;
+  case 'desativar-monitorizacao': desativarMonitorizacao(); break;
+  case 'verificar-monitorizacao': verificarMonitorizacao(true); break;
     default: break;
   }
 }

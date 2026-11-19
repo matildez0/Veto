@@ -639,6 +639,14 @@ function contasAtivas() {
   return Array.isArray(estado.contas) ? estado.contas : [];
 }
 
+function pedidosDaContaSelecionada() {
+  const selecionada = String(estado.contaSelecionada || 'todas').toLowerCase();
+  if (selecionada === 'todas') return estado.pedidos;
+  return estado.pedidos.filter((pedido) =>
+    String(contaDoPedido(pedido) || '').toLowerCase() === selecionada
+  );
+}
+
 function renderContasCard() {
   const card = document.getElementById('contas-card');
   if (!card) return;
@@ -1897,7 +1905,7 @@ function baldeDoPedido(pedido) {
 // Só entram as empresas a quem foi enviado pelo menos um pedido (os rascunhos não contam).
 function empresasComPedidos() {
   const mapa = new Map();
-  estado.pedidos
+  pedidosDaContaSelecionada()
     .filter((pedido) => pedido.status !== 'draft')
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .forEach((pedido) => {
@@ -2036,6 +2044,9 @@ function renderResumo() {
   const sensiveis = lista.filter((empresa) => SECTORS[empresa.sector]?.sensitive).length;
   const enviados = estado.pedidos.filter((pedido) => pedido.status !== 'draft').length;
   const atencao = estado.pedidos.filter(precisaDeAtencao).length;
+  
+  const pedidosVisiveis = pedidosDaContaSelecionada();
+
   document.getElementById('service-count').textContent = lista.length;
   document.getElementById('service-noun').textContent = plural(lista.length, tt('empresa'), tt('empresas'));
   document.getElementById('service-verb').textContent = (lista.length === 1 ? tt('tem provavelmente os teus dados') : tt('têm provavelmente os teus dados'));
@@ -2213,12 +2224,13 @@ function criarCard(empresa) {
   const tipo = KINDS[empresa.kind] || KINDS.unknown;
   const setor = SECTORS[empresa.sector] || SECTORS.outros;
   const ev = empresa.evidence || {};
-  const ultimo = estado.pedidos
-    .filter((pedido) => pedido.companyId === empresa.id && pedido.status !== 'draft')
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
   const recebidos = ev.totalRecebidos ?? ev.count ?? 0;
 
   const gravidade = gravidadeDe(empresa).chave;
+  
+  const ultimo = pedidosDaContaSelecionada()
+  .filter((pedido) => pedido.companyId === empresa.id && pedido.status !== 'draft')
+  .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
 
   const estadoPedido = ultimo ? `
     <a href="#pedidos" data-action="ver-no-mapa" data-id="${esc(empresa.id)}" class="mt-3 flex items-center gap-2 rounded-xl border border-slate-800 px-3 py-2 text-[11px] text-slate-300">
@@ -2357,7 +2369,8 @@ function mostrarMaisOpcoes(empresaId) {
 
 function renderPedidos() {
   const nos = nosDoMapa();
-  const temPedidos = estado.pedidos.length > 0;
+  const listaPedidos = pedidosDaContaSelecionada();
+  const temPedidos = listaPedidos.length > 0;
   const temMapa = nos.length > 0;
   document.getElementById('results-map').classList.remove('hidden');
   renderLimitePedidos();
@@ -2389,7 +2402,7 @@ function renderPedidos() {
   document.getElementById('requests-section').classList.toggle('hidden', !temPedidos);
   if (!temPedidos) return;
 
-  const pedidos = [...estado.pedidos];
+  const pedidos = [...listaPedidos];
   const concluido = (pedido) => pedido.status === 'closed' || (pedido.status === 'reply_received' && pedido.holdsData !== null);
   // À espera: os que precisam de uma ação tua primeiro, depois pelo prazo
   const espera = pedidos.filter((pedido) => !concluido(pedido))
@@ -2956,6 +2969,7 @@ function nosDoMapa() {
 function detalheDoMapa(nos, rede) {
   const sel = selecaoMapa;
   const fechar = `<button data-action="mapa-limpar" type="button" class="shrink-0 text-xs font-semibold text-slate-400">${tt('Fechar')}</button>`;
+ 
   const cabecalho = (marca, titulo, subtitulo) => `
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
@@ -2977,6 +2991,7 @@ function detalheDoMapa(nos, rede) {
   const nomes = (lista) => {
     const n = lista.map((no) => no.name);
     return n.length > 1 ? `${n.slice(0, -1).join(', ')} e ${n[n.length - 1]}` : n[0];
+  
   };
 
   // Nada escolhido: uma frase e as três empresas mais graves
@@ -3007,9 +3022,10 @@ function detalheDoMapa(nos, rede) {
   const no = nos.find((item) => item.id === sel.chave);
   const setor = SECTORS[no.sector] || SECTORS.outros;
   const ev = no.empresa?.evidence;
-  const pedidosDaEmpresa = estado.pedidos
-    .filter((pedido) => pedido.companyId === no.id && pedido.status !== 'draft')
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const pedidosDaEmpresa = pedidosDaContaSelecionada()
+  .filter((pedido) => pedido.companyId === no.id && pedido.status !== 'draft')
+  .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
   const historico = pedidosDaEmpresa.map((pedido) => `
     <div class="flex items-center justify-between gap-3 border-b border-slate-800 py-2 last:border-b-0">
       <span class="text-xs text-slate-300">${esc(RIGHTS[pedido.right].short)}: ${esc(descreverPedido(pedido))}</span>

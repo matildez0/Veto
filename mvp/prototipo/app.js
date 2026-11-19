@@ -656,10 +656,7 @@ function renderContasCard() {
     <div class="mt-3 flex flex-wrap gap-2">
       <button type="button" data-action="selecionar-conta" data-account="todas" class="rounded-lg px-3 py-2 text-xs font-semibold ${estado.contaSelecionada === 'todas' ? 'bg-lime text-ink' : 'border border-slate-700 text-slate-300'}">${tt('Todas as contas')}</button>
       ${contas.map((conta) => `<button type="button" data-action="selecionar-conta" data-account="${esc(conta.email)}" class="rounded-lg px-3 py-2 text-xs font-semibold ${estado.contaSelecionada.toLowerCase() === (conta.email || '').toLowerCase() ? 'bg-lime text-ink' : 'border border-slate-700 text-slate-300'}">${esc(conta.email || tt('Conta Gmail'))}</button>`).join('')}
-    </div>
-    <ul class="mt-3 flex flex-col gap-2">
-      ${contas.map((conta) => `<li class="flex items-center justify-between gap-3 rounded-lg border border-slate-800 px-3 py-2 text-xs"><span class="min-w-0 truncate">${esc(conta.email || tt('Conta Gmail'))}</span><button type="button" data-action="remover-conta" data-account="${esc(conta.email || '')}" class="shrink-0 font-semibold text-rose-200 underline decoration-rose-300/30 underline-offset-4">${tt('Remover')}</button></li>`).join('')}
-    </ul>`;
+    </div>`;
 }
 
 function selecionarConta(email) {

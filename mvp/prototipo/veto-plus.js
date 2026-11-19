@@ -378,8 +378,8 @@ function renderSessaoSupabase() {
     document.getElementById('supabase-avatar').textContent =
       email[0].toUpperCase();
 
-    document.getElementById('supabase-plan').textContent =
-      plus ? tt('Veto+') : tt('Plano Grátis');
+    //document.getElementById('supabase-plan').textContent = 
+      //plus ? tt('Veto+') : tt('Plano Grátis'); 
 
     profile?.setAttribute('title', email);
 

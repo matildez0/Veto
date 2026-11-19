@@ -3339,8 +3339,8 @@ function tratarAcaoClique(alvo, action, dados) {
       break;
     }
     case 'ativar-monitorizacao': ativarMonitorizacao(); break;
-  case 'desativar-monitorizacao': desativarMonitorizacao(); break;
-  case 'verificar-monitorizacao': verificarMonitorizacao(true); break;
+    case 'desativar-monitorizacao': desativarMonitorizacao(); break;
+    case 'verificar-monitorizacao': verificarMonitorizacao(true); break;
     default: break;
   }
 }

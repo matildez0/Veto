@@ -215,8 +215,8 @@ function ativarMonitorizacao() {
     titulo: tt('Ativar monitorização contínua?'),
     texto: tt('O Veto vai verificar periodicamente ({0}) se existem empresas ou notícias novas quando abrires a app. Tudo corre apenas neste dispositivo — nenhum servidor guarda os teus tokens.', [frequencia]),
     lista: [
-      [tt('Permissão necessária'), tt('O browser vai pedir permissão para te mostrar notificações locais quando houver novidades.')],
-      [tt('Como revogar'), tt('Podes desligar a monitorização a qualquer momento nesta página ou retirar a permissão de notificações no ícone do cadeado na barra de endereço do browser.')]
+      [tt('Permissão necessária'), tt('O sistema vai pedir permissão para te mostrar notificações locais quando houver novidades.')],
+      [tt('Como revogar'), tt('Podes desligar a monitorização a qualquer momento nesta página ou desativar as notificações do Veto nas definições do sistema operativo.')]
     ],
     opcoes: [
       { label: tt('Continuar e ativar'), estilo: 'primary', acao: () => concluirAtivacaoMonitorizacao(frequencia) },

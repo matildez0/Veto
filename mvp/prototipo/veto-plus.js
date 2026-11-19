@@ -445,39 +445,7 @@ function autenticado() {
   return Boolean(supabaseSession?.user);
 }
 
-function abrirAuthModal() {
-  const modal = document.getElementById('auth-modal');
 
-  if (!modal) return;
-
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
-
-  document.querySelectorAll('input[name="auth-plan"]').forEach((input) => {
-    input.onchange = atualizarTextoPlanoAuth;
-  });
-
-  atualizarTextoPlanoAuth();
-
-  document.getElementById('auth-email')?.focus();
-}
-
-function atualizarTextoPlanoAuth() {
-  const plano =
-    document.querySelector('input[name="auth-plan"]:checked')?.value
-    || 'gratis';
-
-  const submit = document.getElementById('auth-submit');
-
-  if (!submit) return;
-
-  submit.textContent =
-    plano === 'plus_anual'
-      ? tt('Subscrever Veto+ anual')
-      : plano === 'plus_mensal'
-        ? tt('Subscrever Veto+ mensal')
-        : tt('Continuar com plano grátis');
-}
 
 function fecharAuthModal() {
   const modal = document.getElementById('auth-modal');
@@ -488,67 +456,6 @@ function fecharAuthModal() {
   modal.classList.remove('flex');
 }
 
-async function submeterAuth(evento) {
-  evento.preventDefault();
-
-  if (!supabaseClient) {
-    throw new Error('O login ainda não está configurado.');
-  }
-
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-
-  const plano =
-    document.querySelector('input[name="auth-plan"]:checked')?.value
-    || 'gratis';
-
-  const submit = document.getElementById('auth-submit');
-  const erro = document.getElementById('auth-error');
-
-  submit.disabled = true;
-  erro.classList.add('hidden');
-
-  try {
-    let { data, error } = await supabaseClient.auth.signUp({
-      email,
-      password,
-      options: { data: { plano } }
-    });
-
-    if (error?.message?.toLowerCase().includes('already registered')) {
-      ({ data, error } =
-        await supabaseClient.auth.signInWithPassword({
-          email,
-          password
-        }));
-    }
-
-    if (error) throw error;
-
-    if (!data.session) {
-      erro.textContent = tt(
-        'Confirma o teu email para concluir o registo e depois inicia sessão.'
-      );
-
-      erro.classList.remove('hidden');
-      return;
-    }
-
-    fecharAuthModal();
-
-    if (plano !== 'gratis') {
-      comprarPlus(
-        plano === 'plus_anual' ? 'anual' : 'mensal',
-        'registo'
-      );
-    }
-  } catch (error) {
-    erro.textContent = error.message || tt('Não foi possível criar a conta.');
-    erro.classList.remove('hidden');
-  } finally {
-    submit.disabled = false;
-  }
-}
 
 async function entrarSupabase() {
   if (!supabaseClient) {
@@ -568,17 +475,142 @@ async function entrarSupabase() {
   if (error) throw error;
 }
 
+let modoAuth = 'registo';
+
+function definirModoAuth(modo) {
+  modoAuth = modo === 'login' ? 'login' : 'registo';
+  const isLogin = modoAuth === 'login';
+
+  document.querySelectorAll('[data-auth-tab]').forEach((btn) => {
+    const ativo = btn.dataset.authTab === modoAuth;
+    btn.classList.toggle('bg-lime', ativo);
+    btn.classList.toggle('text-ink', ativo);
+    btn.classList.toggle('text-slate-400', !ativo);
+  });
+
+  document.getElementById('auth-plans-box')?.classList.toggle('hidden', isLogin);
+  const subtitulo = document.getElementById('auth-modal-subtitle');
+  if (subtitulo) {
+    subtitulo.textContent = isLogin
+      ? tt('Entra na tua conta para acederes ao teu plano.')
+      : tt('Escolhe o teu plano antes de continuar.');
+  }
+
+  const pass = document.getElementById('auth-password');
+  if (pass) pass.setAttribute('autocomplete', isLogin ? 'current-password' : 'new-password');
+
+  document.getElementById('auth-error')?.classList.add('hidden');
+  atualizarTextoPlanoAuth();
+}
+
+function abrirAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (!modal) return;
+
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+
+  document.querySelectorAll('[data-auth-tab]').forEach((btn) => {
+    btn.onclick = () => definirModoAuth(btn.dataset.authTab);
+  });
+
+  document.querySelectorAll('input[name="auth-plan"]').forEach((input) => {
+    input.onchange = atualizarTextoPlanoAuth;
+  });
+
+  definirModoAuth('registo');
+  document.getElementById('auth-email')?.focus();
+}
+
+function atualizarTextoPlanoAuth() {
+  const submit = document.getElementById('auth-submit');
+  if (!submit) return;
+
+  if (modoAuth === 'login') {
+    submit.textContent = tt('Iniciar sessão');
+    return;
+  }
+
+  const plano =
+    document.querySelector('input[name="auth-plan"]:checked')?.value || 'gratis';
+
+  submit.textContent =
+    plano === 'plus_anual'
+      ? tt('Subscrever Veto+ anual')
+      : plano === 'plus_mensal'
+        ? tt('Subscrever Veto+ mensal')
+        : tt('Continuar com plano grátis');
+}
+
+async function submeterAuth(evento) {
+  evento.preventDefault();
+
+  if (!supabaseClient) {
+    throw new Error('O login ainda não está configurado.');
+  }
+
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const plano =
+    document.querySelector('input[name="auth-plan"]:checked')?.value || 'gratis';
+
+  const submit = document.getElementById('auth-submit');
+  const erro = document.getElementById('auth-error');
+
+  submit.disabled = true;
+  erro.classList.add('hidden');
+
+  try {
+    let data, error;
+
+    if (modoAuth === 'login') {
+      ({ data, error } = await supabaseClient.auth.signInWithPassword({ email, password }));
+    } else {
+      ({ data, error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: { data: { plano } }
+      }));
+
+      if (error?.message?.toLowerCase().includes('already registered')) {
+        ({ data, error } = await supabaseClient.auth.signInWithPassword({ email, password }));
+      }
+    }
+
+    if (error) throw error;
+
+    if (!data.session) {
+      erro.textContent = tt(
+        'Confirma o teu email para concluir o registo e depois inicia sessão.'
+      );
+      erro.classList.remove('hidden');
+      return;
+    }
+
+    fecharAuthModal();
+
+    if (modoAuth === 'registo' && plano !== 'gratis') {
+      comprarPlus(plano === 'plus_anual' ? 'anual' : 'mensal', 'registo');
+    }
+  } catch (error) {
+    erro.textContent = error.message || tt('Não foi possível autenticar.');
+    erro.classList.remove('hidden');
+  } finally {
+    submit.disabled = false;
+  }
+}
+
 async function loginGoogleAuth() {
   if (!supabaseClient) {
     throw new Error('O login ainda não está configurado.');
   }
 
-  const plano =
-    document.querySelector('input[name="auth-plan"]:checked')?.value
-    || 'gratis';
-
   const url = new URL(window.location.href);
-  url.searchParams.set('auth_plan', plano);
+  if (modoAuth === 'registo') {
+    const plano =
+      document.querySelector('input[name="auth-plan"]:checked')?.value || 'gratis';
+    url.searchParams.set('auth_plan', plano);
+  }
 
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
